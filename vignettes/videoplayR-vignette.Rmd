@@ -1,0 +1,572 @@
+---
+title: "`wholebrain` - a basic (for now) computer vision library for R"
+author: "Simon Garnier - <a href='https://twitter.com/sjmgarnier'>@sjmgarnier</a>"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    css: custom.css
+    fig_caption: yes
+    fig_height: 6
+    fig_width: 8
+    number_sections: yes
+    theme: cosmo
+    highlight: pygments
+    toc: yes
+  pdf_document:
+    toc: yes
+vignette: |
+  %\VignetteIndexEntry{Vignette Title} 
+  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteEncoding{UTF-8}
+---
+
+---
+
+# Introduction
+
+[R](http://www.r-project.org) is by far my favorite tool to process the data 
+from my lab's experiments, generate beautiful and informative graphs from them, 
+and compute all the statistics that I need for scientific reports and articles.
+However it lacks one important toolset for my work: the ability to process 
+images and videos. I can always rely on a [Matlab](http://www.mathworks.com/products/matlab/)
+or a [Python](https://www.python.org/) script for this, but I would prefer 
+handling my analysis workflow entirely with R rather than depending on mutiple
+tools and languages for this.
+
+`videoplayR` is my attempt at solving this problem by creating a computer vision
+toolbox for R, based on the [OpenCV](http://opencv.org/) C++ library. In its 
+current state, `videoplayR` is very limited when compared to the libraries 
+provided by Matlab and Python, but (1) it is functional enough to import images 
+from image files and videos and perform some basic processing on them, and (2) 
+it is a very young package that I hope will start growing quickly. 
+
+This vignette is intended to show how to install and run `videoplayR`, and to 
+demonstrate its current computer vision capabilities. If you run into a bug or 
+would like to suggest improvements, please head to the package's Github 
+[repository](https://github.com/swarm-lab/videoplayR) and submit a new issue at
+[https://github.com/swarm-lab/videoplayR/issues](https://github.com/swarm-lab/videoplayR/issues).
+I also welcome the help of R developers to improve `videoplayR`. The best way to 
+do this is to fork the repository and submit pull requests for your changes.
+
+[Back to top]("#")
+
+---
+
+# Installation
+
+`videoplayR` is not available on CRAN, at least for now. The reason is that it 
+has external dependencies (OpenCV) that are difficult to include in the package
+directly. Until someone finds a convenient, multi-platform solution to ship 
+OpenCV source files with the package, it will remain available through Github 
+only.
+
+Unfortunately `videoplayR` is also not (yet) available for Windows. I have zero 
+experience preparing Rcpp-based packages for Windows and currently I do not have 
+the time and resources to learn how to compile packages for Windows. If you are 
+a R/Rcpp developer with experience preparing packages for Windows, and you want 
+to help bring `videoplayR` to Windows, you can head to `videoplayR` [Github repository](https://github.com/swarm-lab/videoplayR), clone it and send a pull 
+request once you have figured out how to install OpenCV and compile the package 
+on Windows. 
+
+The good news is that it is not very difficult to install the required 
+dependencies on Mac and Linux. A few command lines in the terminal are enough to
+prepare your computer for and compile `videoplayR`. The steps to install the 
+package on your computer are detailed in the sections below. 
+
+## Installing `opencv`
+
+### Mac
+
+The easiest way to install all the external dependencies for `videoplayR` is to 
+use a package manager such as [Homebrew](http://brew.sh/) or [MacPorts](https://www.macports.org).
+I personally favor Homebrew, but MacPorts will also install the dependencies 
+just fine. 
+
+**- Homebrew -**
+
+To install Homebrew, just head to your favorite terminal app (OSX Terminal for
+instance) and run the following command line: 
+
+```{bash, eval=FALSE} 
+ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
+
+Then, install OpenCV 3.0 by simply typing the following command lines in the 
+terminal:
+
+```{bash, eval=FALSE}
+brew tap homebrew/science
+brew install pkg-config opencv3
+brew link opencv3 --force
+```
+
+**- MacPorts -**
+
+You can install MacPorts by following the instructions provided on its website
+at [https://www.macports.org/install.php](https://www.macports.org/install.php).
+
+Once MacPorts is installed, you will be able to install OpenCV 3.0 by simply 
+typing the following command line in the terminal (you will need the 
+administrator password):
+
+```{bash, eval=FALSE}
+sudo port install opencv
+```
+
+### Linux
+
+On Linux, you should be able to install the development files of OpenCV using 
+your usual package manager. 
+
+**- apt based systems (Ubuntu, Debian, etc.) -**
+
+```{bash, eval = FALSE}
+sudo apt-get install libopencv-dev
+```
+
+**- yum based systems (Red Hat, Fedora, etc.) -**
+
+```{bash, eval = FALSE}
+sudo yum install opencv-devel
+```
+
+**- Arch Linux -**
+
+```{bash, eval = FALSE}
+sudo pacman -S opencv
+```
+
+## Installing `videoplayR` from Github
+
+Once OpenCV and its dependencies are installed, you can open your favorite R 
+development environment and enter the following commands in the R console in 
+order to install the development version of `videoplayR` from its Github 
+repository. 
+
+```{r, eval=FALSE}
+if (!require(devtools)) {
+  install.packages("devtools")
+}
+
+devtools::install_github("swarm-lab/videoplayR")
+
+library(videoplayR)
+```
+
+That's it! `videoplayR` should now be ready to work on your system. If you 
+experience any trouble during the installation process, please report it on the 
+issue page of the package's Github repository at 
+[https://github.com/swarm-lab/videoplayR/issues](https://github.com/swarm-lab/videoplayR/issues).
+
+[Back to top]("#")
+
+---
+
+# Loading images
+
+The core of the `videoplayR` package is the `vpImage` object class. A `vpImage` 
+object is a wrapper around an OpenCV image matrix that can be manipulated 
+directly from within R. There are three ways to create `vpImage` objects: from 
+image files, from video frames, and from R matrices and arrays. I will 
+demonstrate these different methods in the rest of this section.
+
+**Note that `vpImage` objects are not persistent objects like any normal R 
+object. They cannot be saved for reuse in a different session.**
+
+```{r, echo=FALSE, message=FALSE}
+library(videoplayR)
+```
+
+## From image files
+
+The `readImg` function will read an image file and return a `vpImage` object. In
+the example below, I use an image file included in the package. If you prefer to
+use an image from your computer, just replace the filename with a character 
+string representing the path to your image file.
+
+```{r}
+filename <- system.file("sample_img/SampleVideo_1080x720_5mb.png", package = "videoplayR")
+img1 <- readImg(filename)
+```
+
+A `vpImage` object has a couple of attributes that represent the type of image 
+stored inside (binary, grayscale, RGB, or numeric) and the dimensions of the 
+picture (width and height in pixels, and number of channels if applicable). You 
+can access these attributes as follows. 
+
+```{r}
+img1$type
+img1$dim
+```
+
+Finally, you can display the `vpImage` object using the `imshow` function.
+
+```{r, fig.height=4.5}
+imshow(img1)
+```
+
+Since `imshow` display the image in a regular R graphics device, you can plot 
+lines, dots, etc., over the image display. Note that the bottom left of the 
+image corresponds to the {1, 1} coordinates.
+
+```{r, fig.height=4.5}
+imshow(img1)
+points(c(500, 530), c(505, 505), col = "red", pch = 19, cex = 2)
+lines(c(1, img1$dim[2]), c(1, img1$dim[1]), col = "red", lwd = 8)
+lines(c(1, img1$dim[2]), c(img1$dim[1], 1), col = "red", lwd = 8)
+```
+
+## From videos frames
+
+As its name suggests, `videoplayR` can also read videos. It cannot (yet) play
+them, but it can read video frames and import them as `vpImage` objects. Videos
+are accessed through a special object class: `vpVideo`. A `vpVideo` object is a 
+wrapper around an OpenCV video reader object and it can be created using the 
+`readVid` function. 
+
+```{r}
+filename <- system.file("sample_vid/SampleVideo_1080x720_5mb.mp4", package = "videoplayR")
+vid1 <- readVid(filename)
+```
+
+A `vpVideo` object has three attributes that represent the length of the video 
+(in frames), the framerate of the video (in frames per second), and the dimesions 
+of the video (width and heigth in pixels). You can access these attributes as follows. 
+
+```{r}
+vid1$length
+vid1$fps
+vid1$dim
+```
+
+You can grab any frame in the video as a `vpImage` object by using the `getFrame` 
+function as follows. 
+
+```{r, fig.height=4.5}
+img2 <- getFrame(vid1, 100)
+imshow(img2)
+```
+
+## From your webcam
+
+Since version 0.3.1, `videoplayR` can also access the video stream from cameras
+connected to your computer, and import frames as `vpImage` objects. Camera 
+streams are accessed through a special object class: `vpStream`. A `vpStream` 
+object is a wrapper around an OpenCV video reader object and it can be created 
+using the `readStream` function. In the following example, we will open a stream
+from your default webcam.
+
+```{r}
+stream1 <- readStream(0)  # 0 is the index of your default webcam. Use higher 
+                          # numbers to access other cameras connected to your 
+                          # computer. 
+```
+
+A `vpStream` object has one attribute that represents the dimesions of the video 
+stream (width and heigth in pixels). You can access this attribute as follows. 
+
+```{r}
+stream1$dim
+```
+
+You can grab the current frame in the stream as a `vpImage` object by using the 
+`nextFrame` function as follows. 
+
+```{r, echo=FALSE}
+Sys.sleep(1)
+```
+
+```{r, fig.height=4.5, cache=TRUE}
+img3 <- nextFrame(stream1)
+imshow(img3)
+```
+
+Finally, when you are done using your camera, you can release (or close) the 
+stream using the `release` function as follows. 
+
+```{r}
+release(stream1)
+```
+
+## From R matrices and arrays
+
+Fundamentally, a digital image is nothing more than a matrix of numbers. Therefore
+I added a couple of functions that convert R matrices and arrays (3D arrays only)
+into `vpImage` objects, and vice versa. 
+
+The `r2img` function takes an R matrix or 3D array and converts it to a `vpImage`
+object. For instance, in the following code chunk, I create a gradient matrix 
+that I convert to a `vpImage` object and then display using the `imshow` function. 
+
+```{r}
+gradient <- function(x1, x2) { x1 + x2 }
+x <- 0:127
+mat1 <- gradient(outer(rep(1, length(x)), x), x)
+img4 <- r2img(mat1)
+imshow(img4)
+```
+
+On the other hand, the `img2r` function takes a `vpImage` object and converts it 
+to an R matrix (for binary, grayscale and 1-channel numeric objects) or a 3D 
+arrays (for RGB and 3-channels numeric objects). You can then manipulate the 
+matrix or array like you would do with any other regular R matrix or array, and 
+then convert it back to a `vpImage` object, like in the example below. 
+
+```{r, fig.height=4.5}
+mat2 <- img2r(img1)
+mat2[80:640, 250:650, ] <- 255
+img5 <- r2img(mat2)
+imshow(img5)
+```
+
+Note that a number of operations can be applied to a `vpImage` object directly 
+without requiring a conversion to an R object first. I will detail these 
+operations in the next section. 
+
+[Back to top]("#")
+
+---
+
+# Operations on images
+
+Currently `videoplayR` provides only a small fraction of the image processing 
+capabilities of OpenCV. The number of functions will increase little by little
+as my needs for more advanced features develop or as other R developers provide
+their own code to be included in the package (hint: pull requests to the project
+repository are very, very welcome: 
+[https://github.com/swarm-lab/videoplayR/pulls](https://github.com/swarm-lab/videoplayR/pulls))
+
+Nevertheless, `videoplayR` has enough capabilities to get anybody started with 
+basic image processing and, with a bit of creativity, to achieve more advanced 
+results such as simple object detection and tracking. I review the image processing
+functions provided by `videoplayR` in the rest of this section.
+
+## Thresholding
+
+The most common way to generate binary images (images with pixel values that are 
+either zeros or ones) is to use a method called thresholding: all the pixels with 
+a value above a given threshold are set to the same value (one for instance), and 
+all the pixels with a value below the threshold are set to another one (zero for 
+instance).
+
+The `thresholding` function in the `videoplayR` package does just that. It takes
+three arguments: the original image to binarize (`image =`), a threshold value
+(`thres = `), and the type of thresholding (`type =`). If `type = "binary"` then 
+the pixels above `thres` are set to one, and the pixels below are set to zero.
+
+```{r, fig.height=4.5}
+bin1 <- thresholding(image = img1, thres = 128, type = "binary")
+imshow(bin1)
+```
+
+If `type = "inverted"` then the pixels above `thres` are set to zero, and the 
+pixels below are set to one
+
+```{r, fig.height=4.5}
+bin2 <- thresholding(img1, 128, type = "inverted")
+imshow(bin2)
+```
+
+Note that if the original image has multiple channels (RGB image or 3-channels 
+numeric image), it is first "flattened" to one channel automatically by the 
+`thresholding` function. Image flattening is explained in the following section.
+
+## Flattening 
+
+Flattening an image is the process of reducing its depth, that is the number of 
+channels that it is made of. A typical example of flattening is when one wants to
+transform an RGB image (3 channels: Red, Green, Blue) to a grayscale image (1 channel).
+
+`videoplayR` offers a simple way to flatten a 3-channels image by using the 
+`ddd2d` function (depth 3 to depth 1). Hereafter it is used to convert an RGB 
+image to grayscale. 
+
+```{r, fig.height=4.5}
+gray1 <- ddd2d(img1)
+imshow(gray1)
+```
+
+You can also expand a 1-channel image to 3 channels using the `d2ddd` function 
+(depth 1 to depth 3). 
+
+```{r, fig.height=4.5}
+gray2 <- d2ddd(gray1)
+imshow(gray2)
+```
+
+This will not restore the colors of the original RGB image (this information is 
+lost), but it can be a practical way to make 3-channels mask or intensity images
+as I will demonstrate in the next section about blending images.
+
+## Blending
+
+Blending two images is similar to doing element-wise operations on two R matrices 
+or arrays. Each pixel of an image A is combined with the corresponding pixel of 
+another image B through a mathematical operation: they can be added together, 
+subtracted from each other, multiplied with each other, or divided by each other.
+
+When using `vpImage` objects, it is possible to blend two images together without
+having to convert them to R matrices or arrays first. This is done using the 
+`blend` function that works taking two `vpImage` objects (`image1 = ` and `image2 =`)
+and combining them using one of four possible operations (`+`, `-`, `*`, `/`). 
+
+In the following example, I create an uniform 3-channels image (`lum`) with all 
+pixels set to 50. I can then add or subtract this uniform image from the first 
+`vpImage` object that we had created earlier in order to adjust the overall 
+luminosity of the picture. 
+
+```{r, fig.height=9}
+mat <- matrix(50, nrow = img1$dim[1], ncol = img1$dim[2])
+lum <- d2ddd(r2img(mat))
+
+par(mfrow = c(3, 1))
+
+imshow(blend(img1, lum, "-"))
+text(x = 1240, y = 40, labels = "Intensity - 50", adj = 1, cex = 3, col = "white")
+
+imshow(img1)
+text(x = 1240, y = 40, labels = "Original", adj = 1, cex = 3, col = "black")
+
+imshow(blend(img1, lum, "+"))
+text(x = 1240, y = 40, labels = "Intensity + 50", adj = 1, cex = 3, col = "black")
+```
+
+We can also use the `blend` function to mask part of the image, that is turn the 
+pixels to black (i.e. to zero) in the masked part. Hereafter I create a 3-channels
+mask image (`mask`) and combine it with our example image using the multiplication
+operation. The pixels set to zero in the mask image will turn the corresponding 
+pixels in the example image to black after blending, while pixels set to one in 
+the mask image will not modify the corresponding pixels in the example image. 
+
+```{r, fig.height=4.5}
+mat <- matrix(0, nrow = img1$dim[1], ncol = img1$dim[2])
+mat[80:640, 250:650] <- 1
+mask <- d2ddd(r2img(mat))
+
+imshow(blend(img1, mask, "*"))
+```
+
+By combining blending operations with creative masking and luminance images, you 
+can achieve pretty complex image transformations.
+
+## Simple background extraction
+
+In my work, I often need to separate objects in the foreground from the image 
+background. It is fairly easy to do if you have a good image of the background 
+in the absence of the objects. However if you do not possess a clean picture of 
+the background (for instance when there are constantly moving objects in the 
+frame), you need to reconstruct the background image. A simple way to do so is 
+to estimate for each pixel its most frequent value throughout a video, assuming
+that each pixel is not visited too often by the objects in the video. 
+
+The `backgrounder` function in `videoplayR` is my attempt at providing a tool to
+automatically reconstruct the background image of a video. This functions takes 
+four arguments: 
+
++ a `vpVideo` object (`video =`).
++ the number of frames to sample for reconstructing the background (`n =`). Larger 
+numbers give more accurate results but cause the function to run slower. 
++ the method to extract the background (`method =`). If `method = "mean"`, the 
+background image will correspond to the average value of the sampled frames. It 
+is the fastest method, but not the most accurate. If `method = "median"`, the 
+background image will correspond to the median value of the sampled frames. It 
+is more accurate, but also slower. 
++ whether the background should be returned as a color image (`color = TRUE`, 
+slower) or as a grayscale image (`color = FALSE`, faster).
+
+In the following example, I reconstruct the background of a video in which people
+are normally passing through. The first figure below shows a frame containing a 
+person. The second figure shows the reconstructed background image.
+
+```{r}
+filename <- system.file("sample_vid/Walk3.mp4", package = "videoplayR")
+vid2 <- readVid(filename)
+imshow(getFrame(vid2, 125))
+```
+
+```{r}
+bg <- backgrounder(vid2, n = 100, method = "median", color = TRUE)
+imshow(bg)
+```
+
+## Simple blob detection
+
+Another important task that I often need to perform is detect the location of 
+objects in an image, for instance after removing its background. This task is 
+often called blob detection.
+
+`videoplayR` implements a very simple blob detection function called `blobDetector`. 
+It will find white blobs on a black background and will return their locations 
+in the image as well as some information about their shapes (orientation of the 
+major axis, lengths of the major and minor axis in pixels, surface area in pixels). 
+
+In the example below, I demonstrate how to detect objects on a uniform background 
+using the `blobDetector` function. 
+
+First, I load and display the test image.
+
+```{r}
+filename <- system.file("sample_img/dots.jpg", package = "videoplayR")
+img6 <- readImg(filename)
+imshow(img6)
+```
+
+The objects in this image are darker than the background. The first step for letting 
+the computer detect them is to convert the color image to a binary one, with the 
+objects to detect appearing white (value of one) and the background black (value 
+of zero). 
+
+```{r}
+bin3 <- thresholding(img6, 200, "inverted")
+imshow(bin3)
+```
+
+We can now pass this binary image to the `blobDetector` function that will return 
+a data frame in which each row corresponds to a specific object in the image. 
+
+```{r}
+blobs <- blobDetector(bin3)
+head(blobs)
+```
+
+Each column of the data frame corresponds to a property of each blob:
+
++ "id": identity of the blob.
++ "x": x coordinate of the center of the ellipse approximating the shape of the blob.
++ "y": y coordinate of the center of the ellipse approximating the shape of the blob.
++ "alpha": orientation in degrees of the major axis of the ellipse.
++ "major": length of the major axis of the ellipse.
++ "minor": length of the minor axis of the ellipse.
++ "area": area of the polygon containing the blob.
+
+Finally, we can plot the result of the blob detection algorithm over the original
+image. This requires the installation of the `plotrix` package to add ellipses 
+showing the minor and major axes of each object.
+
+```{r, message=FALSE}
+require(plotrix)
+imshow(img6)
+points(y ~ x, data = blobs, col = "red", pch = 20)
+draw.ellipse(blobs$x, blobs$y, blobs$major / 2, blobs$minor / 2, blobs$alpha, border = "red")
+```
+
+The estimated ellipses are not perfect for every object, but the center of mass 
+is pretty accurate in each case. 
+
+[Back to top]("#")
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+

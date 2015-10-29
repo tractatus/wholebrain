@@ -1,0 +1,22 @@
+useDynLib(wholebrain)
+
+## import
+importFrom(Rcpp, evalCpp)
+import(png)
+import(MASS)
+
+## class
+
+## misc
+export(conv)
+export(showImage)
+export(create.output.directory)
+export(imgSWT)
+export(createfilter)
+export(stackapply)
+export(liftingscheme)
+export(unmerge)
+
+.onAttach <- function(libname, pkgname) {
+        packageStartupMessage("WholeBrain (version 0.0.1) \"Thurstone\" ")
+}
