@@ -1193,7 +1193,7 @@ BEGIN_RCPP
   }
 
 
-  Mat muppo(dvImg);
+  Mat muppo = cvarrToMat(dvImg);
 
   //take out each separate detail coefficient.
   std::vector< int > x1;
