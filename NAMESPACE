@@ -16,5 +16,3 @@ export(createfilter)
 export(stackapply)
 export(liftingscheme)
 export(unmerge)
-
-.onLoad(packageStartupMessage("WholeBrain (version 0.0.1) \"Thurstone\" "))
