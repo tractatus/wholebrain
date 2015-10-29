@@ -485,7 +485,7 @@ void onTrackbarLT(int v, void *vp)
     StepThreshold *pd = static_cast<StepThreshold *>(vp);
     (*pd).runthreshold();
     imshow("display", pd->dsp);
-    //imshow("DST", pd->dst);
+    ////imshow("DST", pd->dst);
     //imshow("OUT", pd->out);
     if(pd->minThresh > pd->maxThresh){
       int rangcorr =  pd->maxThresh;
@@ -502,7 +502,7 @@ void onTrackbarUT(int v, void *vp)
 {
     StepThreshold *pd = static_cast<StepThreshold *>(vp);
     (*pd).runthreshold();
-    imshow("DST", pd->dst);
+    //imshow("DST", pd->dst);
     imshow("OUT", pd->out);
     imshow("display", pd->dsp);
     if(pd->maxThresh < pd->minThresh){
@@ -521,7 +521,7 @@ void onTrackbarMinA(int v, void *vp)
     StepThreshold *pd = static_cast<StepThreshold *>(vp);
     (*pd).runthreshold();
     imshow("display", pd->dsp);
-    imshow("DST", pd->dst);
+    //imshow("DST", pd->dst);
     imshow("OUT", pd->out);
     //Rprintf("Lower threshold: \v%d \r", pd->thresholds[0]);
     Rcpp::Rcout << "Min. area: " << (pd->minArea) << "\r" << cout.flush();
@@ -534,7 +534,7 @@ void onTrackbarMaxA(int v, void *vp)
     StepThreshold *pd = static_cast<StepThreshold *>(vp);
     (*pd).runthreshold();
     imshow("display", pd->dsp);
-    imshow("DST", pd->dst);
+    //imshow("DST", pd->dst);
     imshow("OUT", pd->out);
     //Rprintf("Lower threshold: \v%d \r", pd->thresholds[0]);
     Rcpp::Rcout << "Max. area: " << (pd->maxArea) << "\r" << cout.flush();
@@ -547,7 +547,7 @@ void onTrackbarEcc(int v, void *vp)
     StepThreshold *pd = static_cast<StepThreshold *>(vp);
     (*pd).runthreshold();
     imshow("display", pd->dsp);
-    imshow("DST", pd->dst);
+    //imshow("DST", pd->dst);
     imshow("OUT", pd->out);
     //Rprintf("Lower threshold: \v%d \r", pd->thresholds[0]);
     Rcpp::Rcout << "Eccentricity: " << (pd->eccentricityThresh) << "\r" << cout.flush();
