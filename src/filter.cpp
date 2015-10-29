@@ -485,8 +485,8 @@ void onTrackbarLT(int v, void *vp)
     StepThreshold *pd = static_cast<StepThreshold *>(vp);
     (*pd).runthreshold();
     imshow("display", pd->dsp);
-    imshow("DST", pd->dst);
-    imshow("OUT", pd->out);
+    //imshow("DST", pd->dst);
+    //imshow("OUT", pd->out);
     if(pd->minThresh > pd->maxThresh){
       int rangcorr =  pd->maxThresh;
       pd->minThresh = rangcorr;
