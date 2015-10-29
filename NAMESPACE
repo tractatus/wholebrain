@@ -17,6 +17,4 @@ export(stackapply)
 export(liftingscheme)
 export(unmerge)
 
-.onAttach <- function(libname, pkgname) {
-        packageStartupMessage("WholeBrain (version 0.0.1) \"Thurstone\" ")
-}
+.onLoad(packageStartupMessage("WholeBrain (version 0.0.1) \"Thurstone\" "))
