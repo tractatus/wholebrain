@@ -556,7 +556,7 @@ void onTrackbarEcc(int v, void *vp)
 }
 
 
-RcppExport SEXP interactiveThreshold(SEXP input, SEX numthresh){
+RcppExport SEXP interactiveThreshold(SEXP input, SEXP numthresh){
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope;  
   StepThreshold pd;
