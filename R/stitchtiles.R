@@ -11,13 +11,15 @@
 #' @param show.image a boolean value, if true the stitched image will be displayed in a display window. Default is false.
 #' @param micromanager micromanager defines proportion, or rathe rpercentage, overlap as the thickness of the overlapping borderr ther than proportion of overlapping area. In practise this will only double the border thickness, i.e. 0.1 becomes 0.2 overlap. Default is true.
 #' @param verbose boolean value. If true diagnostic output is written to the R console. Deafult is true.
+#' @param contrast a real-valued number which gives the contrast 1 means no contrast change >1 increase <1 decerase. Default is increase of contrast with a value of 3.0.
+#' @param brightness brightness value, default is 30.
 #' @examples
 #' #folder where image tiles are stored
 #'images<-get.images('/Volumes/microscope/animal001/slide001/section001')
 #' #stitch images
 #' stitch(images, type = 'snake.by.row', order = 'left.&.up', tilesize=2048, overlap=0.1, show.image=TRUE)
 
-stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', type = 'snake.by.row', order = 'left.&.up', output.folder='../', tilesize=2048, overlap=0.1, show.image=FALSE, micromanager = TRUE, verbose=TRUE){
+stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', type = 'snake.by.row', order = 'left.&.up', output.folder='../', tilesize=2048, overlap=0.1, show.image=FALSE, micromanager = TRUE, verbose=TRUE, brightness=30, contrast=3.0){
   files<-character()
   for(i in 1:length(input)){
     file <- as.character(input[i])
@@ -91,7 +93,7 @@ stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', t
 }
 
 overlappixels<-round(overlappixels)
-   a<- .Call("LaplacianBlendPipe", files, 
+.Call("LaplacianBlendPipe", files,
    									output.folder, 
    									numrows, 
    									numcols, 
@@ -122,7 +124,8 @@ overlappixels<-round(overlappixels)
    									grid.coordinates$overlaps$small$x0,      
    									grid.coordinates$overlaps$small$y0,
    									as.integer(show.image),
-   									as.integer(verbose),    
+   									as.integer(verbose),
+                                    as.numeric(contrast),
+                                    as.integer(brightness),
    			stitched.image.name)
-  return(a)
 }

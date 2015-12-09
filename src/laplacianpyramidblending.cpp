@@ -532,7 +532,7 @@ float progress = 0.0;
 }
 
 /* apply operation to stack */
-RcppExport SEXP LaplacianBlendPipe(SEXP input, SEXP outname, SEXP nrows, SEXP ncols, SEXP overlappixels, SEXP widthPixels, SEXP heightPixels, SEXP topGridLayout, SEXP bottomGridLayout, SEXP leftGridLayout, SEXP rightGridLayout, SEXP x0GridLayout,   SEXP x1GridLayout,   SEXP y0GridLayout, SEXP y1GridLayout, SEXP horizleftImage, SEXP x0horiz, SEXP y0horiz, SEXP y1horiz, SEXP vertictopImage, SEXP verticbottomImage, SEXP x0vertic,  SEXP  x1vertic , SEXP  y0vertic, SEXP topleftImage, SEXP toprightImage, SEXP bottomleftImage, SEXP bottomrightImage, SEXP x0small, SEXP y0small, SEXP imagedisplay, SEXP writetoconsole, SEXP outputfile) {
+RcppExport SEXP LaplacianBlendPipe(SEXP input, SEXP outname, SEXP nrows, SEXP ncols, SEXP overlappixels, SEXP widthPixels, SEXP heightPixels, SEXP topGridLayout, SEXP bottomGridLayout, SEXP leftGridLayout, SEXP rightGridLayout, SEXP x0GridLayout,   SEXP x1GridLayout,   SEXP y0GridLayout, SEXP y1GridLayout, SEXP horizleftImage, SEXP x0horiz, SEXP y0horiz, SEXP y1horiz, SEXP vertictopImage, SEXP verticbottomImage, SEXP x0vertic,  SEXP  x1vertic , SEXP  y0vertic, SEXP topleftImage, SEXP toprightImage, SEXP bottomleftImage, SEXP bottomrightImage, SEXP x0small, SEXP y0small, SEXP imagedisplay, SEXP writetoconsole, SEXP contrast, SEXP brightness, SEXP outputfile) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
   //Rcpp::CharacterVector std::vector< std::string >
@@ -550,6 +550,9 @@ BEGIN_RCPP
 
   int shouldImageBeShown = Rcpp::as<int>(imagedisplay);
   bool verbose = Rcpp::as<bool>(writetoconsole);
+
+  double alpha = Rcpp::as<double>(contrast);
+  int beta = Rcpp::as<int>(brightness);
 
   Rcpp::IntegerVector tilePosTop(topGridLayout);
   Rcpp::IntegerVector tilePosBottom(bottomGridLayout);
@@ -660,11 +663,19 @@ BEGIN_RCPP
   if(shouldImageBeShown){
   int k;  
   string displaywindow = off;
-  resize(dst, dst, Size(dst.cols/20, dst.rows/20)); // decrease size
+  Mat normalized;
+  double Min, Max;
+  dst.convertTo(dst, -1, alpha, beta);  
+  minMaxLoc(dst, &Min, &Max);
+  dst.convertTo(normalized,CV_8UC1,255.0/(Max-Min)); 
+  if(normalized.rows>600){
+          double ScaleFactor = 600/(double)normalized.rows;
+          resize(normalized, normalized, Size(), ScaleFactor, ScaleFactor, INTER_LINEAR);
+        }
   namedWindow( displaywindow, CV_WINDOW_AUTOSIZE);
-  imshow(displaywindow, dst);
+  imshow(displaywindow, normalized);
   Rcpp::Rcout << '\n' << "Press ESC to close Display window of "<< displaywindow << std::endl;
-  while(1){
+  while(k > 0){
   k=waitKey(0);
   Rcpp::Rcout << '\n' << "KEY PRESSED: " << k << std::endl;
   if( (k == 27)|(k == -1) ){
@@ -673,7 +684,7 @@ BEGIN_RCPP
   }
   }
   }
-  
+  return R_NilValue;
 END_RCPP  
 }
 
