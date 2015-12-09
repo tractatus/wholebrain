@@ -366,7 +366,7 @@ BEGIN_RCPP
         else if (j == pos) Rcpp::Rcout << ">";
         else Rcpp::Rcout << " ";
     }
-    Rcpp::Rcout << "] " << int(progress * 100.0) << " %\r" << std::cout.flush();
+    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
     R_FlushConsole();
     R_ProcessEvents();
     progress += (float)1/(num_files-1);

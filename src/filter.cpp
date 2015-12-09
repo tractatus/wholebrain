@@ -689,6 +689,7 @@ void copySourceTile(const cv::Mat& src, cv::Mat& srcTile, cv::Rect &tile)
     //Take care of border cases
     if (tile.x < 0)
     {
+      
         tloffset.x = -tile.x;
         tile.x = 0;
     }
@@ -701,12 +702,14 @@ void copySourceTile(const cv::Mat& src, cv::Mat& srcTile, cv::Rect &tile)
     
     if (br.x >= src.cols)
     {
+      
         broffset.x = br.x - src.cols + 1;
-        tile.width -= broffset.x;
+        tile.width -= broffset.x; 
     }
     
     if (br.y >= src.rows)
     {
+
         broffset.y = br.y - src.rows + 1;
         tile.height -= broffset.y;
     }
@@ -720,7 +723,7 @@ void copySourceTile(const cv::Mat& src, cv::Mat& srcTile, cv::Rect &tile)
         assert(paddedTile.br().x < src.cols);
         assert(paddedTile.br().y < src.rows);
         
-        cv::copyMakeBorder(src(paddedTile), srcTile, tloffset.y, broffset.y, tloffset.x, broffset.x, BORDER_REPLICATE);
+        cv::copyMakeBorder(src(paddedTile), srcTile, tloffset.y, broffset.y, tloffset.x, broffset.x, BORDER_CONSTANT);
     }
     else
     {
@@ -729,7 +732,7 @@ void copySourceTile(const cv::Mat& src, cv::Mat& srcTile, cv::Rect &tile)
     }
 }
 
-RcppExport SEXP createTiles(SEXP input, SEXP tilesize, SEXP overlap, SEXP outputfile) {
+RcppExport SEXP createTiles(SEXP input, SEXP tilesize, SEXP overlap, SEXP position, SEXP outputfile) {
     BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     //convert to Cpp int
@@ -738,25 +741,100 @@ RcppExport SEXP createTiles(SEXP input, SEXP tilesize, SEXP overlap, SEXP output
     
     Rcpp::CharacterVector of(outputfile);
     std::string off(of[0]);
+
+    int pos = Rcpp::as<int>(position);
+
     
     Rcpp::CharacterVector f(input);
     std::string ff(f[0]);
     Rcpp::Rcout << "Loading image:" << ff << std::endl;
     Mat sourceImage = imread(ff, -1); //CV_LOAD_IMAGE_GRAYSCALE
+    Mat finalImage = sourceImage.clone();
     Rcpp::Rcout << "LOADED." << std::endl;
-    
-    
-    int overlapPixels = (tileSize*((double)overlapPerc/100))/2;
+    int rows;
+    int cols;
+    int overlapPixels;
+    int newHeight;
+    int newWidth; 
+    if(overlapPerc==-999){
+      rows = (int)( ((double)sourceImage.rows / (double)tileSize)+0.5);
+      cols = (int)( ((double)sourceImage.cols / (double)tileSize)+0.5);
+  
+      Rcpp::Rcout << "Rows: " << rows << std::endl;
+      Rcpp::Rcout << "Cols: " << cols << std::endl; 
+
+      int overlapRows = abs( (sourceImage.rows - rows*tileSize) )/rows;
+      int overlapCols = abs( (sourceImage.cols - cols*tileSize) )/cols;
+
+
+      if(overlapCols==overlapRows){
+        overlapPixels = overlapRows/2;
+      }else if(overlapCols>overlapRows){
+        //correct the number of rows
+        tileSize = tileSize - overlapCols;
+        newHeight = (rows)*(tileSize+overlapCols)-overlapCols*(rows-1);
+        newWidth = (cols)*(tileSize+overlapCols)-overlapCols*(cols-1);
+        overlapPixels = overlapCols/2;
+
+        
+
+      }else{
+        //correct the number of cols
+        newHeight = (rows)*(tileSize)-overlapRows*(rows-2);
+        newWidth = (cols)*(tileSize)-overlapRows*(cols-2);
+        overlapPixels = overlapRows/2;
+
+        
+      }
+
+    }else{
+      overlapPixels = (tileSize*((double)overlapPerc/100))/2;
+
+      rows = (sourceImage.rows / tileSize) + (sourceImage.rows % tileSize ? 1 : 0);
+      cols = (sourceImage.cols / tileSize) + (sourceImage.cols % tileSize ? 1 : 0);
+    }
+
+    finalImage = Mat::zeros(newHeight, newWidth, sourceImage.type());
+
+    int x0;
+    int y0;
+
+    switch (pos) {
+        case 1:
+            //topleft
+             x0 =   0;
+             y0 = 0;
+            break;
+        case 2:
+            //topright
+             x0 =   0;
+             y0 = 0;
+            break;
+        case 3:
+            //bottomright
+             x0 =   (sourceImage.cols - finalImage.cols);
+             y0 = (sourceImage.rows - finalImage.rows);
+            break;
+        case 4:
+            //bottomleft
+             x0 = 0;
+             y0 = (sourceImage.rows - finalImage.rows);
+            break;
+        }
+
+
+    Mat dst_roi = sourceImage(Rect(x0,y0,finalImage.cols,finalImage.rows));
+    dst_roi.copyTo(finalImage); 
+        
+
     tileSize = tileSize - 2 * overlapPixels;
-    
+
+
     Rcpp::Rcout << "Overlap:" << overlapPixels << std::endl;
     Rcpp::Rcout << "tileSize:" << tileSize << std::endl;
     
-    double empiricalOverlap = overlapPixels*2/(overlapPixels*2+tileSize);
-    
-    int rows = (sourceImage.rows / tileSize) + (sourceImage.rows % tileSize ? 1 : 0);
-    int cols = (sourceImage.cols / tileSize) + (sourceImage.cols % tileSize ? 1 : 0);
-    
+    double empiricalOverlap = (double)(overlapPixels*2)/(double)(overlapPixels*2+tileSize);
+ 
     cv::Mat tileInput, tileOutput;
     
     int k = 0;
@@ -765,13 +843,13 @@ RcppExport SEXP createTiles(SEXP input, SEXP tilesize, SEXP overlap, SEXP output
     {
         for (int colTile = 0; colTile < cols; colTile++)
         {
-            cv::Rect srcTile(colTile * tileSize - overlapPixels,
-                             rowTile * tileSize - overlapPixels,
+            cv::Rect srcTile(colTile * tileSize + overlapPixels,
+                             rowTile * tileSize + overlapPixels,
                              tileSize + 2 * overlapPixels,
                              tileSize + 2 * overlapPixels);
             
             
-            copySourceTile(sourceImage, tileInput, srcTile);
+            copySourceTile(finalImage, tileInput, srcTile);
             
             string String = static_cast<ostringstream*>( &(ostringstream() << k) )->str();
             
@@ -992,6 +1070,7 @@ BEGIN_RCPP
   stepwisethreshold(tobefiltered, fluorThresh, true, minArea[0], minArea[1], contoursStepwise, hierarchyStepwise, fluorescenceMask);
   */
   // INITIALIZE A THRESHOLD OBJECT
+  Rcpp::Rcout << "Initialize threshold:" << std::endl;
   int depth;
   if(!nofilter){
     StepThreshold pd;
@@ -1016,6 +1095,7 @@ BEGIN_RCPP
 
     fluorescenceMask = pd.out.clone();
   }
+  Rcpp::Rcout << "Threshold done:" << std::endl;
   // END OF A THRESHOLD OBJECT
 
   //bitwise_not( fluorescenceMask, fluorescenceMask ); //invert for background subtraction

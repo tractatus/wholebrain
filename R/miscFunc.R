@@ -73,7 +73,41 @@ stackapply<- function(input){
     files<-append(files, file)
   }
   .Call("runonstack", files, file, file)
-}    
+}
+
+
+#flat.field.correction<- function(input, output.folder='../', output.prefix='FFC', kernel=301, show.image=FALSE, gain.image.name = 'gain_{output.folder}.tif'){
+#  files<-character()
+#  for(i in 1:length(input)){
+#    file <- as.character(input[i])
+#    ## check for existence
+#    if(!file.exists(file))
+#      stop(file, ", file not found")
+#    file <- path.expand(file)
+#    files<-append(files, file)
+#  }
+#  if(show.image){show.image<-1}else{show.image<-0}
+#  show.image<-as.integer(show.image)
+#  
+#  if(output.folder=='../'){
+#    defaultwd<-getwd()
+#    parentpath<-dirname(dirname(input))[1]
+#    outputfolder<-paste(output.prefix, basename(dirname(input))[1], sep='_')
+#    setwd(parentpath)
+#    create.output.directory(outputfolder)
+#    setwd(defaultwd)
+#
+#    output.folder<-paste(parentpath,outputfolder, sep='/')
+#  }
+#  outname<-basename(input)
+#  if(gain.image.name == 'gain_{output.folder}.tif'){
+#    gain.image.name<-paste('gain_', outputfolder, '.tif', sep='')
+#    gain.image.name<-paste(parentpath, gain.image.name, sep='/')
+#  }
+#
+#  .Call("posteriorFFC", files, output.folder, outname, kernel, show.image, gain.image.name)
+#} 
+
 
 imgSWT <- function(input, filter.parameters=NULL, scales=6, cell.bodies = 3, processes = 5, family='db2', sigma=10, processLength=12, alim=c(200, 500), pch=21, bg="white", cex=2, lwd=2, illustrator=F, output='waveletoutput') {
     file <- as.character(input)[1]
@@ -217,7 +251,7 @@ imgSWT <- function(input, filter.parameters=NULL, scales=6, cell.bodies = 3, pro
     return(b)
 }
 
-unmerge<-function(img, tilesize, overlap){
+unstitch<-function(img, tilesize, overlap=NULL, position='bottomright'){
     file <- as.character(img)[1]
     if(!file.exists(file))
     stop(file, "not found")
@@ -228,7 +262,28 @@ unmerge<-function(img, tilesize, overlap){
     outputfile<-basename(file)
     outputfile<-sub("^([^.]*).*", "\\1", outputfile)
     create.output.directory(paste('Tiled', outputfile, sep='_'))
-    a <- .Call("createTiles", file, tilesize, overlap, outputfile)
+    if(is.null(overlap)){overlap<-(-999)}
+    if(position=='topleft'){pos=1}
+    if(position=='topright'){pos=2}
+    if(position=='bottomright'){pos=3}
+    if(position=='bottomleft'){pos=4}
+    a <- .Call("createTiles", file, tilesize, overlap, pos, outputfile)
+    return(a)
+}
+
+
+laplacetest<-function(){
+  .Call("testLaplace")
+}
+
+
+browsersection<-function(imgfilename, adjustments, neurons){
+    file <- as.character(img)[1]
+    if(!file.exists(file))
+    stop(file, "not found")
+    ## expand path
+    file <- path.expand(file)
+    a <- .Call("Zoomify", file)
     return(a)
 }
 
