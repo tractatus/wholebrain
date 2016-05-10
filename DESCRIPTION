@@ -12,3 +12,4 @@ NeedsCompilation: yes
 Imports: Rcpp (>= 0.11.0), png, MASS
 Depends: Rcpp (>= 0.11.0), png, MASS
 Suggests: plotrix (>= 3.5-12), knitr
+LazyData: no

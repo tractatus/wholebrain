@@ -271,6 +271,26 @@ unstitch<-function(img, tilesize, overlap=NULL, position='bottomright'){
     return(a)
 }
 
+#makewebmap<-function(img, alpha=1, beta=0){
+#    file <- as.character(img)[1]
+#    if(!file.exists(file))
+#    stop(file, "not found")
+#    
+#    
+#    ## expand path
+#    file <- path.expand(file)
+#    outputfile<-basename(file)
+#    outputfile<-sub("^([^.]*).*", "\\1", outputfile)
+#    create.output.directory(paste('Web', outputfile, sep='_'))
+#    setwd(paste('Web', outputfile, sep='_'))
+#    create.output.directory(paste('Tiles', outputfile, sep='_'))
+#    setwd('../')
+    #if(is.null(overlap)){overlap<-(-999)}
+#
+ #   a <- .Call("createWeb", file, alpha, beta, outputfile)
+  #  return(a)
+#}
+
 
 laplacetest<-function(){
   .Call("testLaplace")

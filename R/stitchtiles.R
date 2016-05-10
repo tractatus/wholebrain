@@ -13,13 +13,14 @@
 #' @param verbose boolean value. If true diagnostic output is written to the R console. Deafult is true.
 #' @param contrast a real-valued number which gives the contrast 1 means no contrast change >1 increase <1 decerase. Default is increase of contrast with a value of 3.0.
 #' @param brightness brightness value, default is 30.
+#' @param feature.matching a boolean value. If true the tiles are assumed to be non-regularly spaced and therefore feature matching between the tiles will be used. This is much more computationally costly but can generate more accurate results. Default is FALSE.
 #' @examples
 #' #folder where image tiles are stored
 #'images<-get.images('/Volumes/microscope/animal001/slide001/section001')
 #' #stitch images
 #' stitch(images, type = 'snake.by.row', order = 'left.&.up', tilesize=2048, overlap=0.1, show.image=TRUE)
 
-stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', type = 'snake.by.row', order = 'left.&.up', output.folder='../', tilesize=2048, overlap=0.1, show.image=FALSE, micromanager = TRUE, verbose=TRUE, brightness=30, contrast=3.0){
+stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', type = 'snake.by.row', order = 'left.&.up', output.folder='../', tilesize=2048, overlap=0.1, show.image=FALSE, micromanager = TRUE, verbose=TRUE, brightness=30, contrast=3.0, feature.matching = FALSE){
   files<-character()
   for(i in 1:length(input)){
     file <- as.character(input[i])
@@ -127,5 +128,6 @@ overlappixels<-round(overlappixels)
    									as.integer(verbose),
                                     as.numeric(contrast),
                                     as.integer(brightness),
+                                    as.integer(feature.matching),
    			stitched.image.name)
 }

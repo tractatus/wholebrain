@@ -4,6 +4,7 @@
 #include "opencv2/opencv_modules.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/stitching.hpp"
 
 using namespace cv;
 using namespace std;
@@ -532,7 +533,7 @@ float progress = 0.0;
 }
 
 /* apply operation to stack */
-RcppExport SEXP LaplacianBlendPipe(SEXP input, SEXP outname, SEXP nrows, SEXP ncols, SEXP overlappixels, SEXP widthPixels, SEXP heightPixels, SEXP topGridLayout, SEXP bottomGridLayout, SEXP leftGridLayout, SEXP rightGridLayout, SEXP x0GridLayout,   SEXP x1GridLayout,   SEXP y0GridLayout, SEXP y1GridLayout, SEXP horizleftImage, SEXP x0horiz, SEXP y0horiz, SEXP y1horiz, SEXP vertictopImage, SEXP verticbottomImage, SEXP x0vertic,  SEXP  x1vertic , SEXP  y0vertic, SEXP topleftImage, SEXP toprightImage, SEXP bottomleftImage, SEXP bottomrightImage, SEXP x0small, SEXP y0small, SEXP imagedisplay, SEXP writetoconsole, SEXP contrast, SEXP brightness, SEXP outputfile) {
+RcppExport SEXP LaplacianBlendPipe(SEXP input, SEXP outname, SEXP nrows, SEXP ncols, SEXP overlappixels, SEXP widthPixels, SEXP heightPixels, SEXP topGridLayout, SEXP bottomGridLayout, SEXP leftGridLayout, SEXP rightGridLayout, SEXP x0GridLayout,   SEXP x1GridLayout,   SEXP y0GridLayout, SEXP y1GridLayout, SEXP horizleftImage, SEXP x0horiz, SEXP y0horiz, SEXP y1horiz, SEXP vertictopImage, SEXP verticbottomImage, SEXP x0vertic,  SEXP  x1vertic , SEXP  y0vertic, SEXP topleftImage, SEXP toprightImage, SEXP bottomleftImage, SEXP bottomrightImage, SEXP x0small, SEXP y0small, SEXP imagedisplay, SEXP writetoconsole, SEXP contrast, SEXP brightness, SEXP matching, SEXP outputfile) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
   //Rcpp::CharacterVector std::vector< std::string >
@@ -582,6 +583,9 @@ BEGIN_RCPP
   Rcpp::IntegerVector smallX0(x0small);
   Rcpp::IntegerVector smallY0(y0small);
 
+  int featurematching = Rcpp::as<int>(matching);
+  
+
   Rcpp::CharacterVector of(outputfile);
   std::string off(of[0]);
 
@@ -593,6 +597,7 @@ BEGIN_RCPP
   int rows = remove.rows;
   int cols = remove.cols;
   vector<Mat> zpositions(num_files,Mat(cols,rows,remove.type()));
+  vector<Mat> imgs(num_files,Mat(cols,rows,CV_8UC1));
   vector<Mat> destination(num_files,Mat(cols,rows,remove.type()));
   Mat src;
   
@@ -603,7 +608,15 @@ BEGIN_RCPP
     std::string filename(f[i]);
 
     src = imread(filename, -1);
+    if(featurematching){
+      double Min, Max;
+      src.convertTo(src, -1, alpha, beta);  
+      minMaxLoc(src, &Min, &Max);
+      src.convertTo(src,CV_8UC1,255.0/(Max-Min)); 
+      imgs.push_back(src);
+    }else{
     zpositions.at(i) = src;
+    }
 
     
 
@@ -624,6 +637,60 @@ BEGIN_RCPP
     }
 
   }
+
+
+  if(featurematching){
+    Mat pano;
+    bool try_use_gpu = false;
+    if(verbose){Rcpp::Rcout << "\n" << std::endl;
+  Rcpp::Rcout << "====== RUNNING FEATURE MATCHING STITCHER ======" << std::endl;}
+    Stitcher stitcher = Stitcher::createDefault(try_use_gpu);
+    Stitcher::Status status = stitcher.stitch(imgs, pano);
+ 
+    if (status != Stitcher::OK)
+    {
+           Rcpp::Rcout <<  "Can't stitch images, error code = " << status << std::endl;
+           return R_NilValue;
+    }
+      if(verbose){Rcpp::Rcout << "====== FEATURE MATCHING DONE ======" << std::endl;
+
+  Rcpp::Rcout << "saving stitched image..." << std::endl;}
+
+  string outputname;
+  outputname =  outfolder + "/" + off;
+  imwrite(outputname, pano);
+
+  if(verbose){Rcpp::Rcout << "====== SAVING DONE ======" << std::endl;}
+  
+  if(shouldImageBeShown){
+  int k;  
+  string displaywindow = off;
+  Mat normalized;
+  double Min, Max;
+  pano.convertTo(pano, -1, alpha, beta);  
+  minMaxLoc(pano, &Min, &Max);
+  pano.convertTo(normalized,CV_8UC1,255.0/(Max-Min)); 
+  if(normalized.rows>600){
+          double ScaleFactor = 600/(double)normalized.rows;
+          resize(normalized, normalized, Size(), ScaleFactor, ScaleFactor, INTER_LINEAR);
+        }
+  namedWindow( displaywindow, CV_WINDOW_AUTOSIZE);
+  imshow(displaywindow, normalized);
+  Rcpp::Rcout << '\n' << "Press ESC to close Display window of "<< displaywindow << std::endl;
+  while(k > 0){
+  k=waitKey(0);
+  Rcpp::Rcout << '\n' << "KEY PRESSED: " << k << std::endl;
+  if( (k == 27)|(k == -1) ){
+  destroyWindow(displaywindow);
+  break;
+  }
+  }
+  }
+
+
+  }else{
+
+
   if(verbose){Rcpp::Rcout << "\n" << std::endl;
   Rcpp::Rcout << "====== LOADING DONE ======" << std::endl;
 
@@ -684,6 +751,10 @@ BEGIN_RCPP
   }
   }
   }
+   
+   //else feature matching ended
+  }
+
   return R_NilValue;
 END_RCPP  
 }

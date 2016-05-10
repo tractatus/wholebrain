@@ -588,7 +588,7 @@ BEGIN_RCPP
   pd.minArea = 0;
   pd.maxArea = 1000;
   pd.numThresholds = Rcpp::as<int>(numthresh);
-
+  pd.eccentricityThresh = 1000;
 
 
 
@@ -634,15 +634,7 @@ BEGIN_RCPP
   namedWindow("View", WINDOW_AUTOSIZE);
   imshow("View", Mat(1, 200, CV_8UC1));
   moveWindow("View", 800, 300);
-  createTrackbar("brightness", "View", &(pd.beta), 100, &onTrackbarLT, &pd);
-  createTrackbar("contrast", "View", &(pd.alpha), 100, &onTrackbarLT, &pd);
-  createTrackbar("hide/show filter", "View", &(pd.hideFilter), 1, &onTrackbarLT, &pd);
-  
-  createTrackbar("max. soma area", "Controls", &(pd.maxArea), 1000, &onTrackbarMaxA, &pd);
-  createTrackbar("upper threshold", "Controls", &(pd.maxThresh), pd.imgdepth, &onTrackbarUT, &pd);
-  createTrackbar("lower threshold", "Controls", &(pd.minThresh), pd.imgdepth-1, &onTrackbarLT, &pd);
-  createTrackbar("min. soma area", "Controls", &(pd.minArea), 1000, &onTrackbarMinA, &pd);
-  createTrackbar("eccentricity", "Controls", &(pd.eccentricityThresh), 1000, &onTrackbarEcc, &pd);
+
   imshow("Controls", Mat(1, 800, CV_8UC1));
      
 

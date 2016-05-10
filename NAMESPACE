@@ -6,6 +6,9 @@ useDynLib(wholebrain)
 importFrom(Rcpp, evalCpp)
 import(png)
 import(MASS)
+import(grImport)
+import(grid)
+import(XML)
 
 ## class
 
@@ -27,4 +30,12 @@ export(stitch)
 
 export(file_ext)
 export(get.images)
+export(get.atlas.image)
 
+export(segment)
+export(makewebmap)
+
+export(getWholeSection)
+export(automatic.correspondences)
+export(registration)
+export(testregistration)
