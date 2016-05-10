@@ -20,9 +20,9 @@ segment<-function(input, numthresh=8, resize=0.25){
   #  files<-append(files, file)
   }
 
-  file <- system.file('double_slider.png', package='opencvGUI')
-  fileslider <- system.file('slider.png', package='opencvGUI')
-  filebackground <- system.file('GUI_background.png', package='opencvGUI')
+  file <- system.file('double_slider.png', package='wholebrain')
+  fileslider <- system.file('slider.png', package='wholebrain')
+  filebackground <- system.file('GUI_background.png', package='wholebrain')
   resizeP = as.integer(resize*100)
   a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground)
   outputlist<-list(filter=list(alim= a$alim, threshold.range = a$threshold.range, eccentricity = a$eccentricity,  Max = a$Max, Min = a$Mina), soma = list(x =a$x, y=a$y, intensity = a$intensity, area = a$soma.area))
