@@ -81,7 +81,7 @@ get.contour<-function(input, threshold = 'otsu', get.largest.object = TRUE, wate
     if(!file.exists(file))
       stop(file, ", file not found")
     file <- path.expand(file)
-    .Call("ThinPlateRegistration", file, as.integer(threshold), as.integer(verbose))
+    .Call("segment", file, as.integer(threshold), as.integer(verbose))
 }
 
 #' Register
