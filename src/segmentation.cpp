@@ -70,7 +70,6 @@ BEGIN_RCPP
   Rcpp::Rcout << "====== LOADING DONE ======" << std::endl;
 
   Rcpp::Rcout << "Running command. " << "generate gain image" << " on stack" << std::endl;}
-  getGain(num_files, cols, rows, zpositions, dst);
     // Gaussian smoothing
   GaussianBlur( dst, dst, Size( KERNEL, KERNEL ), 0, 0 );
       imwrite(off, dst);
