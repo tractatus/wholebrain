@@ -25,6 +25,9 @@ segment<-function(input, numthresh=8, resize=0.25){
   filebackground <- system.file('GUI_background.png', package='wholebrain')
   resizeP = as.integer(resize*100)
   a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground)
+  a$x<-(1/ resize)*a$x
+  a$y<-(1/ resize)*a$y
+  a$soma.area <-(1/ resize)*a$soma.area
   outputlist<-list(filter=list(alim= a$alim, threshold.range = a$threshold.range, eccentricity = a$eccentricity,  Max = a$Max, Min = a$Mina), soma = list(x =a$x, y=a$y, intensity = a$intensity, area = a$soma.area))
   return(outputlist)
 }

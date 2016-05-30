@@ -39,3 +39,14 @@ export(getWholeSection)
 export(automatic.correspondences)
 export(registration)
 export(testregistration)
+export(get.contour)
+
+export(change.corrpoints)
+export(add.corrpoints)
+export(remove.corrpoints)
+
+export(get.cell.ids)
+export(acronym.from.id)
+export(name.from.id)
+
+export(mrd)

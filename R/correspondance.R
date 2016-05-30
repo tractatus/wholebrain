@@ -292,10 +292,14 @@ getIntersectwithContour<-function(contour, line, plot=F){
 	criteria<-lapply(1:nrow(index),  intersectloop )
 	
 	indexExtrapolate<-index[which(unlist(criteria)==TRUE),]
-	coordinates<-c('x', 'y')
+	coordinates<-c('x', 'y') #wierdness going on here
+    if(length(indexExtrapolate)<3 ){
+        coordinates <-rbind(coordinates, getIntersection(line, contour[indexExtrapolate,] ) )
+        }else{
 	for(i in 1:nrow(indexExtrapolate)){
 		coordinates <-rbind(coordinates, getIntersection(line, contour[indexExtrapolate[i,],] ) )
 	}
+    }
 	coordinates <- matrix(as.numeric(coordinates[-1,]), ncol=2, byrow=F)
 	coordinates <-coordinates[!duplicated(coordinates), ]
 	return(coordinates)
@@ -313,10 +317,11 @@ reduceCoordinates<-function(coordinates){
 
 minimumDistance<-function(midpoint, p.new){
 	distance<-numeric()
+
 	for(i in 1:nrow(p.new)){
 		distance<-append(distance, sqrt((midpoint[1]-p.new[i,1])^2+(midpoint[2]-p.new[i,2])^2) )
 	}#returns the popint with minimum distance
-	return(p.new[which.min(distance),])
+    return(p.new[which.min(distance),])	
 }
 
 #############
@@ -340,10 +345,12 @@ automatic.correspondences<-function(contour, R, plot=F, cex=2){
 	x1<-width[1]-diff(width)*0.04
 	x2<-width[2]+diff(width)*0.04
 	
-	p<-matrix(c(0,0), ncol=2)
+	p<-matrix(rep(0,8), ncol=2)
 	p<-getIntersectwithContour(contour, PC$PC1)
 	p<-rbind(p, getIntersectwithContour(contour, PC$PC2) )
-	p<-p[chull(p), ]
+    INDEX<-c(which.min(p[,2]), which.max(p[,1]), which.max(p[,2]), which.min(p[,1]) )
+    #p<-p[chull(p), ]
+	p<-p[INDEX, ]
 	
 	r<-1
 	n<-nrow(p)
@@ -354,12 +361,23 @@ automatic.correspondences<-function(contour, R, plot=F, cex=2){
 	for(i in 1:(nrow(p)-1) ){
 		midpoint<-colMeans(p[i:(i+1),])
 		slope<-apply(p[i:(i+1),], 2, diff)
-		slope<-slope[2]/slope[1]
-		slope<- (-1/slope) #perpendicular -1
-		intercpt<- midpoint[2] - slope*midpoint[1]
-		line<-cbind(c(x1,x2), c(slope*c(x1, x2)+ intercpt) )
+        if(slope[1]==0){ #vertical line 
+         line<-cbind(p[i:(i+1),1], c(y1, y2) )
+        }else if(slope[2]==0){ #horizontal line 
+         line<-cbind( c(x1, x2), p[i:(i+1),2] )
+        }else{
+		  slope<-slope[2]/slope[1]
+		  slope<- (-1/slope) #perpendicular -1
+          intercpt<- midpoint[2] - slope*midpoint[1]
+          line<-cbind(c(x1,x2), c(slope*c(x1, x2)+ intercpt) )
+        }
+
+
 		p.new<-getIntersectwithContour(contour, line) #get the points on the line that intersect the contour
-		p.new <-minimumDistance(midpoint, p.new) #get the point with the minimum distance to qi
+
+        if(!is.null(nrow(p.new))){
+		  p.new <-minimumDistance(midpoint, p.new) #get the point with the minimum distance to qi
+        }
 		p.tmp <-rbind(p.tmp, p.new)
 		
 		q <-rbind(q, midpoint)
