@@ -70,16 +70,16 @@ stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', t
   image.grid<-matrix(image.order, nrow= numrows,ncol= numcols, byrow=T)
   
   if(order=='left.&.up'){
-  	image.grid <-length(image.grid)-(image.grid-1)
+    image.grid <-length(image.grid)-(image.grid-1)
   }
   if(order=='right.&.up'){
-  	image.grid <-image.grid[nrow(image.grid):1,]
+    image.grid <-image.grid[nrow(image.grid):1,]
   }
   if(order=='left.&.down'){
-  	image.grid <-image.grid[,ncol(image.grid):1]
+    image.grid <-image.grid[,ncol(image.grid):1]
   }
   if(type == 'snake.by.row'){
-  	image.grid[rev(seq(nrow(image.grid)-1,1,,by=-2)),]<-image.grid[rev(seq(nrow(image.grid)-1,1,,by=-2)),ncol(image.grid):1]
+    image.grid[rev(seq(nrow(image.grid)-1,1,,by=-2)),]<-image.grid[rev(seq(nrow(image.grid)-1,1,,by=-2)),ncol(image.grid):1]
   }
 
 
@@ -88,46 +88,46 @@ stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', t
   files<-files[final.image.order]
   
   if(overlap<1){
-	overlappixels<-(overlap* tilesize)/2
+  overlappixels<-(overlap* tilesize)/2
 }else{
-	overlappixels<-overlap
+  overlappixels<-overlap
 }
 
 overlappixels<-round(overlappixels)
 .Call("LaplacianBlendPipe", files,
-   									output.folder, 
-   									numrows, 
-   									numcols, 
-   									overlappixels, 
-   									grid.coordinates$width, 
-   									grid.coordinates$height, 
-   									grid.coordinates$grid.layout$top, 
-   									grid.coordinates$grid.layout$bottom, 
-   									grid.coordinates$grid.layout$left, 
-   									grid.coordinates$grid.layout$right, 
-   									grid.coordinates$grid.layout$x0,   
-   									grid.coordinates$grid.layout$x1,  
-   									grid.coordinates$grid.layout$y0, 
-   									grid.coordinates$grid.layout$y1, 
-   									grid.coordinates$overlaps$horizontal$leftImage, 
-   									grid.coordinates$overlaps$horizontal$x0, 
-   									grid.coordinates$overlaps$horizontal$y0, 
-   									grid.coordinates$overlaps$horizontal$y1, 
-   									grid.coordinates$overlaps$vertical$topImage, 
-   									grid.coordinates$overlaps$vertical$bottomImage, 
-   									grid.coordinates$overlaps$vertical$x0, 
-   									grid.coordinates$overlaps$vertical$x1, 
-   									grid.coordinates$overlaps$vertical$y0,
-   									grid.coordinates$overlaps$small$topleftImage, 
-   									grid.coordinates$overlaps$small$toprightImage, 
-   									grid.coordinates$overlaps$small$bottomleftImage, 
-   									grid.coordinates$overlaps$small$bottomrightImage,    
-   									grid.coordinates$overlaps$small$x0,      
-   									grid.coordinates$overlaps$small$y0,
-   									as.integer(show.image),
-   									as.integer(verbose),
-                                    as.numeric(contrast),
-                                    as.integer(brightness),
-                                    as.integer(feature.matching),
-   			stitched.image.name)
+                    output.folder, 
+                    numrows, 
+                    numcols, 
+                    overlappixels, 
+                    grid.coordinates$width, 
+                    grid.coordinates$height, 
+                    grid.coordinates$grid.layout$top, 
+                    grid.coordinates$grid.layout$bottom, 
+                    grid.coordinates$grid.layout$left, 
+                    grid.coordinates$grid.layout$right, 
+                    grid.coordinates$grid.layout$x0,   
+                    grid.coordinates$grid.layout$x1,  
+                    grid.coordinates$grid.layout$y0, 
+                    grid.coordinates$grid.layout$y1, 
+                    grid.coordinates$overlaps$horizontal$leftImage, 
+                    grid.coordinates$overlaps$horizontal$x0, 
+                    grid.coordinates$overlaps$horizontal$y0, 
+                    grid.coordinates$overlaps$horizontal$y1, 
+                    grid.coordinates$overlaps$vertical$topImage, 
+                    grid.coordinates$overlaps$vertical$bottomImage, 
+                    grid.coordinates$overlaps$vertical$x0, 
+                    grid.coordinates$overlaps$vertical$x1, 
+                    grid.coordinates$overlaps$vertical$y0,
+                    grid.coordinates$overlaps$small$topleftImage, 
+                    grid.coordinates$overlaps$small$toprightImage, 
+                    grid.coordinates$overlaps$small$bottomleftImage, 
+                    grid.coordinates$overlaps$small$bottomrightImage,    
+                    grid.coordinates$overlaps$small$x0,      
+                    grid.coordinates$overlaps$small$y0,
+                    as.integer(show.image),
+                    as.integer(verbose),
+                    as.numeric(contrast),
+                    as.integer(brightness),
+                    as.integer(feature.matching),
+                    stitched.image.name)
 }
