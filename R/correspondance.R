@@ -282,30 +282,30 @@ getPrincipalAxes<-function(contour, plot=F){
 	return(principalaxes)
 }
 
-isLinesOverlapping<-function(line, contour){
-    if(identical(line[1,2],line[2,2])&identical(contour[1,2],contour[2,2])){ #horizontal
-        return(TRUE)
-    }
-    if(identical(line[1,1],line[2,1])&identical(contour[1,1],contour[2,1])){ #vertical
-        return(TRUE)
-    }
-}
+#isLinesOverlapping<-function(line, contour){
+#    if(identical(line[1,2],line[2,2])&identical(contour[1,2],contour[2,2])){ #horizontal
+#        return(TRUE)
+#    }
+#    if(identical(line[1,1],line[2,1])&identical(contour[1,1],contour[2,1])){ #vertical
+#        return(TRUE)
+#    }
+#}
 
 
 getIntersectwithContour<-function(contour, line, plot=F){
 	index<-c(1, rep(seq(2, nrow(contour)-1), each=2),  nrow(contour) )
 	index<-matrix(index, ncol=2, byrow=T)
 	intersectloop<-function(x){ doLinesIntersect(line, contour[index[x,],]) }
-    overlaploop<-function(x){ isLinesOverlapping(line, contour[index[x,],]) 
+    #overlaploop<-function(x){ isLinesOverlapping(line, contour[index[x,],]) 
 	criteria<-lapply(1:nrow(index),  intersectloop )
 	
 	indexExtrapolate<-index[which(unlist(criteria)==TRUE),]
 
 
-    if(length(indexExtrapolate)==0){
-       criteria<-lapply(1:nrow(index),  overlaploop )
-        indexExtrapolate<-index[which(unlist(criteria)==TRUE),]
-    }
+    #if(length(indexExtrapolate)==0){
+     #  criteria<-lapply(1:nrow(index),  overlaploop )
+     #   indexExtrapolate<-index[which(unlist(criteria)==TRUE),]
+    #}
 
 	coordinates<-c('x', 'y') #wierdness going on here
     if(length(indexExtrapolate)<3 ){
