@@ -48,5 +48,6 @@ export(remove.corrpoints)
 export(get.cell.ids)
 export(acronym.from.id)
 export(name.from.id)
+export(get.forward.warp)
 
 export(mrd)

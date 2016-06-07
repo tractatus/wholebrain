@@ -155,6 +155,55 @@ atlasToimage<-function(atlas, affineX, affineY, downsmpX, downsmpY, translateX, 
   return(outlines)  
 }
 
+
+get.forward.warp<-function(registration){
+  trans<-list()
+  trans$mx<-registration$transformationgrid$mx
+  trans$my<-registration$transformationgrid$my
+
+  mx<-matrix(rep(NA,prod(dim(trans$mx))), nrow=dim(trans$mx)[1])
+  my<-matrix(rep(NA,prod(dim(trans$mx))), nrow=dim(trans$mx)[1])
+
+  for(i in 1:nrow(mx)){
+    for(j in 1:ncol(mx)){
+      if((trans$mx[i,j]>=0)&(trans$mx[i,j]<dim(trans$mx)[2])&(trans$my[i,j]>=0)&(trans$my[i,j]<dim(trans$mx)[1])){
+        mx[trans$my[i,j]+1,trans$mx[i,j]+1]<-j
+        my[trans$my[i,j]+1,trans$mx[i,j]+1]<-i
+      }
+    }
+  }
+
+  index<-which(is.na(my), arr.ind=TRUE)
+  for(i in 1:nrow(index)){
+    if(index[i,1]>=dim(mx)[1]){
+      top<-0
+    }else{
+      top<-1
+    }
+    if(index[i,1]<=1){
+      bottom<-0
+    }else{
+      bottom<-1
+    }
+    if(index[i,2]>=dim(mx)[2]){
+      right<-0
+    }else{
+      right<-1
+    }
+    if(index[i,2]<=1){
+      left<-0
+    }else{
+      left<-1
+    }
+    mx[index[i,1],index[i,2]]<-mean(c(mx[index[i,1]-bottom,index[i,2]], mx[index[i,1]+top,index[i,2]], mx[index[i,1],index[i,2]+right], mx[index[i,1],index[i,2]-left] ),na.rm=TRUE)
+    my[index[i,1],index[i,2]]<-mean(c(my[index[i,1]-bottom,index[i,2]], my[index[i,1]+top,index[i,2]], my[index[i,1],index[i,2]+right], my[index[i,1],index[i,2]-left] ),na.rm=TRUE)
+  }
+
+  registration$transformationgrid<-list(mx=registration$transformationgrid$mx, my=registration$transformationgrid$my, mxF=mx, myF=my, width=registration$transformationgrid$width  ,height=registration$transformationgrid$height)
+
+  return(registration)
+}
+
 #' Register
 #'
 #' An image sensor of a camera is composed of a two dimensional array of light sensitive detectors or pixels. The sesnor array is #'mechanically quite stable with the pixels retaining a rigidly fixed geometric relationship. Each pixel within the array, however, #'has its own unique light sensitivity characteristics. As these characteristics affect camera performance, they must be removed #'through calibration. The process by which a camera is calibrated is known as "Flat Fielding" or "Shading Correction".
@@ -169,7 +218,7 @@ atlasToimage<-function(atlas, affineX, affineY, downsmpX, downsmpY, translateX, 
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
 
-registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=2, plot.cor.map=TRUE, plateimage = FALSE, filter=NULL, verbose=TRUE){
+registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=2, plot.cor.map=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, verbose=TRUE){
     if(is.null(coordinate)){
       if(is.null(correspondance)){
         coordinate<-0
@@ -287,6 +336,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
   #for loop here
   numPaths<-EPSatlas$plates[[k]]@summary@numPaths
   scale.factor<-456/97440
+  style<-EPSatlas$plate.info[[k]]$style
 
   outlines<-list()
   for(i in 1:numPaths){
@@ -306,6 +356,12 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
   
     outlines[[i]]<-list(xr  = xr, yr = yr, xl = xl, yl = yl, xrT = xrT, yrT= yrT, xlT = xlT, ylT = ylT)
   }
+
+  #transformationgrid$mxF
+  #transformationgrid$mxf<-transformationgrid$mxf-transformationgrid$mxf[dim(transformationgrid$mxf)[1],dim(transformationgrid$mxf)[2]]
+  #transformationgrid$myf<-transformationgrid$myf-transformationgrid$myf[dim(transformationgrid$mxf)[1],dim(transformationgrid$mxf)[2]]
+  #transformationgrid$mxf<-transformationgrid$mxf*(dim(transformationgrid$mxf)[2]/transformationgrid$mxf[1, 1])
+  #transformationgrid$myf<-transformationgrid$myf*(dim(transformationgrid$mxf)[1]/transformationgrid$myf[1, 1])
 
     if(plot.cor.map){
     par(yaxs='i', xaxs='i')
@@ -337,7 +393,10 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
         #legend('topright', c('Target section', 'Reference atlas', 'Overlap'), pch=c(21,23,22), col='black', bg='white', horiz=TRUE,pt.bg=c(rgb(0.1,1,1,0.3), rgb(1,1,0.1,0.3), rgb(0.72,1,0.8)))
     }
 
-    returnlist<-list(atlas=list(outlines=outlines, numRegions=numPaths), transformationgrid=transformationgrid, correspondance=data.frame(targetP.x, targetP.y, referenceP.x, referenceP.y, shape), centroidAtlas=centroidAtlas, centroidNorm = centroidNorm, coordinate=coordinate )
+    returnlist<-list(atlas=list(outlines=outlines, numRegions=numPaths, col=style), transformationgrid=transformationgrid, correspondance=data.frame(targetP.x, targetP.y, referenceP.x, referenceP.y, shape), centroidAtlas=centroidAtlas, centroidNorm = centroidNorm, coordinate=coordinate, outputfile=outputfile )
+  if(forward.warp){
+  returnlist<-get.forward.warp(returnlist)
+  }
   return(returnlist)
   #return(data.frame(r.x=referenceP.x, r.y=referenceP.y, t.x=targetP.x, t.y=targetP.y))
 }

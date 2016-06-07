@@ -100,13 +100,16 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
 	Mat mx;
 	Mat my;
 	tps.getMaps(mx, my);
+
+
+
 	//resize(mx, mx, Size(), 2.4375, 2.4375, INTER_LINEAR);
 	//resize(my, my, Size(), 2.4375, 2.4375, INTER_LINEAR);
 
 	vector<float> X;
 	vector<float> Y;
 
-	int k =1;
+
   	for (int i=0; i < mx.cols; i++) {
     	for (int j =0; j < mx.rows; j++){
       		float tempX, tempY;
@@ -114,6 +117,7 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
       		X.push_back(tempX);
       		tempY = my.at<float>(j,i);
       		Y.push_back(tempY);
+
     	}
   	}
 
@@ -121,6 +125,7 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
 
 	NumericMatrix Mx(mx.rows, mx.cols, X.begin() );
 	NumericMatrix My(my.rows, my.cols, Y.begin() );
+
 	// show images
 	//cv::imshow("distorted",dst);
 	Mat displayoutput;
