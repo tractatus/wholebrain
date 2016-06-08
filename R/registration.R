@@ -486,7 +486,7 @@ stereotactic.coordinates <-function(x,y,registration,inverse=FALSE){
 }
 
 
-plot.registration<-function(registration,segmentation,soma=TRUE,){
+plot.registration<-function(registration,segmentation,soma=TRUE){
   quartz(width= 12.280488, height=  6.134146)
 par(yaxs='i',xaxs='i', mfrow=c(1,2), mar=c(4,4,1,1))
 
