@@ -363,8 +363,8 @@ automatic.correspondences<-function(contour, R, plot=F, cex=2){
 	p<-matrix(rep(0,8), ncol=2)
 	p<-getIntersectwithContour(contour, PC$PC1)
 	p<-rbind(p, getIntersectwithContour(contour, PC$PC2) )
-    #INDEX<-c(which.min(p[,2]), which.max(p[,1]), which.max(p[,2]), which.min(p[,1]) )
-    INDEX<-c(1,3,2,4)
+    INDEX<-c(which.min(p[,2]), which.max(p[,1]), which.max(p[,2]), which.min(p[,1]) )
+    #INDEX<-c(1,3,2,4)
     #p<-p[chull(p), ]
 	p<-p[INDEX, ]
 	
