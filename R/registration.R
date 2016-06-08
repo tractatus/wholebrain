@@ -453,6 +453,122 @@ name.from.id<-function(x){
   unlist(lapply(x, function(x){atlasOntology$name[which(atlasOntology$id==x)]}))
 }
 
+
+stereotactic.coordinates <-function(x,y,registration,inverse=FALSE){
+  scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration $transformationgrid$height, registration$transformationgrid$width) )
+  
+
+  
+  if(inverse){
+    x<-x*1000/25+456/2
+    y<-(-y*1000/25)
+    
+    x<-4*(x-registration$centroidNorm[1])/scale.factor
+    y<-4*(y-registration$centroidNorm[2])/scale.factor
+    return(list(x=x, y=y))
+    
+    
+  }else{
+    x<-scale.factor*(x)/4
+    y<-scale.factor*(y)/4
+    x<-x+registration$centroidNorm[1]
+    y<-y+registration$centroidNorm[2]
+    x<-(x-456/2)*25/1000
+    y<-(-y/1000*25)
+    #xref<-(4*(456/2-registration$centroidNorm[1]))/scale.factor
+    #yref<-(4*(320/2-registration$centroidNorm[2]))/scale.factor
+  
+    #xref<-(registration$centroidAtlas[1]/xref)
+    #yref<-(registration$centroidAtlas[2]/yref)
+    return(list(x=x, y=y))
+    #return(list(x=(x*xref-456/2)*25/1000, y=-((y*yref)*25)/1000))
+  }
+}
+
+
+plot.registration<-function(registration,segmentation,soma=TRUE,){
+  quartz(width= 12.280488, height=  6.134146)
+par(yaxs='i',xaxs='i', mfrow=c(1,2), mar=c(4,4,1,1))
+
+
+  scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration$transformationgrid$height,registration$transformationgrid$width) )
+  
+  xMax<-max(c(registration$transformationgrid$mx,registration$transformationgrid$mxF),na.rm=TRUE)
+    xMin<-min(c(registration$transformationgrid$mx,registration$transformationgrid$mxF),na.rm=TRUE)
+  yMax<-max(c(registration$transformationgrid$my,registration$transformationgrid$myF),na.rm=TRUE)
+    yMin<-min(c(registration$transformationgrid$my,registration$transformationgrid$myF),na.rm=TRUE)
+    
+plot(c(xMin, xMax), c(yMin, yMax), ylim=c(yMax,yMin), xlim=c(xMin, xMax), asp=1, axes=F, xlab='', ylab='', col=0, main=paste('Bregma:',registration$coordinate,'mm'),font.main = 1
+ )
+polygon(c(0,rep(registration$transformationgrid$width,2),0),c(0, 0,rep(registration$transformationgrid$height,2)))
+ numPaths<-registration$atlas$numRegions
+ outlines<-registration$atlas$outlines
+ 
+mtext('Dorso-ventral (mm)',side=2,line=1.5)
+mtext('Medio-lateral (mm)',side=1,line=-1.5)
+
+ lapply(1:numPaths, function(x){polygon(outlines[[x]]$xr/scale.factor,outlines[[x]]$yr/scale.factor, border='black', col=as.character(registration$atlas$col[x]) )})
+        lapply(1:numPaths, function(x){polygon(outlines[[x]]$xl/scale.factor,outlines[[x]]$yl/scale.factor, border='black', col=as.character(registration$atlas$col[x]) )})
+
+hei<-dim(registration $transformationgrid$mx)[1]
+wid<-dim(registration $transformationgrid$mx)[2]
+
+lapply(seq(1, hei,by=100), function(x){lines(registration$transformationgrid$mxF[x,]/scale.factor,registration$transformationgrid$myF[x,]/scale.factor, col='lightblue')})
+lines(registration$transformationgrid$mxF[hei,]/scale.factor,registration$transformationgrid$myF[hei,]/scale.factor, col='lightblue')
+lapply(seq(1, wid,by=100), function(x){lines(registration$transformationgrid$mxF[,x]/scale.factor,registration$transformationgrid$myF[,x]/scale.factor, col='lightblue')})
+lines(registration$transformationgrid$mxF[, wid]/scale.factor,registration$transformationgrid$myF[, wid]/scale.factor, col='lightblue')
+
+ 
+ index<-round(scale.factor*cbind(segmentation$y,segmentation$x))
+ somaX<-registration$transformationgrid$mxF[index]/scale.factor
+ somaY<-registration$transformationgrid$myF[index]/scale.factor
+ #for(x in id){
+  #index<-round(scale.factor*cbind(rois[[x]]$coords[,2],rois[[x]]$coords[,1]))
+  #  rois2[[x]]$coords[,1]<-registration$transformationgrid$mxF[index]/scale.factor
+ #   rois2[[x]]$coords[,2]<-registration$transformationgrid$myF[index]/scale.factor
+
+#} 
+#lapply(id, function(x){polygon(rois2[[x]]$coords, col=rgb(100,163,117,120,maxColorValue=255), border=gray(0.95));text(apply(rois2[[x]]$coords,2,mean)[1],apply(rois2[[x]]$coords,2,mean)[2],x, cex=0.7, col='white')})
+
+points(somaX,somaY,pch=21,bg='orange', cex=0.8)
+
+axis(1, at=stereotactic.coordinates(seq(-4,4,by=0.1),NA,registration, inverse=TRUE)$x, line=-4, labels=FALSE, tck=-0.01, col.ticks='lightblue')
+axis(1, at=stereotactic.coordinates(seq(-4,4,by=0.5),NA,registration, inverse=TRUE)$x, line=-4, labels=FALSE, tck=-0.02, col.ticks='coral')
+axis(1, at=stereotactic.coordinates(c(-4:4),c(0:-6),registration, inverse=TRUE)$x, line=-4, labels=c(-4:4))
+
+axis(2, at=stereotactic.coordinates(NA,seq(0,-6,by=-0.1),registration, inverse=TRUE)$y, line=-0.5, labels=FALSE, tck=-0.01, las=1, col.ticks='lightblue')
+axis(2, at=stereotactic.coordinates(NA,seq(0,-6,by=-0.5),registration, inverse=TRUE)$y, line=-0.5, labels=FALSE, tck=-0.02, las=1, col.ticks='coral')
+axis(2, at=stereotactic.coordinates(NA,c(0:-6),registration, inverse=TRUE)$y, line=-0.5, labels=c(0:-6), las=1)
+
+plot(c(xMin, xMax), c(yMin, yMax), ylim=c(yMax,yMin), xlim=c(xMin, xMax), asp=1, axes=F, xlab='', ylab='', col=0, main=basename(registration$outputfile), font.main=1)
+polygon(c(0,rep(registration$transformationgrid$width,2),0),c(0, 0,rep(registration$transformationgrid$height,2)))
+
+img<-paste(registration$outputfile,'_undistorted.png', sep='')
+        img <- readPNG(img)
+
+        img = as.raster(img[,])
+
+        img <- apply(img, 2, rev)
+
+
+        rasterImage(img,0,0, registration$transformationgrid$width, registration$transformationgrid$height)
+
+
+lapply(1:numPaths, function(x){polygon(outlines[[x]]$xrT/scale.factor,outlines[[x]]$yrT/scale.factor, border=rgb(154,73,109,maxColorValue=255))})
+        lapply(1:numPaths, function(x){polygon(outlines[[x]]$xlT/scale.factor,outlines[[x]]$ylT/scale.factor, border=rgb(154,73,109,maxColorValue=255) )})
+        
+
+lapply(seq(1,hei,by=100), function(x){lines(registration$transformationgrid$mx[x,]/scale.factor,registration$transformationgrid$my[x,]/scale.factor, col='lightblue')})
+lines(registration$transformationgrid$mx[hei,]/scale.factor,registration$transformationgrid$my[hei,]/scale.factor, col='lightblue')
+lapply(seq(1, wid,by=100), function(x){lines(registration$transformationgrid$mx[,x]/scale.factor,registration$transformationgrid$my[,x]/scale.factor, col='lightblue')})
+lines(registration$transformationgrid$mx[,wid]/scale.factor,registration$transformationgrid$my[, wid]/scale.factor, col='lightblue')
+        
+
+
+ points(segmentation$x,segmentation$y, pch=21, bg='orange')
+#lapply(id, function(x){polygon(rois[[x]]$coords, col=rgb(100,163,117,120,maxColorValue=255));text(apply(rois[[x]]$coords,2,mean)[1],apply(rois[[x]]$coords,2,mean)[2],x, cex=0.7, col='white')})
+}
+
 get.cell.ids<-function(segmentation, registration){
   coordinate<-registration$coordinate
 
