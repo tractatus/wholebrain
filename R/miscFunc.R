@@ -31,15 +31,19 @@ liftingscheme <- function(file) {
 }
 
 #create output directories
-create.output.directory<-function(subDir, mainDir=getwd()){
+create.output.directory<-function(subDir, mainDir=getwd(), verbose=TRUE){
 
     if (file.exists(paste(mainDir, subDir, "/", sep = "/", collapse = "/"))) {
         #cat(paste(subDir, "allready exists\n"))
     } else if (file.exists(paste(mainDir, subDir, sep = "/", collapse = "/"))) {
-      cat(paste(subDir, "exists in", mainDir, "but is a file\n"))
+      if(verbose){
+        cat(paste(subDir, "exists in", mainDir, "but is a file\n"))
+      }
       # you will probably want to handle this separately
     } else {
-      cat(paste(subDir, "folder created\n"))
+      if(verbose){
+        cat(paste(subDir, "folder created\n"))
+      }
       dir.create(file.path(mainDir, subDir))
     }
 
@@ -47,7 +51,9 @@ create.output.directory<-function(subDir, mainDir=getwd()){
       # By this point, the directory either existed or has been successfully created
       #setwd(file.path(mainDir, subDir))
     } else {
-      cat(paste(subDir, "does not exist\n"))
+      if(verbose){
+        cat(paste(subDir, "does not exist\n"))
+      }
       # Handle this error as appropriate
     }
 }

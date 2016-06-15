@@ -38,7 +38,7 @@ stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', t
     parentpath<-dirname(dirname(input))[1]
     outputfolder<-paste('stitched', basename(dirname(input))[1], sep='_')
     setwd(parentpath)
-    create.output.directory(outputfolder)
+    create.output.directory(outputfolder,  verbose=verbose)
     setwd(defaultwd)
 
     output.folder<-paste(parentpath,outputfolder, sep='/')
@@ -48,7 +48,7 @@ stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', t
     parentpath<-dirname(input)[1]
     outputfolder<-paste('stitched', basename(dirname(input))[1], sep='_')
     setwd(parentpath)
-    create.output.directory(outputfolder)
+    create.output.directory(outputfolder, verbose=verbose)
     setwd(defaultwd)
 
     output.folder<-paste(parentpath,outputfolder, sep='/')

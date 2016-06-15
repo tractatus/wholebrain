@@ -174,7 +174,7 @@ BEGIN_RCPP
 END_RCPP  
 }
 
-void placeCenterTiles ( int l, int m, int n, int overlap, Rcpp::IntegerVector tilePosTop, Rcpp::IntegerVector tilePosBottom, Rcpp::IntegerVector tilePosLeft, Rcpp::IntegerVector tilePosRight, Rcpp::IntegerVector x0, Rcpp::IntegerVector x1, Rcpp::IntegerVector y0, Rcpp::IntegerVector y1, vector<Mat>& src, Mat& dst)
+void placeCenterTiles ( int l, int m, int n, int overlap, Rcpp::IntegerVector tilePosTop, Rcpp::IntegerVector tilePosBottom, Rcpp::IntegerVector tilePosLeft, Rcpp::IntegerVector tilePosRight, Rcpp::IntegerVector x0, Rcpp::IntegerVector x1, Rcpp::IntegerVector y0, Rcpp::IntegerVector y1, vector<Mat>& src, Mat& dst, bool verbose)
 
 //****************************************************************************80
 //
@@ -256,6 +256,7 @@ float progress = 0.0;
 
             image_roi.copyTo(dst(cv::Rect(x0[s] + x, y0[s] + y, w, h)));
                 //print progress bar in console
+            if(verbose){
     Rcpp::Rcout << "  [";
     int pos = barWidth * progress;
     for (int p = 0; p < barWidth; ++p) {
@@ -269,11 +270,12 @@ float progress = 0.0;
     progress += (float)1/(STACKS-1);
 
           }
+        }
           
 
 }
 
-void placeHorizontalOverlap ( int l, int m, int n, int overlap, Rcpp::IntegerVector tilePosTop, Rcpp::IntegerVector horizLeftIndex, Rcpp::IntegerVector x0, Rcpp::IntegerVector y0, Rcpp::IntegerVector y1, vector<Mat>& src, Mat& dst)
+void placeHorizontalOverlap ( int l, int m, int n, int overlap, Rcpp::IntegerVector tilePosTop, Rcpp::IntegerVector horizLeftIndex, Rcpp::IntegerVector x0, Rcpp::IntegerVector y0, Rcpp::IntegerVector y1, vector<Mat>& src, Mat& dst, bool verbose)
 
 //****************************************************************************80
 //
@@ -347,6 +349,7 @@ float progress = 0.0;
              // Rcpp::Rcout << "placed" << std::endl;
 
                 //print progress bar in console
+            if(verbose){
     Rcpp::Rcout << "  [";
     int pos = barWidth * progress;
     for (int p = 0; p < barWidth; ++p) {
@@ -357,14 +360,16 @@ float progress = 0.0;
         Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
     R_FlushConsole();
     R_ProcessEvents();
+    R_CheckUserInterrupt();
     progress += (float)1/(STACKS-1);
 
           }
+        }
           
 
 }
 
-void placeVerticalOverlap ( int l, int m, int n, int overlap, Rcpp::IntegerVector tilePosLeft, Rcpp::IntegerVector verticTopIndex, Rcpp::IntegerVector verticBottomIndex, Rcpp::IntegerVector x0, Rcpp::IntegerVector x1, Rcpp::IntegerVector y0, vector<Mat>& src, Mat& dst)
+void placeVerticalOverlap ( int l, int m, int n, int overlap, Rcpp::IntegerVector tilePosLeft, Rcpp::IntegerVector verticTopIndex, Rcpp::IntegerVector verticBottomIndex, Rcpp::IntegerVector x0, Rcpp::IntegerVector x1, Rcpp::IntegerVector y0, vector<Mat>& src, Mat& dst, bool verbose)
 
 //****************************************************************************80 tilePosLeft, verticTopIndex, verticBottomIndex, verticX0, verticX1, verticY0
 //
@@ -432,6 +437,7 @@ float progress = 0.0;
 
             blended.copyTo(dst(cv::Rect(x0[s], y0[s], w, overlap)));
                 //print progress bar in console
+    if(verbose){
     Rcpp::Rcout << "  [";
     int pos = barWidth * progress;
     for (int p = 0; p < barWidth; ++p) {
@@ -442,14 +448,16 @@ float progress = 0.0;
         Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
     R_FlushConsole();
     R_ProcessEvents();
+    R_CheckUserInterrupt();
     progress += (float)1/(STACKS-1);
 
           }
+        }
           
 
 }
 
-void placeSmallOverlap ( int l, int m, int n, int overlap, Rcpp::IntegerVector smallTopLeft, Rcpp::IntegerVector smallTopRight, Rcpp::IntegerVector smallBottomLeft, Rcpp::IntegerVector smallBottomRight, Rcpp::IntegerVector x0, Rcpp::IntegerVector y0, vector<Mat>& src, Mat& dst)
+void placeSmallOverlap ( int l, int m, int n, int overlap, Rcpp::IntegerVector smallTopLeft, Rcpp::IntegerVector smallTopRight, Rcpp::IntegerVector smallBottomLeft, Rcpp::IntegerVector smallBottomRight, Rcpp::IntegerVector x0, Rcpp::IntegerVector y0, vector<Mat>& src, Mat& dst, bool verbose)
 
 //****************************************************************************80 tilePosLeft, verticTopIndex, verticBottomIndex, verticX0, verticX1, verticY0
 //
@@ -515,6 +523,7 @@ float progress = 0.0;
 
             blended.copyTo(dst(cv::Rect(x0[s], y0[s], overlap, overlap)));
                 //print progress bar in console
+            if(verbose){
     Rcpp::Rcout << "  [";
     int pos = barWidth * progress;
     for (int p = 0; p < barWidth; ++p) {
@@ -525,9 +534,11 @@ float progress = 0.0;
         Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
     R_FlushConsole();
     R_ProcessEvents();
+    R_CheckUserInterrupt();
     progress += (float)1/(STACKS-1);
 
           }
+        }
           
 
 }
@@ -634,6 +645,7 @@ BEGIN_RCPP
     Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
     R_FlushConsole();
     R_ProcessEvents();
+    R_CheckUserInterrupt();
     progress += (float)1/(num_files-1);
     }
 
@@ -711,7 +723,7 @@ BEGIN_RCPP
   Rcpp::Rcout << "====== LOADING DONE ======" << std::endl;
 
   Rcpp::Rcout << "Running command. " << "place center tiles" << std::endl;}
-  placeCenterTiles(num_files, cols, rows, pixeloverlap, tilePosTop, tilePosBottom, tilePosLeft, tilePosRight, tilePosx0, tilePosx1, tilePosy0, tilePosy1, zpositions, dst);
+  placeCenterTiles(num_files, cols, rows, pixeloverlap, tilePosTop, tilePosBottom, tilePosLeft, tilePosRight, tilePosx0, tilePosx1, tilePosy0, tilePosy1, zpositions, dst, verbose);
     // Gaussian smoothing
 
   if(verbose){Rcpp::Rcout << "\n" << std::endl;
@@ -719,19 +731,19 @@ BEGIN_RCPP
 
   Rcpp::Rcout << "Running command. " << "blend horizontal overlap" << std::endl;}
 
-  placeHorizontalOverlap(num_files, cols, rows, pixeloverlap, tilePosTop, horizLeftIndex, horizX0, horizY0, horizY1, zpositions, dst);
+  placeHorizontalOverlap(num_files, cols, rows, pixeloverlap, tilePosTop, horizLeftIndex, horizX0, horizY0, horizY1, zpositions, dst, verbose);
 
   if(verbose){Rcpp::Rcout << "====== HORIZONTAL OVERLAP DONE ======" << std::endl;
 
   Rcpp::Rcout << "Running command. " << "blend vertical overlap" << std::endl;}
 
-  placeVerticalOverlap(num_files, cols, rows, pixeloverlap, tilePosLeft, verticTopIndex, verticBottomIndex, verticX0, verticX1, verticY0, zpositions, dst);
+  placeVerticalOverlap(num_files, cols, rows, pixeloverlap, tilePosLeft, verticTopIndex, verticBottomIndex, verticX0, verticX1, verticY0, zpositions, dst, verbose);
 
   if(verbose){Rcpp::Rcout << "====== VERTICAL OVERLAP DONE ======" << std::endl;
 
   Rcpp::Rcout << "Running command. " << "blend small overlap" << std::endl;}
 
-  placeSmallOverlap(num_files, cols, rows, pixeloverlap, smallTopLeft, smallTopRight, smallBottomLeft, smallBottomRight, smallX0, smallY0, zpositions, dst);
+  placeSmallOverlap(num_files, cols, rows, pixeloverlap, smallTopLeft, smallTopRight, smallBottomLeft, smallBottomRight, smallX0, smallY0, zpositions, dst, verbose);
 
   if(verbose){Rcpp::Rcout << "====== SMALL OVERLAP DONE ======" << std::endl;
 

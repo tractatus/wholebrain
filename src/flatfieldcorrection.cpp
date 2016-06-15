@@ -8,7 +8,7 @@
 using namespace cv;
 using namespace std;
 
-void getGain ( int l, int m, int n, vector<Mat>& src, Mat& dst)
+void getGain ( int l, int m, int n, vector<Mat>& src, Mat& dst, bool verbose)
 
 //****************************************************************************80
 //
@@ -69,19 +69,21 @@ int barWidth = 70;
           dst.at<ushort>(j,k) = (int)average;
       }
        //print progress bar in console
-    Rcpp::Rcout << "  [";
+     if(verbose){Rcpp::Rcout << "  [";
     int pos = barWidth * progress;
     for (int p = 0; p < barWidth; ++p) {
         if (p < pos) Rcpp::Rcout << "=";
         else if (p == pos) Rcpp::Rcout << ">";
         else Rcpp::Rcout << " ";
     }
-    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
+    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();//cout.flush(); 
     R_FlushConsole();
     R_ProcessEvents();
+    R_CheckUserInterrupt();
     progress += (float)1/(m-1);
     }
-//
+    }
+// 
 //
 // 
 
@@ -139,9 +141,10 @@ BEGIN_RCPP
         else if (j == pos) Rcpp::Rcout << ">";
         else Rcpp::Rcout << " ";
     }
-    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
+    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();//std::cout.flush();
     R_FlushConsole();
     R_ProcessEvents();
+    R_CheckUserInterrupt();
     progress += (float)1/(num_files-1);
   }
 
@@ -150,7 +153,7 @@ BEGIN_RCPP
   Rcpp::Rcout << "====== LOADING DONE ======" << std::endl;
 
   Rcpp::Rcout << "Running command. " << "generate gain image" << " on stack" << std::endl;}
-  getGain(num_files, cols, rows, zpositions, dst);
+  getGain(num_files, cols, rows, zpositions, dst, verbose);
     // Gaussian smoothing
   GaussianBlur( dst, dst, Size( KERNEL, KERNEL ), 0, 0 );
       imwrite(off, dst);
@@ -182,9 +185,10 @@ BEGIN_RCPP
         else if (j == pos) Rcpp::Rcout << ">";
         else Rcpp::Rcout << " ";
     }
-    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
+    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" <<  std::cout.flush();//std::cout.flush();
     R_FlushConsole();
     R_ProcessEvents();
+    R_CheckUserInterrupt();
     progress += (float)1/(num_files-1); }
 
 

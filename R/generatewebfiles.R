@@ -23,9 +23,9 @@ makewebmap<-function(img, filter, alpha=0, beta=0, scale = 0.64, bregmaX = 0, br
     file <- path.expand(file)
     outputfile<-basename(file)
     outputfile<-sub("^([^.]*).*", "\\1", outputfile)
-    create.output.directory(paste('Web', outputfile, sep='_'))
+    create.output.directory(paste('Web', outputfile, sep='_'), verbose=verbose)
     setwd(paste('Web', outputfile, sep='_'))
-    create.output.directory(paste('Tiles', outputfile, sep='_'))
+    create.output.directory(paste('Tiles', outputfile, sep='_'), verbose=verbose)
     setwd('../')
     #if(is.null(overlap)){overlap<-(-999)}
     verbose<-as.numeric(verbose)
@@ -40,7 +40,9 @@ makewebmap<-function(img, filter, alpha=0, beta=0, scale = 0.64, bregmaX = 0, br
         beta<-0
       }
     }else{
-      cat('No filter, creating 8-bit range from quantiles. \n')
+      if(verbose){
+        cat('No filter, creating 8-bit range from quantiles. \n')
+      }
     }
     a <- .Call("createWeb", file, alpha, beta, verbose, outputfile)
 

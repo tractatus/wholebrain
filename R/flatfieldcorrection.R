@@ -32,7 +32,7 @@ flat.field.correction<- function(input, output.folder='../', output.prefix='FFC'
     parentpath<-dirname(dirname(input))[1]
     outputfolder<-paste(output.prefix, basename(dirname(input))[1], sep='_')
     setwd(parentpath)
-    create.output.directory(outputfolder)
+    create.output.directory(outputfolder, verbose=verbose)
     setwd(defaultwd)
 
     output.folder<-paste(parentpath,outputfolder, sep='/')
@@ -42,7 +42,7 @@ flat.field.correction<- function(input, output.folder='../', output.prefix='FFC'
     parentpath<-dirname(input)[1]
     outputfolder<-paste(output.prefix, basename(dirname(input))[1], sep='_')
     setwd(parentpath)
-    create.output.directory(outputfolder)
+    create.output.directory(outputfolder, verbose=verbose)
     setwd(defaultwd)
 
     output.folder<-paste(parentpath,outputfolder, sep='/')
@@ -53,7 +53,7 @@ flat.field.correction<- function(input, output.folder='../', output.prefix='FFC'
     parentpath<-dirname(dirname(input))[1]
     outfolder<-paste('output', basename(dirname(input))[1], sep='_')
     setwd(parentpath)
-    create.output.directory(outfolder)
+    create.output.directory(outfolder, verbose=verbose)
     setwd(defaultwd)
 
     gain.image.name<-paste('gain_', outputfolder, '.tif', sep='')

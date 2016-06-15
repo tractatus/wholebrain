@@ -140,10 +140,11 @@ RcppExport SEXP createWeb(SEXP input, SEXP alpha, SEXP beta, SEXP verbose, SEXP 
         sourceImage.convertTo(sourceImageFloat,CV_32F, 1.0); //-255.0/Min
         
         get_quantile(sourceImageFloat, sourceImageFloat.total() * 0.001, sourceImageFloat.total() * 0.999, alphaInt, betaADJ); 
-
+            if(printOutput){
             Rcpp::Rcout << "Auto range clipping with 0.1%: "<< std::endl;
             Rcpp::Rcout << "Max: " << alphaInt << std::endl;
             Rcpp::Rcout << "Min: " << betaADJ << std::endl;
+        }
 
     }
 
@@ -248,6 +249,7 @@ RcppExport SEXP createWeb(SEXP input, SEXP alpha, SEXP beta, SEXP verbose, SEXP 
         Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
     R_FlushConsole();
     R_ProcessEvents();
+    R_CheckUserInterrupt();
     progress += (float)1/(tiers-1);
     }
 
