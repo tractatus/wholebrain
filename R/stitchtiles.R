@@ -20,7 +20,7 @@
 #' #stitch images
 #' stitch(images, type = 'snake.by.row', order = 'left.&.up', tilesize=2048, overlap=0.1, show.image=TRUE)
 
-stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', type = 'snake.by.row', order = 'left.&.up', output.folder='../', tilesize=2048, overlap=0.1, show.image=FALSE, micromanager = TRUE, verbose=TRUE, brightness=30, contrast=3.0, feature.matching = FALSE){
+stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', type = 'snake.by.row', order = 'left.&.up', output.folder='../', tilesize=2048, overlap=0.1, show.image=FALSE, micromanager = TRUE, verbose=TRUE, brightness=30, contrast=3.0, rotate=0,feature.matching = FALSE){
   files<-character()
   for(i in 1:length(input)){
     file <- as.character(input[i])
@@ -64,8 +64,15 @@ stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', t
   if(micromanager){overlap<-overlap*2}
   
   grid.coordinates<-get.grid.coordinates(image.order, tilesize, overlap, plotgrid=F)
-  numcols<-find.dim(length(files))[1]
-  numrows<-find.dim(length(files))[2]
+  if(abs(rotate)<90){
+    numcols<-find.dim(length(files))[1]
+    numrows<-find.dim(length(files))[2]
+  }else{
+    if(abs(rotate)==90){
+      numcols<-find.dim(length(files))[2]
+      numrows<-find.dim(length(files))[1]
+    }
+  }
   
   image.grid<-matrix(image.order, nrow= numrows,ncol= numcols, byrow=T)
   
@@ -129,5 +136,6 @@ overlappixels<-round(overlappixels)
                     as.numeric(contrast),
                     as.integer(brightness),
                     as.integer(feature.matching),
+                    (-as.numeric(rotate)),
                     stitched.image.name)
 }

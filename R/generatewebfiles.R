@@ -13,7 +13,7 @@
 #' #stitch images
 #' stitch(images, type = 'snake.by.row', order = 'left.&.up', tilesize=2048, overlap=0.1, show.image=TRUE)
 
-makewebmap<-function(img, filter, alpha=1, beta=0, scale = 0.64, bregmaX = 9280, bregmaY = 3120, fluorophore = 'Rabies-EGFP', enable.drawing=TRUE, verbose=FALSE, registration = FALSE, AP=0,ML=0,DV=0){
+makewebmap<-function(img, filter, alpha=0, beta=0, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', enable.drawing=TRUE, verbose=FALSE, registration = FALSE, AP=0,ML=0,DV=0){
     file <- as.character(img)[1]
     if(!file.exists(file))
     stop(file, "not found")
@@ -32,10 +32,15 @@ makewebmap<-function(img, filter, alpha=1, beta=0, scale = 0.64, bregmaX = 9280,
 
 
     tiled_imagefolder<-paste('Tiles', outputfile, sep='_')
-    cat('Registering to atlas')
+    
     if(!missing(filter)){
       alpha<-filter$Max
       beta<-filter$Min
+      if(is.null(filter$Min)){
+        beta<-0
+      }
+    }else{
+      cat('No filter, creating 8-bit range from quantiles. \n')
     }
     a <- .Call("createWeb", file, alpha, beta, verbose, outputfile)
 
@@ -51,7 +56,7 @@ headerP02<-"</title>
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">
 
     <link href=\"http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css\" rel=\"stylesheet\">
-    <link rel=\"stylesheet\" href=\"./dist/leaflet.css\" />
+    <link rel=\"stylesheet\" href=\"http://cdn.openbrainmap.org/0.0.1/dist/leaflet.css\" />
     <!-- <link rel=\"stylesheet\" href=\"http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css\" /> -->
     <!--[if lte IE 8]><link rel=\"stylesheet\" href=\"http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.ie.css\" /><![endif]-->
   <link href=\"http://www.openbrainmap.org/cdn/css/lato.css\" rel=\"stylesheet\" type=\"text/css\">
@@ -278,7 +283,6 @@ JSONdata<-paste('<script src=\"', JSONfilename,'\" type=\"text/javascript\"></sc
 
 footer<-sprintf('<div id=\"map\"></div>
 
-    <script src=\"http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js\"></script>
   <script type=\"text/javascript\" src=\"http://www.openbrainmap.org/cdn/js/L.TileLayer.Zoomify.js\"></script> 
   <script type=\"text/javascript\" src=\"http://www.openbrainmap.org/cdn/js/L.Control.MousePosition.js\"></script> 
   <script src=\"http://www.openbrainmap.org/cdn/js/Control.MiniMap.min.js\" type=\"text/javascript\"></script>
@@ -425,7 +429,8 @@ footer<-sprintf('<div id=\"map\"></div>
     footer2<-'
         var overlayMaps = {
             \"Segmented cell bodies\": neurongroup,
-          \"Region boundaries\": allengroup
+          \"Region boundaries\": allengroup,
+          \"Manually defined\": drawnItems
         };
         
         L.control.layers(baseMaps, overlayMaps, {position: \'bottomright\'}).addTo(map);
@@ -574,5 +579,5 @@ window.open(url, \'_blank\');
     cat(footer2)
     sink()
     setwd('../')
-    return(a)
+    
 }

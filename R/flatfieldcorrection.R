@@ -49,8 +49,15 @@ flat.field.correction<- function(input, output.folder='../', output.prefix='FFC'
   }
   outname<-basename(input)
   if(gain.image.name == 'gain_{output.folder}.tif'){
+    defaultwd<-getwd()
+    parentpath<-dirname(dirname(input))[1]
+    outfolder<-paste('output', basename(dirname(input))[1], sep='_')
+    setwd(parentpath)
+    create.output.directory(outfolder)
+    setwd(defaultwd)
+
     gain.image.name<-paste('gain_', outputfolder, '.tif', sep='')
-    gain.image.name<-paste(parentpath, gain.image.name, sep='/')
+    gain.image.name<-paste(paste(parentpath,outfolder, sep='/'), gain.image.name, sep='/')
   }
 
   .Call("posteriorFFC", files, output.folder, outname, kernel, show.image, gain.image.name, as.integer(verbose))

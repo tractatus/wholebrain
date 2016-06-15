@@ -68,6 +68,31 @@ void copySrcTile(const cv::Mat& src, cv::Mat& srcTile, cv::Rect &tile)
     }
 }
 
+
+
+/**
+* @brief generic algorithm for other channel types except of uchar
+* @param input   the input image
+* @param output  the output image
+* @param smin    total number of minimum pixels
+* @param smax    total number maximum pixels
+* @param channel the channel used to compute the histogram
+*
+* This algorithm only support uchar channel and float channel by now
+*/
+void get_quantile(cv::Mat &input, size_t smin, size_t smax,  int &alpha, int &beta ) 
+{
+
+    std::vector<float> temp_input((float*)input.data, (float*)input.data + input.rows * input.cols);
+
+    std::sort(std::begin(temp_input), std::end(temp_input));
+
+    beta = temp_input[smin];
+    alpha =  temp_input[smax];
+}
+
+
+
 RcppExport SEXP createWeb(SEXP input, SEXP alpha, SEXP beta, SEXP verbose, SEXP outputfile) {
     BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
@@ -108,6 +133,20 @@ RcppExport SEXP createWeb(SEXP input, SEXP alpha, SEXP beta, SEXP verbose, SEXP 
     double alphaADJ = (double)alphaInt/10;
     sourceImage.convertTo(sourceImage, -1, alphaADJ, betaADJ);
     */
+    std::pair<float, float> quantiles;
+    Mat sourceImageFloat;
+    if(alphaInt==0){
+        
+        sourceImage.convertTo(sourceImageFloat,CV_32F, 1.0); //-255.0/Min
+        
+        get_quantile(sourceImageFloat, sourceImageFloat.total() * 0.001, sourceImageFloat.total() * 0.999, alphaInt, betaADJ); 
+
+            Rcpp::Rcout << "Auto range clipping with 0.1%: "<< std::endl;
+            Rcpp::Rcout << "Max: " << alphaInt << std::endl;
+            Rcpp::Rcout << "Min: " << betaADJ << std::endl;
+
+    }
+
     sourceImage -= betaADJ;
         sourceImage.convertTo(sourceImage,CV_8UC1,255.0/(alphaInt-betaADJ)); //-255.0/Min
         

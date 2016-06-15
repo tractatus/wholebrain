@@ -533,7 +533,7 @@ float progress = 0.0;
 }
 
 /* apply operation to stack */
-RcppExport SEXP LaplacianBlendPipe(SEXP input, SEXP outname, SEXP nrows, SEXP ncols, SEXP overlappixels, SEXP widthPixels, SEXP heightPixels, SEXP topGridLayout, SEXP bottomGridLayout, SEXP leftGridLayout, SEXP rightGridLayout, SEXP x0GridLayout,   SEXP x1GridLayout,   SEXP y0GridLayout, SEXP y1GridLayout, SEXP horizleftImage, SEXP x0horiz, SEXP y0horiz, SEXP y1horiz, SEXP vertictopImage, SEXP verticbottomImage, SEXP x0vertic,  SEXP  x1vertic , SEXP  y0vertic, SEXP topleftImage, SEXP toprightImage, SEXP bottomleftImage, SEXP bottomrightImage, SEXP x0small, SEXP y0small, SEXP imagedisplay, SEXP writetoconsole, SEXP contrast, SEXP brightness, SEXP matching, SEXP outputfile) {
+RcppExport SEXP LaplacianBlendPipe(SEXP input, SEXP outname, SEXP nrows, SEXP ncols, SEXP overlappixels, SEXP widthPixels, SEXP heightPixels, SEXP topGridLayout, SEXP bottomGridLayout, SEXP leftGridLayout, SEXP rightGridLayout, SEXP x0GridLayout,   SEXP x1GridLayout,   SEXP y0GridLayout, SEXP y1GridLayout, SEXP horizleftImage, SEXP x0horiz, SEXP y0horiz, SEXP y1horiz, SEXP vertictopImage, SEXP verticbottomImage, SEXP x0vertic,  SEXP  x1vertic , SEXP  y0vertic, SEXP topleftImage, SEXP toprightImage, SEXP bottomleftImage, SEXP bottomrightImage, SEXP x0small, SEXP y0small, SEXP imagedisplay, SEXP writetoconsole, SEXP contrast, SEXP brightness, SEXP matching, SEXP rotate,SEXP outputfile) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
   //Rcpp::CharacterVector std::vector< std::string >
@@ -554,6 +554,7 @@ BEGIN_RCPP
 
   double alpha = Rcpp::as<double>(contrast);
   int beta = Rcpp::as<int>(brightness);
+  double angle = Rcpp::as<double>(rotate);
 
   Rcpp::IntegerVector tilePosTop(topGridLayout);
   Rcpp::IntegerVector tilePosBottom(bottomGridLayout);
@@ -658,7 +659,22 @@ BEGIN_RCPP
 
   string outputname;
   outputname =  outfolder + "/" + off;
-  imwrite(outputname, pano);
+  if(angle!=0){
+
+    // get rotation matrix for rotating the image around its center
+    cv::Point2f center(pano.cols/2.0, pano.rows/2.0);
+    cv::Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
+    // determine bounding rectangle
+    cv::Rect bbox = cv::RotatedRect(center,pano.size(), angle).boundingRect();
+    // adjust transformation matrix
+    rot.at<double>(0,2) += bbox.width/2.0 - center.x;
+    rot.at<double>(1,2) += bbox.height/2.0 - center.y;
+
+    cv::Mat dst;
+    cv::warpAffine(src, dst, rot, bbox.size());
+  }else{
+    imwrite(outputname, pano);
+  }
 
   if(verbose){Rcpp::Rcout << "====== SAVING DONE ======" << std::endl;}
   
@@ -721,9 +737,29 @@ BEGIN_RCPP
 
   Rcpp::Rcout << "saving stitched image..." << std::endl;}
 
-  string outputname;
-  outputname =  outfolder + "/" + off;
-  imwrite(outputname, dst);
+  cv::Mat rotated;
+  if(angle!=0){
+    // get rotation matrix for rotating the image around its center
+    cv::Point2f center(dst.cols/2.0, dst.rows/2.0);
+    cv::Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
+    // determine bounding rectangle
+    cv::Rect bbox = cv::RotatedRect(center,dst.size(), angle).boundingRect();
+    // adjust transformation matrix
+    rot.at<double>(0,2) += bbox.width/2.0 - center.x;
+    rot.at<double>(1,2) += bbox.height/2.0 - center.y;
+
+    
+    cv::warpAffine(dst, rotated, rot, bbox.size());
+    string outputname;
+    outputname =  outfolder + "/" + off;
+    imwrite(outputname, rotated);
+  }else{
+
+    dst.copyTo(rotated);
+    string outputname;
+    outputname =  outfolder + "/" + off;
+    imwrite(outputname, rotated);
+  }
 
   if(verbose){Rcpp::Rcout << "====== SAVING DONE ======" << std::endl;}
   
@@ -732,9 +768,9 @@ BEGIN_RCPP
   string displaywindow = off;
   Mat normalized;
   double Min, Max;
-  dst.convertTo(dst, -1, alpha, beta);  
-  minMaxLoc(dst, &Min, &Max);
-  dst.convertTo(normalized,CV_8UC1,255.0/(Max-Min)); 
+  rotated.convertTo(rotated, -1, alpha, beta);  
+  minMaxLoc(rotated, &Min, &Max);
+  rotated.convertTo(normalized,CV_8UC1,255.0/(Max-Min)); 
   if(normalized.rows>600){
           double ScaleFactor = 600/(double)normalized.rows;
           resize(normalized, normalized, Size(), ScaleFactor, ScaleFactor, INTER_LINEAR);
