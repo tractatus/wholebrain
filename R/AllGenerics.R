@@ -1,5 +1,4 @@
 check.progress<-function(barWidth, progress, stages, message, timing){
-	Sys.sleep(0.5)
 	cat("  [")
      	pos = round(barWidth * progress);
     	for(p in seq(0,barWidth-1)) {
@@ -15,6 +14,7 @@ check.progress<-function(barWidth, progress, stages, message, timing){
     		}	
     	}
     	cat(paste("] ", round(progress * 100.0), "% | ",message," | time left: ", timing," |\r", sep=''));
+    	Sys.sleep(.05)
     	progress <- progress + 1/(stages);
     	flush.console()
     	process.events()
@@ -32,6 +32,7 @@ stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE){
    progress = 0.0;
    processing.steps<-length(all.section.folder)*(2+FFC+web.map)
    elapsed.time<-'?'
+   elapsed.time.series<-numeric()
 	for(i in all.section.folder){
 		ptm <- proc.time()
 		section.folder<-paste(folder,i, sep='/')
@@ -74,9 +75,12 @@ stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE){
 
 			setwd(defaultwd)
 		}
-		elapsed.time<- round( (proc.time() - ptm)*(length(all.section.folder)-which(all.section.folder==i)) )
-		elapsed.time<- format(.POSIXct(elapsed.time,tz="GMT"), "%H:%M")
+		elapsed.time.series<- append(elapsed.time.series , round( (proc.time()[3] - ptm[3])*(length(all.section.folder)-which(all.section.folder==i)) ) )
+		elapsed.time<-mean(elapsed.time.series)
+		elapsed.time<- format(.POSIXct(elapsed.time,tz="GMT"), "%H:%M:%S")
 	}
+	progress<-check.progress(barWidth, progress, processing.steps, ' FINISHED ', elapsed.time )
+
 }
 
 
