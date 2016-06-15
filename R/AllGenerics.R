@@ -13,7 +13,9 @@ check.progress<-function(barWidth, progress, stages, message, timing){
     		}
     		}	
     	}
-    	cat(paste("] ", round(progress * 100.0), "% | ",message," | time left: ", timing," |\r", sep=''));
+    	message.new<-paste("] ", round(progress * 100.0), "% | ",message," | time left: ", timing," |\r", sep='')
+    	paste(message.new, paste(rep(' ', nchar(message.new)), collapse=''), sep='')
+    	cat(message.new)
     	Sys.sleep(.05)
     	progress <- progress + 1/(stages);
     	flush.console()
