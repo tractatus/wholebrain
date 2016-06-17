@@ -7,25 +7,40 @@
 #' @examples
 #' find.dim(63)
 
+#find.dim<-function(x){
+#    width<-ceiling(sqrt(x))
+#    height<-floor(sqrt(x))
+#    if( (x-width*height)>0){
+#        if( (x-width*height)%%width == 0){
+#            height<-height+(x-width*height)/width
+#        }else{
+#            width<-width+(x-width*height)/height
+#        }
+#    }
+#    
+#    if( (x-width*height)<0){
+#        if(width>height){
+#            area<-width*height
+#            width<-width+abs((x-area))/2
+#            height<-height-abs((x-area))/2
+#        }
+#    }
+#    
+#    return(c(width, height))
+#}
+
 find.dim<-function(x){
-    width<-ceiling(sqrt(x))
-    height<-floor(sqrt(x))
-    if( (x-width*height)>0){
-        if( (x-width*height)%%width == 0){
-            height<-height+(x-width*height)/width
-        }else{
-            width<-width+(x-width*height)/height
-        }
-    }
-    
-    if( (x-width*height)<0){
-        if(width>height){
-            area<-width*height
-            width<-width+abs((x-area))/2
-            height<-height-abs((x-area))/2
-        }
-    }
-    
+    possible.integer.values<-(x/seq(1,x))
+    suggestions<-possible.integer.values[possible.integer.values%%1 == 0]
+    #remove too high and too low sides
+    suggestions<-suggestions[!(suggestions==x|suggestions==1)]
+    #return a matrix of possible suggestions
+    suggestions<-matrix(suggestions[which(suggestions%o%suggestions == x, arr.ind=TRUE)], ncol=2)
+    suggestions<-suggestions[!duplicated(rowSums(suggestions)),]
+    suggestions<-suggestions[which.min(rowSums(abs(suggestions-sqrt(x)))),]
+    suggestions<-sort(suggestions, decreasing=TRUE)
+    width<-suggestions[1]
+    height<-suggestions[2]
     return(c(width, height))
 }
 
