@@ -1,7 +1,7 @@
 #' Stitch image using grid layout
 #'
 #' Stitches multiple image tiles.
-#' @param input input a character vector consisting of the full path name to 16-bit raw tif image files.
+#' @param input input a character vector consisting of the full path name to 16-bit raw tif image files. If length(input)==1 then its a folder and it will get tiffs inside.
 #' @param stitched.image.name filename of the stitched output, default is the directory where the tiles are situated with the added prefix stitched_
 #' @param type type of motorized microscope stage. Will define the order of acquisition. Arguments are either row.by.row or default snake.by.row.
 #' @param order the order each tile is acquired. Default is left.&.up which starts from bottom left corner and moves up. Other options include right.&.up, left.&.down and right.&.down.
@@ -22,6 +22,17 @@
 
 stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', type = 'snake.by.row', order = 'left.&.up', output.folder='../', tilesize=2048, overlap=0.1, show.image=FALSE, micromanager = TRUE, verbose=TRUE, brightness=30, contrast=3.0, rotate=0,feature.matching = FALSE){
   files<-character()
+  if(length(input)==1){
+      #get images 
+      input<-get.images(input)
+      #order them
+      index<-basename(input)
+      index<-gsub("[A-z \\.\\(\\)]","",index)
+      index<-as.numeric(index)
+      index<-order(index)
+      input<-input[index]
+    }
+    
   for(i in 1:length(input)){
     file <- as.character(input[i])
     ## check for existence
@@ -30,6 +41,7 @@ stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', t
     file <- path.expand(file)
     files<-append(files, file)
   }
+
   if(show.image){show.image<-1}else{show.image<-0}
   show.image<-as.integer(show.image)
   
@@ -63,7 +75,7 @@ stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', t
   
   if(micromanager){overlap<-overlap*2}
   
-  grid.coordinates<-get.grid.coordinates(image.order, tilesize, overlap, plotgrid=F)
+  grid.coordinates<-get.grid.coordinates(image.order, tilesize, overlap, rotate=rotate, plotgrid=F)
   if(abs(rotate)<90){
     numcols<-find.dim(length(files))[1]
     numrows<-find.dim(length(files))[2]

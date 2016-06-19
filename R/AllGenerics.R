@@ -35,6 +35,10 @@ stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE){
    processing.steps<-length(all.section.folder)*(2+FFC+web.map)
    elapsed.time<-'?'
    elapsed.time.series<-numeric()
+
+   if(length(rotate)==1){rotate<-rep(rotate, length(all.section.folder))}
+   section.folder<-''
+   images<-''
 	for(i in all.section.folder){
 		ptm <- proc.time()
 		section.folder<-paste(folder,i, sep='/')
@@ -65,7 +69,7 @@ stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE){
 		}		
 		
 		#stitch
-		stitch(images, rotate=rotate, verbose=FALSE) 
+		stitch(images, rotate=rotate[which(all.section.folder==i)], verbose=FALSE) 
 		progress<-check.progress(barWidth, progress, processing.steps, paste('Web output:',i,'| image',which(all.section.folder==i),'of',length(all.section.folder)), elapsed.time )
 
 		if(web.map){

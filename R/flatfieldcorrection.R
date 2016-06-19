@@ -16,6 +16,17 @@
 
 flat.field.correction<- function(input, output.folder='../', output.prefix='FFC', kernel=301, show.image=FALSE, gain.image.name = 'gain_{output.folder}.tif', verbose=TRUE){
   files<-character()
+  if(length(input)==1){
+      #get images 
+      input<-get.images(input)
+      #order them
+      index<-basename(input)
+      index<-gsub("[A-z \\.\\(\\)]","",index)
+      index<-as.numeric(index)
+      index<-order(index)
+      input<-input[index]
+    }
+
   for(i in 1:length(input)){
     file <- as.character(input[i])
     ## check for existence

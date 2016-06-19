@@ -267,6 +267,7 @@ float progress = 0.0;
         Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
     R_FlushConsole();
     R_ProcessEvents();
+    R_CheckUserInterrupt();
     progress += (float)1/(STACKS-1);
 
           }
@@ -747,7 +748,11 @@ BEGIN_RCPP
 
   if(verbose){Rcpp::Rcout << "====== SMALL OVERLAP DONE ======" << std::endl;
 
-  Rcpp::Rcout << "saving stitched image..." << std::endl;}
+  Rcpp::Rcout << "saving stitched image..." << std::endl;
+   R_FlushConsole();
+    R_ProcessEvents();
+    R_CheckUserInterrupt();
+  }
 
   cv::Mat rotated;
   if(angle!=0){

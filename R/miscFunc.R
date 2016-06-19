@@ -268,7 +268,7 @@ unstitch<-function(img, tilesize, overlap=NULL, position='bottomright'){
     outputfile<-basename(file)
     outputfile<-sub("^([^.]*).*", "\\1", outputfile)
     create.output.directory(paste('Tiled', outputfile, sep='_'))
-    if(is.null(overlap)){overlap<-(-999)}
+    if(is.null(overlap)){overlap<-(-999)}else{overlap<-integer(overlap*100)}
     if(position=='topleft'){pos=1}
     if(position=='topright'){pos=2}
     if(position=='bottomright'){pos=3}

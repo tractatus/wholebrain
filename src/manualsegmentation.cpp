@@ -29,9 +29,11 @@ void releaseImg(int x,int y);
 void showImage();
 void findImg(int x,int y, vector <Widget> widgets);
 
-
+vector <Widget> imshowwidget(1); //this is for command imshow
 vector <Widget> widgets(5);
 DoubleSlider intensitySliderImage;
+DoubleSlider imshowSliderImage;
+
 
 int sliderMin = 110;
 int sliderMax = 692;
@@ -604,6 +606,70 @@ void showImage(){
 
 }
 
+
+RcppExport SEXP imageshow(SEXP input, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename){
+  double resizeParam = Rcpp::as<int>(resizeP);
+  resizeParam = resizeParam/100;
+
+  Rcpp::CharacterVector f(backgroundFilename);
+  std::string ff(f[0]);
+  ui_backgroundImage = imread(ff, IMREAD_UNCHANGED);
+
+  ui_display = ui_backgroundImage.clone();
+
+   Rcpp::CharacterVector sf(filename);
+  std::string sff(sf[0]);
+  //slider = imread(sff, IMREAD_UNCHANGED);
+
+  Rcpp::CharacterVector sliderfile(sliderFilename);
+  std::string sliderfilename(sliderfile[0]);
+
+  imshowSliderImage.backgroundImage = imread(sff, IMREAD_UNCHANGED);
+  imshowSliderImage.slider = imread(sliderfilename, IMREAD_UNCHANGED);
+  imshowSliderImage.updateImage();
+
+  std::string labels[] = {"8-bit render"};
+  int rangeValues[] = {65536}; 
+  for(unsigned int i=0; i < imshowwidget.size(); i++){
+        //widgets[i].name.push_back(labels[i]);
+        imshowwidget[i].name = labels[i];
+        imshowwidget[i].balue.push_back(0);
+        imshowwidget[i].balue.push_back(rangeValues[i]);
+
+        imshowwidget[i].assignImage(imshowSliderImage.displayImage);
+        imshowwidget[i].assignPos(0, ui_backgroundImage.rows -  (1*i + 1)*imshowwidget[i].height);
+        //assign values
+        if( imshowwidget[i].guiPixelValue.size()==0 ){
+        imshowwidget[i].value.push_back(0);
+        imshowwidget[i].value.push_back(rangeValues[i]);
+        imshowwidget[i].guiPixelValue.push_back(110);
+        imshowwidget[i].guiPixelValue.push_back(692);
+        }
+  }
+
+    //DRAW THE GUI
+  for(unsigned int i=0; i < imshowwidget.size(); i++){
+    imshowSliderImage.globalCoordinateX[0] =  imshowwidget[i].guiPixelValue[0];
+    imshowSliderImage.globalCoordinateX[1] =  imshowwidget[i].guiPixelValue[1];
+    imshowSliderImage.textlabel = widgets[i].name;
+    imshowSliderImage.maxValue = rangeValues[i];
+    imshowSliderImage.updateAxes();
+    imshowSliderImage.updateImage();
+    imshowwidget[i].updateImage(imshowSliderImage.displayImage);
+
+    mergewithBackground( &ui_backgroundImage, &ui_display, &imshowwidget[i].storedImage, Point(imshowwidget[i].x, imshowwidget[i].y ) );
+  }
+
+  namedWindow("controls", CV_WINDOW_AUTOSIZE);
+  imshow("controls", ui_display);
+  moveWindow("controls", 600, 200);
+
+  Rcpp::CharacterVector fname(input);
+  std::string ffname(fname[0]);
+  Rcpp::Rcout << "Loading image:" << ffname << std::endl;
+
+
+}
 
 
 RcppExport SEXP GUI(SEXP input, SEXP numthresh, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename) {

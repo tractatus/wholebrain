@@ -743,6 +743,9 @@ RcppExport SEXP createTiles(SEXP input, SEXP tilesize, SEXP overlap, SEXP positi
     Mat sourceImage = imread(ff, -1); //CV_LOAD_IMAGE_GRAYSCALE
     Mat finalImage = sourceImage.clone();
     Rcpp::Rcout << "LOADED." << std::endl;
+       R_FlushConsole();
+    R_ProcessEvents();
+    R_CheckUserInterrupt();
     int rows;
     int cols;
     int overlapPixels;
@@ -822,12 +825,15 @@ RcppExport SEXP createTiles(SEXP input, SEXP tilesize, SEXP overlap, SEXP positi
     tileSize = tileSize - 2 * overlapPixels;
 
 
-    Rcpp::Rcout << "Overlap:" << overlapPixels << std::endl;
-    Rcpp::Rcout << "tileSize:" << tileSize << std::endl;
+    Rcpp::Rcout << "Padding:" << overlapPixels << std::endl;
+    Rcpp::Rcout << "Center tileSize:" << tileSize << std::endl;
     
     double empiricalOverlap = (double)(overlapPixels*2)/(double)(overlapPixels*2+tileSize);
  
     cv::Mat tileInput, tileOutput;
+
+    int barWidth = 70;
+    float progress = 0.0;
     
     int k = 0;
     string filepath;
@@ -860,6 +866,19 @@ RcppExport SEXP createTiles(SEXP input, SEXP tilesize, SEXP overlap, SEXP positi
             
             
         }
+
+        Rcpp::Rcout << "  [";
+        int pos = barWidth * progress;
+        for (int j = 0; j < barWidth; ++j) {
+          if (j < pos) Rcpp::Rcout << "=";
+            else if (j == pos) Rcpp::Rcout << ">";
+          else Rcpp::Rcout << " ";
+        }
+        Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
+          R_FlushConsole();
+          R_ProcessEvents();
+          R_CheckUserInterrupt();
+        progress += (float)1/(rows-1);
     }
     
     return List::create(
