@@ -27,8 +27,11 @@ check.progress<-function(barWidth, progress, stages, message, timing){
 stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE, start.at=1, dont.run=NULL){
 	all.section.folder<-list.dirs(folder, recursive=FALSE, full.names=FALSE)
 	remove<-c(which(substr(all.section.folder, 1,6)%in%c('output','stitch')),which(substr(all.section.folder, 1,3)%in%c('FFC','Web')))
-	if(!is.null(dont.run)){
+	if(length(remove)>0){
 		all.section.folder<-all.section.folder[-remove]
+	}
+	if(!is.null(dont.run)){
+		all.section.folder<-all.section.folder[-dont.run]
 	}
 
 	if(start.at>1){
