@@ -36,6 +36,7 @@ export(get.atlas.image)
 
 export(segment)
 export(makewebmap)
+export(imshow)
 
 export(getWholeSection)
 export(automatic.correspondences)

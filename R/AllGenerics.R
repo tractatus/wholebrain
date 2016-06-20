@@ -36,7 +36,6 @@ stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE, start.at=1, do
 
 	if(start.at>1){
 		all.section.folder<-all.section.folder[start.at:length(all.section.folder)]
-		rotate<-rotate[start.at:length(rotate)]
 	}
 	barWidth = 50;
    progress = 0.0;
@@ -44,7 +43,9 @@ stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE, start.at=1, do
    elapsed.time<-'?'
    elapsed.time.series<-numeric()
 
-   if(length(rotate)==1){rotate<-rep(rotate, length(all.section.folder))}
+   if(length(rotate)==1){rotate<-rep(rotate, length(all.section.folder))}else{
+   			rotate<-rotate[start.at:length(rotate)]
+   }
    section.folder<-''
    images<-''
 	for(i in all.section.folder){

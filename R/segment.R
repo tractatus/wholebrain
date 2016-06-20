@@ -31,3 +31,22 @@ segment<-function(input, numthresh=8, resize=0.25){
   outputlist<-list(filter=list(alim= a$alim, threshold.range = a$threshold.range, eccentricity = a$eccentricity,  Max = a$Max, Min = a$Mina), soma = list(x =a$x, y=a$y, intensity = a$intensity, area = a$soma.area))
   return(outputlist)
 }
+
+
+imshow<-function(input,resize=0.25){
+  inputfile<-character()
+  for(i in 1:length(input)){
+    inputfile <- as.character(input[i])
+    ## check for existence
+    if(!file.exists(inputfile))
+      stop(inputfile, ", file not found")
+    inputfile <- path.expand(inputfile)
+  #  files<-append(files, file)
+  }
+
+  file <- system.file('double_slider.png', package='wholebrain')
+  fileslider <- system.file('slider.png', package='wholebrain')
+  filebackground <- system.file('GUI_background.png', package='wholebrain')
+  resizeP = as.integer(resize*100)
+  .Call("imageshow",inputfile, resizeP,file,fileslider,filebackground)
+}

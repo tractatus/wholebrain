@@ -75,6 +75,49 @@ string getImgTypes(int imgTypeInt)
     return "unknown image type";
 }
 
+class ImageShow
+{
+public:
+    Mat src; 
+    Mat dst;
+    Mat dsp;
+    Mat out;
+    Mat dspHighRes;
+    bool displayImage;
+    double Max;
+    double Min;
+    double ScaleFactor;
+    int imgdepth;
+  
+    void updateImage(void)
+    {
+      
+      dst = Mat::zeros(src.size(), CV_8UC1);
+
+
+
+      if(displayImage){
+        dsp = src.clone();
+        dsp -= Min;
+        dsp.convertTo(dsp,CV_8UC1,255.0/(Max-Min)); //-255.0/Min
+
+        //REMOVE
+        out = dst.clone();
+        out.convertTo(out, CV_8UC1);
+
+        dspHighRes = dsp.clone();
+        if(src.rows>600){
+          ScaleFactor = 600/(double)src.rows;
+          resize(dsp, dsp, Size(), ScaleFactor, ScaleFactor, INTER_LINEAR);
+        }
+      }else{
+        out = dst.clone();
+        out.convertTo(out, CV_8UC1);
+      }
+    }
+};
+
+
 
 class Segmentation
 {
@@ -667,6 +710,63 @@ RcppExport SEXP imageshow(SEXP input, SEXP resizeP, SEXP filename, SEXP sliderFi
   Rcpp::CharacterVector fname(input);
   std::string ffname(fname[0]);
   Rcpp::Rcout << "Loading image:" << ffname << std::endl;
+  ImageShow dispayimage;
+  dispayimage.src = imread(ffname, -1); // -1 tag means "load as is"
+  Rcpp::Rcout << "LOADED." << std::endl;
+  Rcpp::Rcout << "Image type: " <<  getImgTypes(dispayimage.src.type()) << "_" << dispayimage.src.type()  << std::endl;
+
+  int depth;
+  if(dispayimage.src.type()==0){
+    dispayimage.imgdepth = 255;  
+    depth = 255;
+  }else if(dispayimage.src.type()==2){
+    dispayimage.imgdepth = 1000; //
+    depth = 65535;
+    dispayimage.src.convertTo(dispayimage.src, CV_16S);
+    Rcpp::Rcout << "Changed image type to: " <<  getImgTypes(dispayimage.src.type()) << "_" << dispayimage.src.type() << std::endl;
+  }
+ 
+
+  dispayimage.Min = 0;
+  dispayimage.Max = 65535;
+
+    Rcpp::Rcout << "Resizing to: " <<  resizeParam*100 << "% of original size." << std::endl;
+    resize(dispayimage.src, dispayimage.src, Size(), resizeParam, resizeParam, INTER_LINEAR);
+
+  dispayimage.updateImage();
+  imshow("display", dispayimage.dsp);
+  moveWindow("display", 100, 300);
+
+   //set the callback function for any mouse event
+  setMouseCallback("controls", CallBackFunc, &dispayimage); // NULL
+  setMouseCallback("display", CallBackZoom, &dispayimage); // NULL
+  //INITIALIZE LOOP
+
+  int k;
+  while(1){
+
+
+  k=waitKey(0);
+  //cout << '\n' << "KEY PRESSED: " << k << endl;
+  if(k == 104){
+    dispayimage.updateImage();
+    imshow("display", dispayimage.dsp);
+    if(zoomOn){
+      Mat inset = dispayimage.dspHighRes( Rect(insetX0, insetY0, insetWidth, insetHeight) );
+      imshow("zoom", inset);
+    }
+  }
+  if(k == 122){
+    zoomOn = false;
+    destroyWindow("zoom");
+  }
+  if( (k == 27)|(k == -1)|(k == 115) ){
+  destroyWindow("controls");
+  destroyWindow("display");
+  destroyWindow("zoom");
+  break;
+  }
+  }
 
 
 }
