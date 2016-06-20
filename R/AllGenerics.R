@@ -24,11 +24,16 @@ check.progress<-function(barWidth, progress, stages, message, timing){
 }
 
 
-stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE){
+stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE, start.at=1, dont.run=NULL){
 	all.section.folder<-list.dirs(folder, recursive=FALSE, full.names=FALSE)
 	remove<-c(which(substr(all.section.folder, 1,6)%in%c('output','stitch')),which(substr(all.section.folder, 1,3)%in%c('FFC','Web')))
-	if(length(remove)>0){
+	if(!is.null(dont.run)){
 		all.section.folder<-all.section.folder[-remove]
+	}
+
+	if(start.at>1){
+		all.section.folder<-all.section.folder[start.at:length(all.section.folder)]
+		rotate<-rotate[start.at:length(rotate)]
 	}
 	barWidth = 50;
    progress = 0.0;
@@ -96,4 +101,24 @@ stitch.experiment<-function(folder){
 		section.folder<-paste(folder,i, sep='/')
 		stitch.animal(section.folder)
 	}
+}
+
+
+spreadsheet.animal<-function(folder, file, sep=','){
+	filename<-list.dirs(folder, recursive=FALSE, full.names=FALSE)
+	sectionname<-basename(filename)
+	filename<-filename[substr(sectionname, 1, nchar('stitched_FFC'))=='stitched_FFC']
+	sectionname<-sectionname[substr(sectionname, 1, nchar('stitched_FFC'))=='stitched_FFC']
+
+	colNames<-c("filename", "section", "rotation", "Min", "Max", "soma.area", "eccentricity", "")
+
+	data<-data.frame(matrix(rep(0, ncol(data)*length(sectionname)), ncol=length(colNames) ) )
+
+	names(data)<-colNames
+
+	data$filename<-filename
+	data$section<-sectionname
+
+	write.table(data, file=file, sep=sep, row.names=FALSE)
+	return(data)
 }
