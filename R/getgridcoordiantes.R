@@ -37,7 +37,9 @@ find.dim<-function(x){
     #return a matrix of possible suggestions
     suggestions<-matrix(suggestions[which(suggestions%o%suggestions == x, arr.ind=TRUE)], ncol=2)
     suggestions<-suggestions[!duplicated(rowSums(suggestions)),]
-    suggestions<-suggestions[which.min(rowSums(abs(suggestions-sqrt(x)))),]
+    if(!is.null(dim(suggestions))){
+        suggestions<-suggestions[which.min(rowSums(abs(suggestions-sqrt(x)))),]
+    }
     suggestions<-sort(suggestions, decreasing=TRUE)
     width<-suggestions[1]
     height<-suggestions[2]
