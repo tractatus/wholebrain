@@ -58,6 +58,7 @@ stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE, start.at=1, do
 		#order them
 		index<-basename(images)
 		index<-gsub("[A-z \\.\\(\\)]","",index)
+		index<-gsub("[- \\.\\(\\)]","",index)
 		index<-as.numeric(index)
 		index<-order(index)
 		images<-images[index]

@@ -9,7 +9,7 @@
 #' #stitch images
 #' segment(system.file('sample_tiles/rabiesEGFP.tif', package='wholebrain')) 
 
-segment<-function(input, numthresh=8, resize=0.25){
+segment<-function(input, numthresh=8, resize=0.25, filter=NULL, display=TRUE){
   inputfile<-character()
   for(i in 1:length(input)){
     inputfile <- as.character(input[i])
@@ -24,7 +24,7 @@ segment<-function(input, numthresh=8, resize=0.25){
   fileslider <- system.file('slider.png', package='wholebrain')
   filebackground <- system.file('GUI_background.png', package='wholebrain')
   resizeP = as.integer(resize*100)
-  a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground)
+  a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground, display)
   a$x<-(1/ resize)*a$x
   a$y<-(1/ resize)*a$y
   a$soma.area <-(1/ resize)*a$soma.area
@@ -33,7 +33,7 @@ segment<-function(input, numthresh=8, resize=0.25){
 }
 
 
-imshow<-function(input,resize=0.25){
+imshow<-function(input, auto.range = FALSE, quantile = c(0.001,0.999), resize=0.25){
   inputfile<-character()
   for(i in 1:length(input)){
     inputfile <- as.character(input[i])
@@ -48,5 +48,9 @@ imshow<-function(input,resize=0.25){
   fileslider <- system.file('slider.png', package='wholebrain')
   filebackground <- system.file('GUI_background.png', package='wholebrain')
   resizeP = as.integer(resize*100)
-  .Call("imageshow",inputfile, resizeP,file,fileslider,filebackground)
+  a<-.Call("imageshow",inputfile, as.integer(auto.range), quantile[1], quantile[2], resizeP,file,fileslider,filebackground)
+  if(auto.range){b<-a$quantile.values
+    names(b)<-paste(round(a$quantile*100,2), '%', sep='')
+    return(b)
+  }
 }

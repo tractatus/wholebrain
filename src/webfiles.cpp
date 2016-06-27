@@ -229,7 +229,7 @@ RcppExport SEXP createWeb(SEXP input, SEXP alpha, SEXP beta, SEXP verbose, SEXP 
                 
             }
             catch (runtime_error& ex) {
-                Rcpp::Rcout << "Cannot save: exception converting image to correct format:\n" << endl;
+                Rcpp::Rcout << "Cannot save: exception convertxing image to correct format:\n" << endl;
                 return(R_NilValue);
             }
             

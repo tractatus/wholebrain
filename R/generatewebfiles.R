@@ -13,20 +13,27 @@
 #' #stitch images
 #' stitch(images, type = 'snake.by.row', order = 'left.&.up', tilesize=2048, overlap=0.1, show.image=TRUE)
 
-makewebmap<-function(img, filter, alpha=0, beta=0, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', enable.drawing=TRUE, verbose=FALSE, registration = FALSE, AP=0,ML=0,DV=0){
+makewebmap<-function(img, filter, folder.name = NULL, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', combine = NULL, enable.drawing=TRUE, verbose=FALSE, registration = FALSE, AP=0,ML=0,DV=0){
     file <- as.character(img)[1]
     if(!file.exists(file))
     stop(file, "not found")
-    
-    
-    ## expand path
-    file <- path.expand(file)
-    outputfile<-basename(file)
-    outputfile<-sub("^([^.]*).*", "\\1", outputfile)
-    create.output.directory(paste('Web', outputfile, sep='_'), verbose=verbose)
-    setwd(paste('Web', outputfile, sep='_'))
-    create.output.directory(paste('Tiles', outputfile, sep='_'), verbose=verbose)
+
+    if(length(img)>1){
+
+    }else{
+      ## expand path
+      file <- path.expand(file)
+      outputfile<-basename(file)
+      outputfile<-sub("^([^.]*).*", "\\1", outputfile)
+      folder.name<-paste('Web', outputfile, sep='_')
+      create.output.directory(folder.name, verbose=verbose)
+
+    }
+
+    setwd(folder.name)
+    lapply(outputfile, create.output.directory(paste('Tiles', outputfile, sep='_'), verbose=verbose))
     setwd('../')
+    
     #if(is.null(overlap)){overlap<-(-999)}
     verbose<-as.numeric(verbose)
 

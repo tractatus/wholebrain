@@ -27,13 +27,10 @@ template<> SEXP wrap(const cv::Mat &obj) {
 Mat ui_backgroundImage, ui_display, img2;
 void releaseImg(int x,int y);
 void showImage();
-void findImg(int x,int y, vector <Widget> widgets);
+void findImg(int x,int y);
 
-vector <Widget> imshowwidget(1); //this is for command imshow
-vector <Widget> widgets(5);
+vector <Widget> widgets(7);
 DoubleSlider intensitySliderImage;
-DoubleSlider imshowSliderImage;
-
 
 int sliderMin = 110;
 int sliderMax = 692;
@@ -41,6 +38,7 @@ int globalCoordinateX[]={sliderMin,sliderMax};	//point coordinates
 int globalCoordinateY[]={36,36};
 int selectedWidget=-1;			//currently selected point
 int numWidgets=2;
+bool segmentationtype; 
 
 #include <vector>
 #include <string>
@@ -89,7 +87,7 @@ public:
     double ScaleFactor;
     int imgdepth;
   
-    void updateImage(void)
+    void runthreshold(void)
     {
       
       dst = Mat::zeros(src.size(), CV_8UC1);
@@ -100,7 +98,7 @@ public:
         dsp = src.clone();
         dsp -= Min;
         dsp.convertTo(dsp,CV_8UC1,255.0/(Max-Min)); //-255.0/Min
-
+        cvtColor(dsp, dsp, CV_GRAY2RGB);
         //REMOVE
         out = dst.clone();
         out.convertTo(out, CV_8UC1);
@@ -152,6 +150,7 @@ public:
     vector<float> intensitySoma;
 
     bool endSegment;
+    bool dosegmentation;
 
     unsigned int p;
     unsigned int increment;
@@ -177,6 +176,7 @@ public:
       double range = ((double)maxThresh - (double)minThresh);
       int increment = range/numThresholds;
 
+      if(dosegmentation){
       for (unsigned int j=0; j<numThresholds; j++){
         linearspaced[j]=p;
         p+= increment;
@@ -245,7 +245,7 @@ public:
         }
       }
       dst = mask.clone();
-
+      } //end of dosegmentation
 
 
       if(displayImage){
@@ -255,6 +255,8 @@ public:
         
         Scalar red(0, 0, 255);
         cvtColor(dsp, dsp, CV_GRAY2RGB);
+
+      if(dosegmentation){
         findContours(dst, contours, hierarchy, RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
         if(hideFilter){
         }else{
@@ -271,6 +273,7 @@ public:
           drawContours( out, contours, i, color, CV_FILLED, 8, hierarchy, 0 );
         }
         //REMOVE
+      }
 
         dspHighRes = dsp.clone();
         if(src.rows>600){
@@ -356,7 +359,7 @@ void CallBackZoom(int event, int x, int y, int flags, void* userdata)
 {
   switch(event) {
     case EVENT_LBUTTONDOWN:
-      cout << '\r' << "LEFT MOUSE DOUBLECLICK (" << x << ", " << y << ")" << flush;
+      cout << '\r' << "LEFT MOUSE DOUBLECLICK (" << x << ", " << y << ")" << flush;      
       Segmentation *pd = static_cast<Segmentation *>(userdata);
 
       Mat zoomImage;
@@ -461,7 +464,7 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata)
         cout << '\r' << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << flush;
         */
         //cout << '\r' << "LEFT MOUSE (" << x << ", " << y << ")" << flush;
-        findImg( x, y, widgets);
+        findImg( x, y);
         break;
     case EVENT_LBUTTONUP:
     if(selectedWidget!=-1){
@@ -470,18 +473,19 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata)
       widgets[selectedWidget].value[1] = intensitySliderImage.upperLimit;
 
       Segmentation *pd = static_cast<Segmentation *>(userdata);
-      if(selectedWidget==1){
+      
+      if(selectedWidget==3){
         pd->minThresh = widgets[selectedWidget].value[0];
         pd->maxThresh = widgets[selectedWidget].value[1];
       }
-      if(selectedWidget==2){
+      if(selectedWidget==4){
         pd->minArea = widgets[selectedWidget].value[0];
         pd->maxArea = widgets[selectedWidget].value[1];
       }
-      if(selectedWidget==3){
+      if(selectedWidget==5){
         pd->eccentricityThresh = widgets[selectedWidget].value[1];
       }
-      if(selectedWidget==4){
+      if(selectedWidget==6){
         pd->Min = widgets[selectedWidget].value[0];
         pd->Max = widgets[selectedWidget].value[1];
       }
@@ -530,7 +534,7 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata)
     }
 }
 
-void findImg(int x,int y, vector <Widget> widgets){
+void findImg(int x,int y){
 
 	for(unsigned int i=0;i<widgets.size();i++){
     //check which widget the user pressed
@@ -650,15 +654,32 @@ void showImage(){
 }
 
 
-RcppExport SEXP imageshow(SEXP input, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename){
+RcppExport SEXP imageshow(SEXP input, SEXP autoRange, SEXP  lq, SEXP uq, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename){
+  BEGIN_RCPP
+  Rcpp::RNGScope __rngScope; 
+
   double resizeParam = Rcpp::as<int>(resizeP);
   resizeParam = resizeParam/100;
-
+  bool autorange = Rcpp::as<int>(autoRange);
+  double upperQuantile = Rcpp::as<double>(uq);
+  double lowerQuantile = Rcpp::as<double>(lq);
+  int smin;
+  int smax;
+  
+// '/Users/danielfurth/Desktop/an_example_animal/stitched_section001_1/stitched_section001_1.tif'
   Rcpp::CharacterVector f(backgroundFilename);
   std::string ff(f[0]);
   ui_backgroundImage = imread(ff, IMREAD_UNCHANGED);
 
-  ui_display = ui_backgroundImage.clone();
+  
+
+  cv::Rect roi;
+  roi.x = 0;
+  roi.y = 0;
+  roi.width = ui_backgroundImage.size().width;
+  roi.height = 88;
+
+  ui_display = ui_backgroundImage(roi).clone();
 
    Rcpp::CharacterVector sf(filename);
   std::string sff(sf[0]);
@@ -667,50 +688,16 @@ RcppExport SEXP imageshow(SEXP input, SEXP resizeP, SEXP filename, SEXP sliderFi
   Rcpp::CharacterVector sliderfile(sliderFilename);
   std::string sliderfilename(sliderfile[0]);
 
-  imshowSliderImage.backgroundImage = imread(sff, IMREAD_UNCHANGED);
-  imshowSliderImage.slider = imread(sliderfilename, IMREAD_UNCHANGED);
-  imshowSliderImage.updateImage();
+  
+  intensitySliderImage.backgroundImage = imread(sff, IMREAD_UNCHANGED);
+  intensitySliderImage.slider = imread(sliderfilename, IMREAD_UNCHANGED);
+  intensitySliderImage.updateImage();
 
-  std::string labels[] = {"8-bit render"};
-  int rangeValues[] = {65536}; 
-  for(unsigned int i=0; i < imshowwidget.size(); i++){
-        //widgets[i].name.push_back(labels[i]);
-        imshowwidget[i].name = labels[i];
-        imshowwidget[i].balue.push_back(0);
-        imshowwidget[i].balue.push_back(rangeValues[i]);
-
-        imshowwidget[i].assignImage(imshowSliderImage.displayImage);
-        imshowwidget[i].assignPos(0, ui_backgroundImage.rows -  (1*i + 1)*imshowwidget[i].height);
-        //assign values
-        if( imshowwidget[i].guiPixelValue.size()==0 ){
-        imshowwidget[i].value.push_back(0);
-        imshowwidget[i].value.push_back(rangeValues[i]);
-        imshowwidget[i].guiPixelValue.push_back(110);
-        imshowwidget[i].guiPixelValue.push_back(692);
-        }
-  }
-
-    //DRAW THE GUI
-  for(unsigned int i=0; i < imshowwidget.size(); i++){
-    imshowSliderImage.globalCoordinateX[0] =  imshowwidget[i].guiPixelValue[0];
-    imshowSliderImage.globalCoordinateX[1] =  imshowwidget[i].guiPixelValue[1];
-    imshowSliderImage.textlabel = widgets[i].name;
-    imshowSliderImage.maxValue = rangeValues[i];
-    imshowSliderImage.updateAxes();
-    imshowSliderImage.updateImage();
-    imshowwidget[i].updateImage(imshowSliderImage.displayImage);
-
-    mergewithBackground( &ui_backgroundImage, &ui_display, &imshowwidget[i].storedImage, Point(imshowwidget[i].x, imshowwidget[i].y ) );
-  }
-
-  namedWindow("controls", CV_WINDOW_AUTOSIZE);
-  imshow("controls", ui_display);
-  moveWindow("controls", 600, 200);
 
   Rcpp::CharacterVector fname(input);
   std::string ffname(fname[0]);
   Rcpp::Rcout << "Loading image:" << ffname << std::endl;
-  ImageShow dispayimage;
+  Segmentation dispayimage;
   dispayimage.src = imread(ffname, -1); // -1 tag means "load as is"
   Rcpp::Rcout << "LOADED." << std::endl;
   Rcpp::Rcout << "Image type: " <<  getImgTypes(dispayimage.src.type()) << "_" << dispayimage.src.type()  << std::endl;
@@ -726,14 +713,73 @@ RcppExport SEXP imageshow(SEXP input, SEXP resizeP, SEXP filename, SEXP sliderFi
     Rcpp::Rcout << "Changed image type to: " <<  getImgTypes(dispayimage.src.type()) << "_" << dispayimage.src.type() << std::endl;
   }
  
+  if(autorange){
+    std::vector<short> temp_input((short*)dispayimage.src.data, (short*)dispayimage.src.data + dispayimage.src.rows * dispayimage.src.cols);
 
-  dispayimage.Min = 0;
-  dispayimage.Max = 65535;
+    std::sort(std::begin(temp_input), std::end(temp_input));
+
+    smin = dispayimage.src.total() * lowerQuantile;
+    smax = dispayimage.src.total() * upperQuantile;
+
+    dispayimage.Min = temp_input[smin];
+    dispayimage.Max =  temp_input[smax];
+  }else{
+    dispayimage.Min = 0;
+    dispayimage.Max = 65535;
+  }
+
+  dispayimage.displayImage = true;
+  dispayimage.dosegmentation = false;
+  dispayimage.minThresh = 0;
+  dispayimage.maxThresh = dispayimage.imgdepth;
+  dispayimage.minArea = 0;
+  dispayimage.maxArea = 1000;
+  dispayimage.numThresholds = 3;
+    dispayimage.eccentricityThresh = 1000;
+  dispayimage.minThresh = 0;
+  dispayimage.maxThresh = 65535;
+  dispayimage.endSegment = false;
+
+  std::string labels[] = {"8-bit render"};
+  int rangeValues[] = { 65535}; 
+  
+        //widgets[i].name.push_back(labels[i]);
+        widgets[6].name = labels[0];
+        widgets[6].balue.push_back(0);
+        widgets[6].balue.push_back(rangeValues[0]);
+
+        widgets[6].assignImage(intensitySliderImage.displayImage);
+        widgets[6].assignPos(0, ui_display.rows -  1*widgets[6].height);
+        //assign values
+        if( widgets[6].guiPixelValue.size()==0 ){
+        widgets[6].value.push_back(0);
+        widgets[6].value.push_back(dispayimage.Max);
+        widgets[6].guiPixelValue.push_back(110);
+        widgets[6].guiPixelValue.push_back(692);
+        }
+    
+  
+    //DRAW THE GUI
+    intensitySliderImage.globalCoordinateX[0] =  widgets[6].guiPixelValue[0];
+    intensitySliderImage.globalCoordinateX[1] =  widgets[6].guiPixelValue[1];
+    intensitySliderImage.textlabel = widgets[6].name;
+    intensitySliderImage.maxValue = rangeValues[6];
+    intensitySliderImage.updateAxes();
+    intensitySliderImage.updateImage();
+    widgets[6].updateImage(intensitySliderImage.displayImage);
+
+    mergewithBackground( &ui_backgroundImage, &ui_display, &widgets[6].storedImage, Point(widgets[6].x, widgets[6].y ) );
+  
+
+  namedWindow("controls", CV_WINDOW_AUTOSIZE);
+  imshow("controls", ui_display);
+  moveWindow("controls", 600, 200);
+
 
     Rcpp::Rcout << "Resizing to: " <<  resizeParam*100 << "% of original size." << std::endl;
     resize(dispayimage.src, dispayimage.src, Size(), resizeParam, resizeParam, INTER_LINEAR);
 
-  dispayimage.updateImage();
+  dispayimage.runthreshold();
   imshow("display", dispayimage.dsp);
   moveWindow("display", 100, 300);
 
@@ -749,7 +795,7 @@ RcppExport SEXP imageshow(SEXP input, SEXP resizeP, SEXP filename, SEXP sliderFi
   k=waitKey(0);
   //cout << '\n' << "KEY PRESSED: " << k << endl;
   if(k == 104){
-    dispayimage.updateImage();
+    dispayimage.runthreshold();
     imshow("display", dispayimage.dsp);
     if(zoomOn){
       Mat inset = dispayimage.dspHighRes( Rect(insetX0, insetY0, insetWidth, insetHeight) );
@@ -768,14 +814,29 @@ RcppExport SEXP imageshow(SEXP input, SEXP resizeP, SEXP filename, SEXP sliderFi
   }
   }
 
+  vector<int> quantileValues;
+  quantileValues.push_back(dispayimage.Min);
+  quantileValues.push_back(dispayimage.Max);
 
+  vector<float> quantiles;
+  quantiles.push_back(lowerQuantile);
+  quantiles.push_back(upperQuantile);
+
+  return List::create(
+    _["quantile.values"] = quantileValues,
+    _["quantile"] = quantiles
+  );
+
+END_RCPP 
 }
 
 
-RcppExport SEXP GUI(SEXP input, SEXP numthresh, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename) {
+RcppExport SEXP GUI(SEXP input, SEXP numthresh, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename, SEXP shouldDisplay) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; 
+  segmentationtype = true;
 
+  bool display = Rcpp::as<int>(shouldDisplay);
   //to handle execution time logging
 clock_t tStart, tStop;
   double resizeParam = Rcpp::as<int>(resizeP);
@@ -798,8 +859,8 @@ clock_t tStart, tStop;
   intensitySliderImage.slider = imread(sliderfilename, IMREAD_UNCHANGED);
   intensitySliderImage.updateImage();
 
-  std::string labels[] = {"brain outline", "intensity", "soma area", "eccentricity", "8-bit render"};
-  int rangeValues[] = {65536, 65536, 1000, 1000, 65536}; 
+  std::string labels[] = {"resize","blur","brain outline", "intensity", "soma area", "eccentricity", "8-bit render"};
+  int rangeValues[] = {2500,30,65536, 65536, 1000, 1000, 65536}; 
   for(unsigned int i=0; i < widgets.size(); i++){
         //widgets[i].name.push_back(labels[i]);
         widgets[i].name = labels[i];
@@ -883,6 +944,7 @@ clock_t tStart, tStop;
     Rcpp::Rcout << "Changed image type to: " <<  getImgTypes(pd.src.type()) << "_" << pd.src.type() << std::endl;
   }
  
+  pd.dosegmentation = true;
   pd.minThresh = 0;
   pd.maxThresh = pd.imgdepth;
   pd.displayImage = true;

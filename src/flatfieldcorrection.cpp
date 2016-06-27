@@ -156,7 +156,7 @@ BEGIN_RCPP
   getGain(num_files, cols, rows, zpositions, dst, verbose);
     // Gaussian smoothing
   GaussianBlur( dst, dst, Size( KERNEL, KERNEL ), 0, 0 );
-      imwrite(off, dst);
+  imwrite(off, dst);
   if(verbose){  Rcpp::Rcout << "\n" << std::endl;
     Rcpp::Rcout << "Gain image saved as: " << off << std::endl;
   Rcpp::Rcout << "====== GAIN IMAGE GENERATED ======" << std::endl;
