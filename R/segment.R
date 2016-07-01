@@ -24,11 +24,39 @@ segment<-function(input, numthresh=8, resize=0.25, filter=NULL, display=TRUE){
   fileslider <- system.file('slider.png', package='wholebrain')
   filebackground <- system.file('GUI_background.png', package='wholebrain')
   resizeP = as.integer(resize*100)
-  a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground, display)
+
+  if(is.null(filter)){
+    areaMin<-(-999)
+    areaMax<-(-999)
+    threshMin<-(-999)
+    threshMax<-(-999)
+    eccent<-(-999)
+    renderMax<-(-999)
+    renderMin<-(-999)
+    bThresh<-(-999)
+    resizeB<-(-999)
+    gaussBlur<-(-999)
+  }else{
+    areaMin<-filter$alim[1]
+    areaMax<-filter$alim[2]
+    threshMin<-filter$threshold.range[1]
+    threshMax<-filter$threshold.range[2]
+    eccent<-filter$eccentricity[1]
+    renderMax<-filter$Max
+    renderMin<-filter$Min
+    bThresh<-filter$brain.threshold
+    resizeB<-filter$resize
+    gaussBlur<-filter$blur
+  }
+
+  a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground, display, areaMin, areaMax, threshMin, threshMax, eccent, renderMin, renderMax, bThresh, resizeB, gaussBlur)
   a$x<-(1/ resize)*a$x
   a$y<-(1/ resize)*a$y
   a$soma.area <-(1/ resize)*a$soma.area
-  outputlist<-list(filter=list(alim= a$alim, threshold.range = a$threshold.range, eccentricity = a$eccentricity,  Max = a$Max, Min = a$Mina), soma = list(x =a$x, y=a$y, intensity = a$intensity, area = a$soma.area))
+  outputlist<-list(filter=list(alim= a$alim, threshold.range = a$threshold.range, eccentricity = a$eccentricity,  Max = a$Max, Min = a$Mina, brain.threshold=a$brain.threshold, resize=a$resize, blur=a$blur), soma = list(x =a$x, y=a$y, intensity = a$intensity, area = a$soma.area))
+  if(is.null(outputlist$filter$Min)){
+    outputlist$filter$Min<-0
+  }
   return(outputlist)
 }
 

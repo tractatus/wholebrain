@@ -125,6 +125,9 @@ public:
     Mat dsp;
     Mat out;
     Mat dspHighRes;
+    Mat resized;
+    Mat blurred;
+    Mat brainCont;
     bool displayImage;
     int alpha = 10;
     double alphaADJ;
@@ -140,6 +143,9 @@ public:
     int maxThresh;
     int eccentricityThresh;
     int hideFilter = 0;
+    double matchingResize = 64;
+    int blurSize = 4;
+    int brainThresh = 200;
     vector<vector<Point> > contours;  
     vector<Vec4i> hierarchy;
     vector<float> eccentricity;
@@ -176,7 +182,92 @@ public:
       double range = ((double)maxThresh - (double)minThresh);
       int increment = range/numThresholds;
 
+      vector<vector<Point> > brainContours;
+        vector<Vec4i> brainHierarchy;
+        int largest_contour_index=0;
       if(dosegmentation){
+
+        //do contour
+        if(matchingResize!=0){
+          resize(src, resized, Size(),4*(matchingResize/2500), 4*(matchingResize/2500), INTER_LINEAR);
+        }else{
+          src.copyTo(resized);
+        }
+        if(blurSize!=0){
+           blur( resized, resized, Size(blurSize, blurSize) );
+        }
+
+        if(brainThresh!=0){
+          threshold(resized, blurred, brainThresh, imgdepth, CV_THRESH_BINARY);
+        }
+        
+
+        blurred.convertTo(blurred, CV_8U);
+
+        /// Find contours
+        findContours( blurred, brainContours, brainHierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+
+        /// Get the moments
+        vector<Moments> muBrain(brainContours.size() );
+      for( int i = 0; i < brainContours.size(); i++ )
+          { muBrain[i] = moments( brainContours[i], false ); }
+
+      ///  Get the mass centers:
+      vector<Point2f> mcBrain( brainContours.size() );
+      for( int i = 0; i < brainContours.size(); i++ )
+         { mcBrain[i] = Point2f( muBrain[i].m10/muBrain[i].m00 , muBrain[i].m01/muBrain[i].m00 ); }
+
+
+
+      int largest_area=0;
+      
+      Rect bounding_rect;
+      Point largest_centroid;
+
+       /// Calculate the area with the moments 00 and compare with the result of the OpenCV function
+      for( int i = 0; i< brainContours.size(); i++ )
+        {
+
+          double a=contourArea( brainContours[i],false);  //  Find the area of contour
+          if(a>largest_area){
+            largest_area=a;
+            largest_contour_index=i;                //Store the index of largest contour
+            bounding_rect=boundingRect(brainContours[i]); // Find the bounding rectangle for biggest contour
+          }
+        }
+      largest_centroid = mcBrain[largest_contour_index];
+
+      std::vector<int> ventricles_indexes; 
+      std::vector<double> ventricles_size;
+
+      if(brainContours.size()>1){    
+        for( int i = 0; i< brainContours.size(); i++ ){
+            if(brainHierarchy[i][3]==largest_contour_index){
+            ventricles_indexes.push_back(i);
+            ventricles_size.push_back(contourArea(brainContours[i],false));
+        }
+      }
+
+
+   std::vector<int> ventricles_selected; 
+   ventricles_selected.push_back(largest_contour_index);
+
+   std::partial_sort(ventricles_size.begin(), ventricles_size.begin()+2,ventricles_size.end(), std::greater<int>());
+
+   for(int j=0; j < 2; j++){
+    for (unsigned i=0; i < ventricles_indexes.size(); i++) {
+      if( ventricles_size[j] == contourArea( brainContours[ventricles_indexes[i]],false) ){
+            ventricles_selected.push_back(ventricles_indexes[i]);
+        }
+      }
+    }
+   std::sort( ventricles_selected.begin(), ventricles_selected.end() );
+   ventricles_selected.erase( unique( ventricles_selected.begin(), ventricles_selected.end() ), ventricles_selected.end() );
+
+  }
+      //END OF BRAIN CONTOUR
+
+
       for (unsigned int j=0; j<numThresholds; j++){
         linearspaced[j]=p;
         p+= increment;
@@ -263,6 +354,10 @@ public:
         for( int i = 0; i< contours.size(); i++ ){
           drawContours( dsp, contours, i, red, CV_FILLED, 8, hierarchy, 0 );
         }
+          if(brainContours.size()>0){
+            Scalar darkcyan = Scalar( 138, 138,14 );
+            polylines( dsp, Mat( brainContours[largest_contour_index] ) * ( 1/(4*(matchingResize/2500)) ) , true, darkcyan, 2, 8);
+          }
         }
         //REMOVE
         out = dst.clone();
@@ -359,7 +454,7 @@ void CallBackZoom(int event, int x, int y, int flags, void* userdata)
 {
   switch(event) {
     case EVENT_LBUTTONDOWN:
-      cout << '\r' << "LEFT MOUSE DOUBLECLICK (" << x << ", " << y << ")" << flush;      
+      //cout << '\r' << "LEFT MOUSE DOUBLECLICK (" << x << ", " << y << ")" << flush;      
       Segmentation *pd = static_cast<Segmentation *>(userdata);
 
       Mat zoomImage;
@@ -383,6 +478,12 @@ void CallBackZoom(int event, int x, int y, int flags, void* userdata)
       insetWidth = pd->dspHighRes.cols*2*((double)zoomWidth/zoomImage.cols);
       insetHeight = pd->dspHighRes.rows*2*((double)zoomHeight/zoomImage.rows);
 
+      if( (insetWidth+insetX0) >= (pd->dspHighRes.cols) ){ 
+        insetWidth = (pd->dspHighRes.cols-insetX0);
+      }
+      if( (insetHeight+insetY0) >= (pd->dspHighRes.rows) ){
+        insetHeight = (pd->dspHighRes.rows-insetY0);
+      }
 
       Mat inset = pd->dspHighRes( Rect(insetX0, insetY0, insetWidth, insetHeight) );
       imshow("zoom", inset);
@@ -473,19 +574,27 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata)
       widgets[selectedWidget].value[1] = intensitySliderImage.upperLimit;
 
       Segmentation *pd = static_cast<Segmentation *>(userdata);
-      
-      if(selectedWidget==3){
+      if(selectedWidget==0){ //resize
+        pd->matchingResize = widgets[selectedWidget].value[0];
+      }
+      if(selectedWidget==1){ //blur
+        pd->blurSize = widgets[selectedWidget].value[0];
+      }
+      if(selectedWidget==2){ //brain outline
+        pd->brainThresh = widgets[selectedWidget].value[0];
+      }
+      if(selectedWidget==3){ //intensity
         pd->minThresh = widgets[selectedWidget].value[0];
         pd->maxThresh = widgets[selectedWidget].value[1];
       }
-      if(selectedWidget==4){
+      if(selectedWidget==4){ //soma area
         pd->minArea = widgets[selectedWidget].value[0];
         pd->maxArea = widgets[selectedWidget].value[1];
       }
-      if(selectedWidget==5){
+      if(selectedWidget==5){ //eccentricity
         pd->eccentricityThresh = widgets[selectedWidget].value[1];
       }
-      if(selectedWidget==6){
+      if(selectedWidget==6){ //8bit render
         pd->Min = widgets[selectedWidget].value[0];
         pd->Max = widgets[selectedWidget].value[1];
       }
@@ -735,14 +844,14 @@ RcppExport SEXP imageshow(SEXP input, SEXP autoRange, SEXP  lq, SEXP uq, SEXP re
   dispayimage.minArea = 0;
   dispayimage.maxArea = 1000;
   dispayimage.numThresholds = 3;
-    dispayimage.eccentricityThresh = 1000;
+  dispayimage.eccentricityThresh = 1000;
   dispayimage.minThresh = 0;
   dispayimage.maxThresh = 65535;
   dispayimage.endSegment = false;
 
   std::string labels[] = {"8-bit render"};
   int rangeValues[] = { 65535}; 
-  
+    if( widgets[6].guiPixelValue.size()==0 ){
         //widgets[i].name.push_back(labels[i]);
         widgets[6].name = labels[0];
         widgets[6].balue.push_back(0);
@@ -751,7 +860,7 @@ RcppExport SEXP imageshow(SEXP input, SEXP autoRange, SEXP  lq, SEXP uq, SEXP re
         widgets[6].assignImage(intensitySliderImage.displayImage);
         widgets[6].assignPos(0, ui_display.rows -  1*widgets[6].height);
         //assign values
-        if( widgets[6].guiPixelValue.size()==0 ){
+        
         widgets[6].value.push_back(0);
         widgets[6].value.push_back(dispayimage.Max);
         widgets[6].guiPixelValue.push_back(110);
@@ -831,10 +940,26 @@ END_RCPP
 }
 
 
-RcppExport SEXP GUI(SEXP input, SEXP numthresh, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename, SEXP shouldDisplay) {
+RcppExport SEXP GUI(SEXP input, SEXP numthresh, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename, SEXP shouldDisplay, 
+  SEXP areaMin, SEXP areaMax, SEXP threshMin, SEXP threshMax, SEXP eccent, SEXP renderMin, SEXP renderMax, SEXP bThresh, SEXP resizeB, SEXP gaussBlur) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; 
   segmentationtype = true;
+
+  // CHECK IF PARAMETERS WERE PROVIDED
+  int minArea = Rcpp::as<int>(areaMin);
+  int maxArea = Rcpp::as<int>(areaMax);
+  int minThresh = Rcpp::as<int>(threshMin);
+  int maxThresh = Rcpp::as<int>(threshMax);
+  int eccentricityThresh = Rcpp::as<int>(eccent);
+  int Min = Rcpp::as<int>(renderMin);
+  int Max = Rcpp::as<int>(renderMax);
+  int brainThresh = Rcpp::as<int>(bThresh);
+  double matchingResize = Rcpp::as<double>(resizeB);
+  matchingResize = matchingResize*2500;
+  int blurSize = Rcpp::as<int>(gaussBlur);
+  //
+
 
   bool display = Rcpp::as<int>(shouldDisplay);
   //to handle execution time logging
@@ -862,6 +987,7 @@ clock_t tStart, tStop;
   std::string labels[] = {"resize","blur","brain outline", "intensity", "soma area", "eccentricity", "8-bit render"};
   int rangeValues[] = {2500,30,65536, 65536, 1000, 1000, 65536}; 
   for(unsigned int i=0; i < widgets.size(); i++){
+        if( widgets[i].guiPixelValue.size()==0 ){
         //widgets[i].name.push_back(labels[i]);
         widgets[i].name = labels[i];
         widgets[i].balue.push_back(0);
@@ -870,7 +996,7 @@ clock_t tStart, tStop;
         widgets[i].assignImage(intensitySliderImage.displayImage);
         widgets[i].assignPos(0, ui_backgroundImage.rows -  (1*i + 1)*widgets[i].height);
         //assign values
-        if( widgets[i].guiPixelValue.size()==0 ){
+        
         widgets[i].value.push_back(0);
         widgets[i].value.push_back(rangeValues[i]);
         widgets[i].guiPixelValue.push_back(110);
@@ -900,9 +1026,11 @@ clock_t tStart, tStop;
     mergewithBackground( &ui_backgroundImage, &ui_display, &widgets[i].storedImage, Point(widgets[i].x, widgets[i].y ) );
   }
 
+  if(display){
   namedWindow("controls", CV_WINDOW_AUTOSIZE);
   imshow("controls", ui_display);
   moveWindow("controls", 600, 200);
+  }
   //showImage();
 
   
@@ -945,23 +1073,48 @@ clock_t tStart, tStop;
   }
  
   pd.dosegmentation = true;
-  pd.minThresh = 0;
-  pd.maxThresh = pd.imgdepth;
-  pd.displayImage = true;
-  pd.minArea = 0;
-  pd.maxArea = 1000;
-  pd.numThresholds = Rcpp::as<int>(numthresh);
-    pd.eccentricityThresh = 1000;
-  pd.Min = 0;
-  pd.Max = 65535;
-  pd.minThresh = 0;
-  pd.maxThresh = 65535;
-  pd.endSegment = false;
 
+  if( widgets[0].guiPixelValue.size()==0 ){
+    pd.minThresh = 0;
+    pd.maxThresh = pd.imgdepth;
+    pd.displayImage = true;
+    pd.minArea = 0;
+    pd.maxArea = 1000;
+    pd.numThresholds = Rcpp::as<int>(numthresh);
+    pd.eccentricityThresh = 1000;
+    pd.Min = 0;
+    pd.Max = 65535;
+    pd.endSegment = false;
+   }else{
+    pd.minThresh = widgets[3].value[0];
+    pd.maxThresh = widgets[3].value[1];
+    pd.displayImage = true;
+    pd.minArea = widgets[4].value[0];
+    pd.maxArea = widgets[4].value[1];
+    pd.numThresholds = Rcpp::as<int>(numthresh);
+    pd.eccentricityThresh = widgets[5].value[1];
+    pd.Min = widgets[6].value[0];
+    pd.Max = widgets[6].value[1];
+    pd.endSegment = false;
+   }
+
+   if(minArea!=(-999)){
+    //parameters were provided
+    pd.minThresh = minThresh;
+    pd.maxThresh = maxThresh;
+    pd.minArea = minArea;
+    pd.maxArea = maxArea;
+    pd.eccentricityThresh = eccentricityThresh;
+    pd.Min = Min;
+    pd.Max = Max;
+    pd.brainThresh = brainThresh;
+    pd.matchingResize = matchingResize;
+    pd.blurSize = blurSize;
+   }
 
     Rcpp::Rcout << "Resizing to: " <<  resizeParam*100 << "% of original size." << std::endl;
     resize(pd.src, pd.src, Size(), resizeParam, resizeParam, INTER_LINEAR);
-
+    if(display){
    // Initialize parameters
     int histSize = 256;    // bin size
     float histRange[] = { 0, 255 };
@@ -988,16 +1141,18 @@ clock_t tStart, tStop;
     }
     
     namedWindow( "histogram", 1 );    imshow( "histogram", histImage );
-
+  }
   pd.runthreshold();
+  if(display){
   imshow("display", pd.dsp);
   moveWindow("display", 100, 300);
 
    //set the callback function for any mouse event
   setMouseCallback("controls", CallBackFunc, &pd); // NULL
   setMouseCallback("display", CallBackZoom, &pd); // NULL
+  }
   //INITIALIZE LOOP
-
+  if(display){
   int k;
   while(1){
 
@@ -1035,7 +1190,7 @@ clock_t tStart, tStop;
   }
     //return R_NilValue;
 
-
+}
 
   vector<float> arealimits;
   vector<int> range;
@@ -1053,6 +1208,9 @@ clock_t tStart, tStop;
     _["eccentricity"] = pd.eccentricityThresh,
     _["Max"] = pd.Max,
     _["Min"] = pd.Min,
+    _["brain.threshold"] = pd.brainThresh,
+    _["blur"] = pd.blurSize,
+    _["resize"] = (pd.matchingResize/2500),
     _["x"] = pd.centroidX,
     _["y"] = pd.centroidY,
     _["intensity"] = pd.intensitySoma,

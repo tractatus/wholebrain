@@ -1,3 +1,196 @@
+
+printJSONneuron<-function(neuX, neuY, intensity, area, structureAN, ytop){
+
+cat('var neurons = {\n
+  
+    "type": "FeatureCollection",\n
+    "features": [\n')
+for(i in 1:length(neuX)){
+    if(structureAN[i]==0){
+    line.color<-"#ff0000"
+    
+    cat(paste('{\n
+            "geometry": {\n
+                "type": "Point",\n
+                "coordinates": [\n',
+          ytop -neuY[i],',\n',
+          neuX[i],
+                '\n]\n',
+            '},\n "type": "Feature",\n "properties": {\n "popupContent": "<b><u>Pixel properties:</u></b> <br> <b>Mean intensity:</b> ', round(log(intensity[i],2),3), ' bits<br> <b>Soma size:</b> ', round(area[i]), ' &mu;m<sup>2</sup> <br> </br> <b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', '?', ': ', 'Undefined/unspecific', '<br>"\n},\n "hexcolor": ', paste('"#',ontology$allen.color[which(ontology$id== structureAN[i])], '"', sep=''), ',\n"linecolor": ', paste('"',line.color, '"', sep=''),', \n"id": ', i, '\n },\n'))
+    
+  }else{
+  line.color<-"#000"
+  
+  cat(paste('{\n
+            "geometry": {\n
+                "type": "Point",\n
+                "coordinates": [\n',
+          ytop - neuY[i],',\n',
+          neuX[i],
+                '\n]\n',
+            '},\n "type": "Feature",\n "properties": {\n "popupContent": "<b><u>Pixel properties:</u></b> <br> <b>Mean intensity:</b> ', round(log(intensity[i],2),3), ' bits<br> <b>Soma size:</b> ', round(area[i]), ' &mu;m<sup>2</sup> <br> </br> <b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', ontology$acronym[which(id== structureAN[i])], ': ',  ontology$name[which(ontology$id== structureAN[i])], '<br>"\n},\n "hexcolor": ', paste('"#',ontology$allen.color[which(ontology$id== structureAN[i])], '"', sep=''), ',\n"linecolor": ', paste('"',line.color, '"', sep=''),', \n"id": ', i, '\n },\n'))
+  
+  }
+  
+  
+}
+cat(']\n};')
+}
+
+
+
+printJSONoutlines<-function(registration){
+
+k=length(outlines)
+for(i in 1:k){
+
+if(i==1){
+  cat('var allenoutlines = [\n')
+} 
+  
+###############   
+cat('   {\n')
+cat('    "type": "Feature",\n')
+cat('    "properties": {"typeofregion": "graymatter",')
+cat('             "popupContent": ', paste('"<b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', 'ACRONYM', ': ',  'NAME', '<br>"'), ',\n')  
+cat(paste('         "id":', i ,',\n'))
+cat('             "style": {\n')
+cat('                 weight: 1.2,\n')
+cat('                 color: "#F59B24",\n')
+cat('                 opacity: 1,\n')
+cat('                 fillColor: "#ffffff",\n')
+if(line.type[i]==2){cat('         dashArray: "1, 5",\n')} 
+cat('                 fillOpacity: 0.0\n')
+cat('              }\n\n')      
+cat('    },\n')
+cat('    "geometry": {\n')
+cat('        "type": "Polygon",\n')
+cat('        "coordinates": [[\n')
+
+for(j in 1:length(outlines[[i]]$xrT)){
+  if(j != length(outlines[[i]]$xrT)){
+    cat(paste('            [', 13107 -outlines[[i]]$yrT[j]*scaleup,', ', outlines[[i]]$xrT[j]*scaleup, '],\n', sep=''))
+  }else{
+    cat(paste('            [', 13107 -outlines[[i]]$yrT[j]*scaleup,', ', outlines[[i]]$xrT[j]*scaleup, ']\n', sep=''))
+  }
+}
+cat('        ]]\n')
+cat('    }\n')
+cat('},\n')
+
+###########
+
+###############   
+cat('   {\n')
+cat('    "type": "Feature",\n')
+cat('    "properties": {"typeofregion": "graymatter",')
+cat('             "popupContent": ', paste('"<b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', 'ACRONYM', ': ',  'NAME', '<br>"'), ',\n')  
+cat(paste('         "id":', i ,',\n'))
+cat('             "style": {\n')
+cat('                 weight: 1.2,\n')
+cat('                 color: "#F59B24",\n')
+cat('                 opacity: 1,\n')
+cat('                 fillColor: "#ffffff",\n')
+if(line.type[i]==2){cat('         dashArray: "1, 5",\n')} 
+cat('                 fillOpacity: 0.0\n')
+cat('              }\n\n')      
+cat('    },\n')
+cat('    "geometry": {\n')
+cat('        "type": "Polygon",\n')
+cat('        "coordinates": [[\n')
+
+for(j in 1:length(outlines[[i]]$xlT)){
+  if(j != length(outlines[[i]]$xlT)){
+    cat(paste('            [', 13107 -outlines[[i]]$ylT[j]*scaleup,', ', outlines[[i]]$xlT[j]*scaleup, '],\n', sep=''))
+  }else{
+    cat(paste('            [', 13107 -outlines[[i]]$ylT[j]*scaleup,', ', outlines[[i]]$xlT[j]*scaleup, ']\n', sep=''))
+  }
+}
+cat('        ]]\n')
+cat('    }\n')
+cat('},\n')
+
+###########
+    
+    
+
+if(i==k){
+  cat('];')
+} 
+
+}
+
+}
+
+slidetray<-function(input, filter, folder.prefix=NULL, start.at=1, dont.run=NULL, coordinates=NULL){
+
+
+    if(length(input)>1){
+      #process bunch of images
+      file <- as.character(input)[1]
+      if(!file.exists(file))
+      stop(file, "not found")
+
+      folder<-input
+      folder<-strsplit(folder, "\\/")[[1]]
+      folder<-folder[-length(folder)]
+      folder<-paste(folder, collapse='/')
+      images<-input
+
+    }else{
+      if(is.null(folder.prefix)){
+        #process single folder with images
+        folder<-input
+        images<-get.images(input)
+      }else{
+        #process folder with folder that have a prefix
+        all.section.folder<-list.dirs(input, recursive=FALSE, full.names=FALSE)
+        index<-c(which(substr(all.section.folder, 1,nchar(folder.prefix))%in%c(folder.prefix)))
+        if(length(index)>0){
+          all.section.folder<-all.section.folder[index]
+        }
+        #start at
+        if(start.at>1){
+          if(length(start.at)>1){
+            all.section.folder<-all.section.folder[start.at[1]:start.at[2]]
+          }else{
+            all.section.folder<-all.section.folder[start.at:length(all.section.folder)]
+          }
+        }
+        #dont run
+        if(!is.null(dont.run)){
+          all.section.folder<-all.section.folder[-dont.run]
+        }
+        images<-get.images(paste(input, all.section.folder, sep='/') )
+     }
+     #end if else
+    }
+
+    image.name<-basename(images)
+    image.id<-formatC(1:length(images),digits=nchar(length(images)),flag="0")
+    if(!is.null(coordinates)){
+      if(length(coordinates)!=length(image.id)){stop("Length of coordinates is not the same as number of images")}
+    }
+    print("Making web maps... this can take some time.")
+    if(is.missing(filter)){
+      invisible( lapply(images, function(x){makewebmap(x, filter)}) )
+    }else{
+      invisible( lapply(images, function(x){makewebmap(x)}) )
+    }
+
+
+  
+
+  #FFC.folder<-paste('FFC',basename(section.folder), sep='_')
+      #FFC.folder<-paste(folder, FFC.folder, sep='/')
+      #images<-get.images(FFC.folder)
+      #images<-images[index]
+      
+
+}
+
+
+
 #' Generate a web-map from a sample section
 #'
 #' Generates multiple image tiles in JPEG format.
@@ -13,20 +206,29 @@
 #' #stitch images
 #' stitch(images, type = 'snake.by.row', order = 'left.&.up', tilesize=2048, overlap=0.1, show.image=TRUE)
 
-makewebmap<-function(img, filter, alpha=0, beta=0, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', enable.drawing=TRUE, verbose=FALSE, registration = FALSE, AP=0,ML=0,DV=0){
+makewebmap<-function(img, filter, folder.name = NULL, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', combine = NULL, enable.drawing=TRUE, verbose=FALSE, registration = FALSE, AP=0,ML=0,DV=0){
     file <- as.character(img)[1]
     if(!file.exists(file))
     stop(file, "not found")
-    
-    
-    ## expand path
-    file <- path.expand(file)
-    outputfile<-basename(file)
-    outputfile<-sub("^([^.]*).*", "\\1", outputfile)
-    create.output.directory(paste('Web', outputfile, sep='_'))
-    setwd(paste('Web', outputfile, sep='_'))
-    create.output.directory(paste('Tiles', outputfile, sep='_'))
+
+    if(length(img)>1){
+
+    }else{
+      ## expand path
+      file <- path.expand(file)
+      outputfile<-basename(file)
+      #outputfile<-sub("^([^.]*).*", "\\1", outputfile) #this cannot handle filenames with punctiation
+      outputfile<-strsplit(outputfile, "\\.")[[1]]
+      outputfile<-paste(outputfile[-length(outputfile)], collapse='.')
+      folder.name<-paste('Web', outputfile, sep='_')
+      create.output.directory(folder.name, verbose=verbose)
+
+    }
+
+    setwd(folder.name)
+    lapply(outputfile, function(x){create.output.directory(paste('Tiles', x, sep='_'), verbose=verbose)} )
     setwd('../')
+    
     #if(is.null(overlap)){overlap<-(-999)}
     verbose<-as.numeric(verbose)
 
@@ -40,10 +242,13 @@ makewebmap<-function(img, filter, alpha=0, beta=0, scale = 0.64, bregmaX = 0, br
         beta<-0
       }
     }else{
-      cat('No filter, creating 8-bit range from quantiles. \n')
+      if(verbose){
+        cat('No filter, creating 8-bit range from quantiles. \n')
+      }
+      alpha<-0
+      beta<-0
     }
     a <- .Call("createWeb", file, alpha, beta, verbose, outputfile)
-
 
 
     headerP01<-'<!DOCTYPE html>
@@ -279,7 +484,7 @@ headerP02<-"</title>
 </head>
 <body>"
 
-JSONfilename<-'http://www.openbrainmap.org/cdn/js/mupp.js'
+JSONfilename<-paste('./', outputfile,'.js', sep='')
 JSONdata<-paste('<script src=\"', JSONfilename,'\" type=\"text/javascript\"></script>',sep='') 
 
 footer<-sprintf('<div id=\"map\"></div>
@@ -309,14 +514,14 @@ footer<-sprintf('<div id=\"map\"></div>
     var center = [180, 10];
 
   var original = L.tileLayer.zoomify(\'./%s/\', {
-              width: %d,
-              height: %d,
+              width:  imageProperties.width,
+              height: imageProperties.height,
               tolerance: 0.8,
           });
 
       var minimap = L.tileLayer.zoomify(\'./%s/\', {
-                  width: %d,
-                  height: %d,
+                  width:  imageProperties.width,
+                  height: imageProperties.height,
                   tolerance: 0.8,
               });
           
@@ -349,11 +554,11 @@ footer<-sprintf('<div id=\"map\"></div>
   var miniMap = new L.Control.MiniMap(minimap, { toggleDisplay: true, position: \"topright\", width: 200, height: 150,  aimingRectOptions : rect1, shadowRectOptions: rect2, collapsedWidth: 36, collapsedHeight: 36}).addTo(map);
 
   
-  var southWest = map.unproject([0, %d], map.getMaxZoom());
-  var northEast = map.unproject([%d,0], map.getMaxZoom());
+  var southWest = map.unproject([0,  imageProperties.height], map.getMaxZoom());
+  var northEast = map.unproject([imageProperties.width,0], map.getMaxZoom());
   //map.setMaxBounds(new L.LatLngBounds(southWest, northEast));
   
-  map.setView( map.unproject([%d*0.65, %d*0.65], map.getMaxZoom()) , 2);
+  map.setView( map.unproject([imageProperties.width*0.65,  imageProperties.height*0.65], map.getMaxZoom()) , 2);
 
        
     
@@ -424,7 +629,7 @@ footer<-sprintf('<div id=\"map\"></div>
         var baseMaps = {
             \"%s\": original,
         };
-        ', scale, bregmaX, bregmaY, tiled_imagefolder, a$width, a$height, tiled_imagefolder, a$width, a$height, outputfile, a$height, a$width, a$width, a$height, fluorophore)
+        ', scale, bregmaX, bregmaY, tiled_imagefolder, tiled_imagefolder, outputfile, fluorophore)
 
 
     footer2<-'
@@ -580,5 +785,6 @@ window.open(url, \'_blank\');
     cat(footer2)
     sink()
     setwd('../')
-    
+
+    return(paste(getwd(), paste('Web', outputfile, sep='_'), sep='' ))
 }

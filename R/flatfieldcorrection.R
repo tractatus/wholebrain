@@ -61,7 +61,7 @@ flat.field.correction<- function(input, output.folder='../', output.prefix='FFC'
   outname<-basename(input)
   if(gain.image.name == 'gain_{output.folder}.tif'){
     defaultwd<-getwd()
-    parentpath<-dirname(dirname(input))[1]
+    #parentpath<-dirname(dirname(input))[1]
     outfolder<-paste('output', basename(dirname(input))[1], sep='_')
     setwd(parentpath)
     create.output.directory(outfolder, verbose=verbose)

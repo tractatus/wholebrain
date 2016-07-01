@@ -218,7 +218,7 @@ get.forward.warp<-function(registration){
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
 
-registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=2, plot.cor.map=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, verbose=TRUE){
+registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, plot.cor.map=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', verbose=TRUE){
     if(is.null(coordinate)){
       if(is.null(correspondance)){
         coordinate<-0
@@ -235,10 +235,26 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
 
 
     outputfile<-basename(file)
-    outputfile<-sub("^([^.]*).*", "\\1", outputfile)
-    outputfile<-paste(dirname(file),paste('Output', outputfile, sep='_'), sep='/')
+   # outputfile<-sub("^([^.]*).*", "\\1", outputfile)
+    outputfile<-strsplit(outputfile, "\\.")[[1]]
+    outputfile<-paste(outputfile[-length(outputfile)], collapse='.')
 
-    threshold<-brain.threshold
+    defaultwd<-getwd()
+
+    if(output.folder=='./'){
+      parentpath<-dirname(input)[1]
+    }
+    if(output.folder=='../'){
+      parentpath<-dirname(dirname(input))[1]
+    }
+
+    outfolder<-paste('output', outputfile, sep='_')
+    setwd(parentpath)
+    create.output.directory(outfolder, verbose=verbose)
+    setwd(defaultwd)
+
+    outputfile<-paste(parentpath, outfolder,paste('Registration', outputfile, sep='_'), sep='/')
+
 
     if(plane!='coronal'){
       stop(plane, " plane is not supported yet.")
@@ -252,6 +268,22 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
       plateimage <- path.expand(plateimage)
 
     }
+
+      if(is.null(filter)){
+        MaxDisp<-0
+        MinDisp<-0
+      }else{
+        MaxDisp<-filter$Max
+        MinDisp<-filter$Min
+        brain.threshold<-filter$brain.threshold
+        resize<-filter$resize
+        blurring[1]<-filter$blur
+      }
+      if(is.null(MinDisp)){
+        MinDisp<-0
+      }
+
+
     if(is.null(correspondance)){
     #scale.factor<-pixel.resolution*0.390625
 
@@ -319,16 +351,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
     #resizeP<-(pixel.resolution/resizeP)
    #(1/8)
    #/4)*9.75
-  if(is.null(filter)){
-    MaxDisp<-0
-    MinDisp<-0
-  }else{
-    MaxDisp<-filter$Max
-    MinDisp<-filter$Min
-  }
-  if(is.null(MinDisp)){
-    MinDisp<-0
-  }
+
   transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, as.integer(resizeP*100), MaxDisp, MinDisp, outputfile)
 
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
@@ -404,7 +427,11 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
 add.corrpoints<-function(registration, n.points){
   print("Begin with Target image (right) then add same point in reference atlas (left)")
   height.n.width<-dim(registration$transformationgrid$mx)
-  p<-locator(n.points*2, type='p', pch=c(21), bg=c('lightblue'))
+  if(is.missing(n.points)){
+    p<-locator(, type='p', pch=c(21), bg=c('lightblue'))
+  }else{
+    p<-locator(n.points*2, type='p', pch=c(21), bg=c('lightblue'))
+  }
   new.p<-cbind(rbind(cbind(p$x[seq(1,length(p$x),by=2)], p$y[seq(1,length(p$y),by=2)])),
         rbind(cbind(p$x[seq(2,length(p$x),by=2)], p$y[seq(2,length(p$y),by=2)]))
   )
@@ -420,7 +447,7 @@ remove.corrpoints<-function(registration, n.points){
   return(registration)
 }
 
-change.corrpoints<-function(registration, n.points, target.only=FALSE){
+change.corrpoints<-function(registration, n.points, target.only=TRUE){
   height.n.width<-dim(registration$transformationgrid$mx)
   if(target.only){
     print(paste("Change where you want to position points:", n.points, 'in the target image only'))

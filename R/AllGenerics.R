@@ -1,3 +1,24 @@
+
+
+
+acronym.from.id<-function(x){
+	unlist(lapply(x, function(y){if(length(which(ontology$id ==y))!=0){return(ontology$acronym[which(ontology$id ==y)])}else{return(NA)} }))
+}
+
+id.from.acronym <-function(x){
+	unlist(lapply(x, function(y){if(length(which(ontology$acronym ==y))!=0){return(ontology$id[which(ontology$acronym ==y)])}else{return(NA)} }))
+}
+
+name.from.acronym<-function(x){
+	unlist(lapply(x, function(y){if(length(which(ontology$acronym ==y))!=0){return(name[which(ontology$acronym ==y)])}else{return(NA)} }))
+}
+
+color.from.id<-function(x){
+	unlist(lapply(x, function(y){if(length(which(ontology$id ==y))!=0){return(ontology$name[which(ontology$id ==y)])}else{return(NA)} }))
+}
+
+
+
 check.progress<-function(barWidth, progress, stages, message, timing){
 	cat("  [")
      	pos = round(barWidth * progress);
@@ -35,7 +56,11 @@ stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE, start.at=1, do
 	}
 
 	if(start.at>1){
-		all.section.folder<-all.section.folder[start.at:length(all.section.folder)]
+		if(length(start.at)>1){
+				all.section.folder<-all.section.folder[start.at[1]:start.at[2]]
+			}else{
+				all.section.folder<-all.section.folder[start.at:length(all.section.folder)]
+			}
 	}
 	barWidth = 50;
    progress = 0.0;
