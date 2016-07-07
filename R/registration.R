@@ -508,7 +508,7 @@ stereotactic.coordinates <-function(x,y,registration,inverse=FALSE){
 
 
 
-plot.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, cex=0.5){
+inspect.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, cex=0.5){
   quartz(width= 12.280488, height=  6.134146)
 par(yaxs='i',xaxs='i', mfrow=c(1,2), mar=c(4,4,1,1))
 
@@ -521,6 +521,8 @@ if(is.null(regi$transformationgrid$myF)){
     registration<-get.forward.warp(registration)
   }
 }
+
+dataset<-get.cell.ids(registration, segmentation)
 
   scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration$transformationgrid$height,registration$transformationgrid$width) )
   
@@ -551,7 +553,7 @@ lapply(seq(1, wid,by=100), function(x){lines(registration$transformationgrid$mxF
 lines(registration$transformationgrid$mxF[, wid]/scale.factor,registration$transformationgrid$myF[, wid]/scale.factor, col='lightblue')
 
  
- index<-round(scale.factor*cbind(segmentation$soma$y,segmentation$soma$x))
+ index<-round(scale.factor*cbind(dataset$y, dataset$x))
  somaX<-registration$transformationgrid$mxF[index]/scale.factor
  somaY<-registration$transformationgrid$myF[index]/scale.factor
  #for(x in id){
@@ -561,8 +563,10 @@ lines(registration$transformationgrid$mxF[, wid]/scale.factor,registration$trans
 
 #} 
 #lapply(id, function(x){polygon(rois2[[x]]$coords, col=rgb(100,163,117,120,maxColorValue=255), border=gray(0.95));text(apply(rois2[[x]]$coords,2,mean)[1],apply(rois2[[x]]$coords,2,mean)[2],x, cex=0.7, col='white')})
-
-points(somaX,somaY,pch=21,bg='orange', cex=cex)
+circle.color<-rep('', nrow(dataset))
+circle.color[dataset$id>0]<-'black'
+circle.color[dataset$id==0]<-'red'
+points(somaX,somaY,pch=21,bg= dataset$color, col= circle.color, cex=cex)
 
 axis(1, at=stereotactic.coordinates(seq(-4,4,by=0.1),NA,registration, inverse=TRUE)$x, line=-4, labels=FALSE, tck=-0.01, col.ticks='lightblue')
 axis(1, at=stereotactic.coordinates(seq(-4,4,by=0.5),NA,registration, inverse=TRUE)$x, line=-4, labels=FALSE, tck=-0.02, col.ticks='coral')
@@ -597,11 +601,12 @@ lines(registration$transformationgrid$mx[,wid]/scale.factor,registration$transfo
         
 
 
- points(segmentation$soma$x,segmentation$soma$y, pch=21, bg='orange', cex=cex)
+ points(dataset$x, dataset$y, pch=21, bg= dataset$color, col= circle.color, cex=cex)
 #lapply(id, function(x){polygon(rois[[x]]$coords, col=rgb(100,163,117,120,maxColorValue=255));text(apply(rois[[x]]$coords,2,mean)[1],apply(rois[[x]]$coords,2,mean)[2],x, cex=0.7, col='white')})
+return(dataset)
 }
 
-get.cell.ids<-function(segmentation, registration, forward.warp=NULL){
+get.cell.ids<-function(registration, segmentation, forward.warp=NULL){
   coordinate<-registration$coordinate
 
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
@@ -645,7 +650,7 @@ get.cell.ids<-function(segmentation, registration, forward.warp=NULL){
   imagename<-substr(basename(registration$outputfile), nchar('Registration_')+1 ,nchar(basename(registration $outputfile)))
   dataset$image<-rep(imagename, nrow(dataset))
  dataset<-data.frame(animal=rep(NA, nrow(dataset)), AP=rep(registration$coordinate, nrow(dataset)), dataset)
-  
+  dataset$color<-as.character(dataset$color)
   return(dataset)
 }  
 

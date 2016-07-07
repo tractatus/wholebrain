@@ -10,11 +10,11 @@ id.from.acronym <-function(x){
 }
 
 name.from.acronym<-function(x){
-	unlist(lapply(x, function(y){if(length(which(ontology$acronym ==y))!=0){return(name[which(ontology$acronym ==y)])}else{return(NA)} }))
+	unlist(lapply(x, function(y){if(length(which(ontology$acronym ==y))!=0){return(ontology$name[which(ontology$acronym ==y)])}else{return(NA)} }))
 }
 
 name.from.id<-function(x){
-	unlist(lapply(x, function(y){if(length(which(ontology$id ==y))!=0){return(name[which(ontology$id ==y)])}else{return(NA)} }))
+	unlist(lapply(x, function(y){if(length(which(ontology$id ==y))!=0){return(ontology$name[which(ontology$id ==y)])}else{return(NA)} }))
 }
 
 color.from.id<-function(x){
