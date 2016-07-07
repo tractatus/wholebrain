@@ -13,10 +13,17 @@ name.from.acronym<-function(x){
 	unlist(lapply(x, function(y){if(length(which(ontology$acronym ==y))!=0){return(name[which(ontology$acronym ==y)])}else{return(NA)} }))
 }
 
-color.from.id<-function(x){
-	unlist(lapply(x, function(y){if(length(which(ontology$id ==y))!=0){return(ontology$name[which(ontology$id ==y)])}else{return(NA)} }))
+name.from.id<-function(x){
+	unlist(lapply(x, function(y){if(length(which(ontology$id ==y))!=0){return(name[which(ontology$id ==y)])}else{return(NA)} }))
 }
 
+color.from.id<-function(x){
+	unlist(lapply(x, function(y){if(length(which(ontology$id ==y))!=0){return(ontology$allen.color[which(ontology$id ==y)])}else{return(NA)} }))
+}
+
+color.from.acronym<-function(x){
+	unlist(lapply(x, function(y){if(length(which(ontology$acronym ==y))!=0){return(as.character(ontology$allen.color[which(ontology$acronym ==y)]))}else{return(NA)} }))
+}
 
 
 check.progress<-function(barWidth, progress, stages, message, timing){

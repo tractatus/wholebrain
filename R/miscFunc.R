@@ -30,6 +30,10 @@ liftingscheme <- function(file) {
     return(a)
 }
 
+make.atlas.nissl <- function(maskfilename, ageafilename) {
+    .Call("getAtlasNissl", maskfilename, ageafilename)
+}
+
 #create output directories
 create.output.directory<-function(subDir, mainDir=getwd(), verbose=TRUE){
 

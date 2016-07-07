@@ -9,6 +9,7 @@ import(MASS)
 import(grImport)
 import(grid)
 import(XML)
+import(sp)
 
 ## class
 
@@ -36,6 +37,7 @@ export(get.atlas.image)
 export(acronym.from.id)
 export(name.from.id)
 export(id.from.acronym)
+export(name.from.acronym)
 
 export(segment)
 export(makewebmap)
@@ -59,3 +61,4 @@ export(stereotactic.coordinates)
 export(plot.registration)
 
 export(mrd)
+export(make.atlas.nissl)

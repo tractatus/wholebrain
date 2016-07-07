@@ -1,6 +1,8 @@
 data(EPSatlas, envir=environment())
 data(atlasIndex, envir=environment())
-data(atlasOntology, envir=environment())
+#data(atlasOntology, envir=environment())
+data(ontology, envir=environment())
+
 
 #' Get atlas binary image
 #'
@@ -218,7 +220,7 @@ get.forward.warp<-function(registration){
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
 
-registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, plot.cor.map=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', verbose=TRUE){
+registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', verbose=TRUE){
     if(is.null(coordinate)){
       if(is.null(correspondance)){
         coordinate<-0
@@ -386,7 +388,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
   #transformationgrid$mxf<-transformationgrid$mxf*(dim(transformationgrid$mxf)[2]/transformationgrid$mxf[1, 1])
   #transformationgrid$myf<-transformationgrid$myf*(dim(transformationgrid$mxf)[1]/transformationgrid$myf[1, 1])
 
-    if(plot.cor.map){
+    if(display){
     par(yaxs='i', xaxs='i')
         img<-paste(outputfile,'_undistorted.png', sep='')
         img <- readPNG(img)
@@ -424,10 +426,10 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
   #return(data.frame(r.x=referenceP.x, r.y=referenceP.y, t.x=targetP.x, t.y=targetP.y))
 }
 
-add.corrpoints<-function(registration, n.points){
+add.corrpoints<-function(registration, n.points=NULL){
   print("Begin with Target image (right) then add same point in reference atlas (left)")
   height.n.width<-dim(registration$transformationgrid$mx)
-  if(is.missing(n.points)){
+  if(is.null(n.points)){
     p<-locator(, type='p', pch=c(21), bg=c('lightblue'))
   }else{
     p<-locator(n.points*2, type='p', pch=c(21), bg=c('lightblue'))
@@ -472,14 +474,6 @@ change.corrpoints<-function(registration, n.points, target.only=TRUE){
   return(registration)
 }
 
-acronym.from.id<-function(x){
-  unlist(lapply(x, function(x){atlasOntology$acronym[which(atlasOntology$id==x)]}))
-}
-
-name.from.id<-function(x){
-  unlist(lapply(x, function(x){atlasOntology$name[which(atlasOntology$id==x)]}))
-}
-
 
 stereotactic.coordinates <-function(x,y,registration,inverse=FALSE){
   scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration $transformationgrid$height, registration$transformationgrid$width) )
@@ -513,17 +507,28 @@ stereotactic.coordinates <-function(x,y,registration,inverse=FALSE){
 }
 
 
-plot.registration<-function(registration,segmentation,soma=TRUE){
+
+plot.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, cex=0.5){
   quartz(width= 12.280488, height=  6.134146)
 par(yaxs='i',xaxs='i', mfrow=c(1,2), mar=c(4,4,1,1))
 
+if(is.null(regi$transformationgrid$myF)){
+  registration.nm <-deparse(substitute(registration))
+
+  cat(paste('Forward warps has not been not computed, have to compute that first!\n If you want to avoid this from happening either turn forward.warp==TRUE in registration() or sink the output of this object into the registration output, i.e.:\n', paste(registration.nm,'<-plot.registration(', registration.nm ,',forward.warp=TRUE)', sep='') ))
+  if(forward.warps){
+    cat('\nCOMPUTING FORWARD WARPS... this might take some time')
+    registration<-get.forward.warp(registration)
+  }
+}
 
   scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration$transformationgrid$height,registration$transformationgrid$width) )
   
-  xMax<-max(c(registration$transformationgrid$mx,registration$transformationgrid$mxF),na.rm=TRUE)
-    xMin<-min(c(registration$transformationgrid$mx,registration$transformationgrid$mxF),na.rm=TRUE)
-  yMax<-max(c(registration$transformationgrid$my,registration$transformationgrid$myF),na.rm=TRUE)
-    yMin<-min(c(registration$transformationgrid$my,registration$transformationgrid$myF),na.rm=TRUE)
+  xMax<-max(c(registration$transformationgrid$mx,registration$transformationgrid$mxF),na.rm=TRUE)*(1/scale.factor)
+    xMin<-min(c(registration$transformationgrid$mx,registration$transformationgrid$mxF),na.rm=TRUE)*(1/scale.factor)
+  yMax<-max(c(registration$transformationgrid$my,registration$transformationgrid$myF),na.rm=TRUE)*(1/scale.factor)
+    yMin<-min(c(registration$transformationgrid$my,registration$transformationgrid$myF),na.rm=TRUE)*(1/scale.factor)
+
     
 plot(c(xMin, xMax), c(yMin, yMax), ylim=c(yMax,yMin), xlim=c(xMin, xMax), asp=1, axes=F, xlab='', ylab='', col=0, main=paste('Bregma:',registration$coordinate,'mm'),font.main = 1
  )
@@ -546,7 +551,7 @@ lapply(seq(1, wid,by=100), function(x){lines(registration$transformationgrid$mxF
 lines(registration$transformationgrid$mxF[, wid]/scale.factor,registration$transformationgrid$myF[, wid]/scale.factor, col='lightblue')
 
  
- index<-round(scale.factor*cbind(segmentation$y,segmentation$x))
+ index<-round(scale.factor*cbind(segmentation$soma$y,segmentation$soma$x))
  somaX<-registration$transformationgrid$mxF[index]/scale.factor
  somaY<-registration$transformationgrid$myF[index]/scale.factor
  #for(x in id){
@@ -557,7 +562,7 @@ lines(registration$transformationgrid$mxF[, wid]/scale.factor,registration$trans
 #} 
 #lapply(id, function(x){polygon(rois2[[x]]$coords, col=rgb(100,163,117,120,maxColorValue=255), border=gray(0.95));text(apply(rois2[[x]]$coords,2,mean)[1],apply(rois2[[x]]$coords,2,mean)[2],x, cex=0.7, col='white')})
 
-points(somaX,somaY,pch=21,bg='orange', cex=0.8)
+points(somaX,somaY,pch=21,bg='orange', cex=cex)
 
 axis(1, at=stereotactic.coordinates(seq(-4,4,by=0.1),NA,registration, inverse=TRUE)$x, line=-4, labels=FALSE, tck=-0.01, col.ticks='lightblue')
 axis(1, at=stereotactic.coordinates(seq(-4,4,by=0.5),NA,registration, inverse=TRUE)$x, line=-4, labels=FALSE, tck=-0.02, col.ticks='coral')
@@ -575,7 +580,7 @@ img<-paste(registration$outputfile,'_undistorted.png', sep='')
 
         img = as.raster(img[,])
 
-        img <- apply(img, 2, rev)
+        if(batch.mode){img <- apply(img, 2, rev)}
 
 
         rasterImage(img,0,0, registration$transformationgrid$width, registration$transformationgrid$height)
@@ -592,54 +597,177 @@ lines(registration$transformationgrid$mx[,wid]/scale.factor,registration$transfo
         
 
 
- points(segmentation$x,segmentation$y, pch=21, bg='orange')
+ points(segmentation$soma$x,segmentation$soma$y, pch=21, bg='orange', cex=cex)
 #lapply(id, function(x){polygon(rois[[x]]$coords, col=rgb(100,163,117,120,maxColorValue=255));text(apply(rois[[x]]$coords,2,mean)[1],apply(rois[[x]]$coords,2,mean)[2],x, cex=0.7, col='white')})
 }
 
-get.cell.ids<-function(segmentation, registration){
+get.cell.ids<-function(segmentation, registration, forward.warp=NULL){
   coordinate<-registration$coordinate
 
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
 
-  sectionFilename<-paste('brainmap_2015/',atlasIndex$plate.id[k],'.svg', sep='')
-  
-  data <- xmlParse(system.file(sectionFilename, package='wholebrain')) #100960324
-
-  dataset<-c(id=numeric(),parent_id=numeric() , order=numeric()  , structure_id=numeric(), d=character()     , style=character())
-
-  root <- xmlRoot(data)
-
-  objects<-xmlChildren(xmlChildren(root)[[1]])
-
-
-  paths<-xmlChildren( objects[[1]] )
-    for(i in 1:length(paths)){
-    dataset<-rbind(dataset, xmlAttrs( paths[[i]] ))
-  }
-
-  dataset<-cbind(dataset[,c(1,3,4)], substr(dataset[,6], nchar(dataset[1,6])-6, nchar(dataset[1,6]) ) )
+ plate.info<-EPSatlas$plate.info[[k]] 
 
   #scale up transformation grid
   scale.factor<-mean(c(dim(registration$transformationgrid$mx)[1]/registration$transformationgrid$height,
    dim(registration$transformationgrid$mx)[2]/registration$transformationgrid$width) )
 
-  namelist2<-insertdup(as.numeric(dataset[,3]), innerpolygons)
-  colorlist<-insertdup(dataset[,4], innerpolygons)
-  neuronregion<-rep('',length(x))
-  neuroncolor<-rep('',length(x))
+  outlines<-registration$atlas$outlines
+  
+  namelist<-as.numeric(as.vector(plate.info$structure_id))
+  colorlist<-plate.info$style
+  neuronregion<-rep(0,length(segmentation$soma$x))
+  neuroncolor<-rep('#000000',length(segmentation$soma$x))
+  right.hemisphere<-rep(NA, length(segmentation$soma$x))
 
   for(i in 1:length(outlines)){
-    temp<-point.in.polygon(x, y, c(outlines[[i]]$xlT),c(outlines[[i]]$ylT) )
-    neuronregion[which(temp==1)]<-namelist2[i]
-    neuroncolor[which(temp==1)]<-colorlist[i]
+    temp<-point.in.polygon(segmentation$soma$x, segmentation$soma$y, c(outlines[[i]]$xlT/scale.factor),c(outlines[[i]]$ylT/scale.factor) )
+    neuronregion[which(temp==1)]<-namelist[i]
+    neuroncolor[which(temp==1)]<-as.character(colorlist[i])
+    right.hemisphere[which(temp==1)]<-FALSE
   
-    temp<-point.in.polygon(x, y, c(outlines[[i]]$xrT),c(outlines[[i]]$yrT) )
-    neuronregion[which(temp==1)]<-namelist2[i]
-    neuroncolor[which(temp==1)]<-colorlist[i]
-  } 
-
+    temp<-point.in.polygon(segmentation$soma$x, segmentation$soma$y, c(outlines[[i]]$xrT/scale.factor),c(outlines[[i]]$yrT/scale.factor) )
+    neuronregion[which(temp==1)]<-namelist[i]
+    neuroncolor[which(temp==1)]<-as.character(colorlist[i])
+    right.hemisphere[which(temp==1)]<-TRUE
+  }
+  
+  segmentation$soma$id<- neuronregion
+  segmentation$soma$color<- neuroncolor
+  segmentation$soma$right.hemisphere<-right.hemisphere
+  dataset<-data.frame(segmentation$soma)
+  dataset$acronym<-rep(NA, length(dataset$id))
+  class(dataset$acronym)<-'character'
+  dataset$acronym[dataset$id>0]<-as.character(acronym.from.id(dataset$id[dataset$id>0]))
+  dataset$name<-rep(NA, length(dataset$id))
+  class(dataset$name)<-'character'
+  dataset$name[dataset$id>0]<-as.character(name.from.id(dataset$id[dataset$id>0]))
+  imagename<-substr(basename(registration$outputfile), nchar('Registration_')+1 ,nchar(basename(registration $outputfile)))
+  dataset$image<-rep(imagename, nrow(dataset))
+ dataset<-data.frame(animal=rep(NA, nrow(dataset)), AP=rep(registration$coordinate, nrow(dataset)), dataset)
+  
   return(dataset)
 }  
+
+get.region<-function(acronym, registration){
+  coordinate<-registration$coordinate
+  k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
+  plate.info<-EPSatlas$plate.info[[k]]  
+  get.outline<-function(acronym){
+    id<-id.from.acronym(acronym)
+    index<-which(plate.info$structure_id==id)
+    
+    if(length(index)==0){
+      while(length(index)==0){
+        id<-ontology$id[which(ontology$parent%in%id)]
+        index<-which(plate.info$structure_id%in%id)
+      }
+      
+    
+      region<-registration$atlas$outlines[index]
+      region<-lapply(1:length(region), function(x){
+        data.frame(xT=c(region[[x]]$xlT, region[[x]]$xrT), yT=c(region[[x]]$ylT, region[[x]]$yrT), x=c(region[[x]]$xl, region[[x]]$xr), y=c(region[[x]]$yl, region[[x]]$yr), right.hemisphere = c(rep(FALSE, length(region[[x]]$xl) ), rep(TRUE, length(region[[x]]$xr) ) ), name=acronym.from.id(id[x]) )
+      } )
+      region <- do.call("rbind", region)
+      
+      
+    }else{
+      region<-registration$atlas$outlines[index]
+      region<-data.frame(xT=c(region[[1]]$xlT, region[[1]]$xrT), yT=c(region[[1]]$ylT, region[[1]]$yrT), x=c(region[[1]]$xl, region[[1]]$xr), y=c(region[[1]]$yl, region[[1]]$yr), right.hemisphere = c(rep(FALSE, length(region[[1]]$xl) ), rep(TRUE, length(region[[1]]$xr) ) ) )
+    region<-data.frame(region, name=rep(acronym, nrow(region)))
+    }
+    return(region)
+  }
+  if(length(acronym)==1){
+    region <-get.outline(acronym)
+    
+  }else{
+    region<-lapply(acronym, get.outline)
+    region <- do.call("rbind", region)
+  }
+  if(length(region)>1)
+  
+  scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration$transformationgrid$height,registration$transformationgrid$width) )
+  
+  region[,1:4]<-region[,1:4]*(1/scale.factor)
+  
+  return(region)
+}
+
+
+bargraph <- function(dataset, device=TRUE) {
+  
+  
+  with(dataset, {
+     
+
+    counts<-table(acronym, right.hemisphere)
+    hemisphere.to.sort<-which.max(apply(counts, 2, sum))
+    counts <-counts[order(counts[,hemisphere.to.sort], decreasing=TRUE),]
+    counts <-log10(counts)
+    if(device){quartz(width= 7.036585, height= 0.2099039*nrow(counts))}
+    layout(matrix(c(1,1,1,2,2,2,2), nrow=1))
+    par(mar=c(4,0,4,0))
+    plot(rep(2.5, nrow(counts) ),nrow(counts):1, col=0, axes=F, ylim=c(0.5,nrow(counts)+0.5), ylab='', xlab='', xlim=c(1,5))
+   
+   #regionnames
+   mtext('Input region:',3, cex=0.9)
+   for(i in 1:nrow(counts)){
+    regioncolor<-color.from.acronym(row.names(counts)[i])
+    regioncolor<-adjustcolor( regioncolor, alpha.f = 0.1)
+    y.lab<-(nrow(counts)+1)-i
+    polygon(c(1,5,5,1), c(y.lab-0.5, y.lab-0.5, y.lab+0.5, y.lab+0.5), col= regioncolor, border=FALSE )
+    text(3, y.lab, name.from.acronym(row.names(counts)[i]), cex=0.9 )
+   }
+    par(xpd=TRUE)
+     legend(3, -0.75, c('Left', 'Right'), pch=c(21), pt.bg=c('white',gray(0.2)), title='Hemisphere:', bg='white', horiz=TRUE, cex=1.3, xjust=0.5)
+     par(xpd=FALSE) 
+   par(mar=c(4,4,4,6))
+   zeros<-min(is.finite(counts))-1
+   counts[!is.finite(counts)]<-zeros
+  x.range<-round(range(counts[is.finite(counts)]))
+  plot( apply(counts, 1, max), nrow(counts):1-0.125, pch=21, bg='white', ylim=c(0.5,nrow(counts)+0.5),  xlim=x.range, xlab='', axes=F, ylab='', col=0 )
+  
+  for(i in 1:nrow(counts)){
+    regioncolor<-color.from.acronym(row.names(counts)[i])
+    regioncolor<-adjustcolor( regioncolor, alpha.f = 0.05)
+    y.lab<-(nrow(counts)+1)-i
+    polygon(c(x.range,rev(x.range)), c(y.lab-0.5, y.lab-0.5, y.lab+0.5, y.lab+0.5), col= regioncolor, border=FALSE )
+   }
+  
+   log.range<-10^seq(x.range[1], x.range[2])
+   axis(1, at=seq(x.range[1], x.range[2]), las=1, labels=c(0,log.range[-1]) )
+   axis(3, at=seq(x.range[1], x.range[2]), las=1, labels=c(0,log.range[-1]) )
+
+  
+   log.range <-unlist(lapply(1:(length(log.range)-1), function(x){seq(log.range[x], log.range[x+1], by=log.range[x])}))
+   
+  axis(1, at=log10(log.range), labels=FALSE)
+  axis(3, at=log10(log.range), labels=FALSE)
+  axis(2, at=nrow(counts):1, labels=row.names(counts), las=1)
+  axis(4, at=nrow(counts):1, labels=row.names(counts), las=1)
+    
+    abline(h=1:nrow(counts), lty=2, col='gray')
+    abline(v=log10(log.range), col='lightblue')
+    
+    lapply(1:nrow(counts), function(x){lines(counts[x,], rep(nrow(counts)-x+1,2), lwd=2)})
+    points(counts[,(hemisphere.to.sort==2)+1], nrow(counts):1, pch=21, bg=gray(0.2), cex=1.2)
+    points(counts[, (hemisphere.to.sort==2)+0], nrow(counts):1, pch=21, bg='white', cex=1.2)
+
+    
+    box()
+       par(xpd=TRUE)
+   polygon(c(x.range[1]+0.25, x.range[1]+0.5, x.range[1]+0.5, x.range[1]+0.25), c(-2,-2,nrow(counts)+3,nrow(counts)+3), col='white', border='white')
+  par(xpd=FALSE)
+  abline(v=c(x.range[1]+0.25, x.range[1]+0.5))
+  
+  mtext('Cell count', 3, 2.2, cex=0.8)
+
+  mtext('Cell count', 1, 2.2, cex=0.8)
+    
+  })
+}
+
 
 testregistration<-function(input, brain.threshold = 200, verbose=TRUE){
 	file <- as.character(input)
