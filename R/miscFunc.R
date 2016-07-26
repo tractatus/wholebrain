@@ -34,6 +34,10 @@ make.atlas.nissl <- function(maskfilename, ageafilename) {
     .Call("getAtlasNissl", maskfilename, ageafilename)
 }
 
+imflip <- function(filename) {
+    .Call("rotateImage", filename)
+}
+
 #create output directories
 create.output.directory<-function(subDir, mainDir=getwd(), verbose=TRUE){
 

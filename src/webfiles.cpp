@@ -181,7 +181,7 @@ RcppExport SEXP createWeb(SEXP input, SEXP alpha, SEXP beta, SEXP verbose, SEXP 
     {
 
       double downsamplingfactor = 1/pow(2, tiers-1-tierInd);
-      resize(sourceImage, dstImage, Size(), downsamplingfactor, downsamplingfactor);
+      resize(sourceImage, dstImage, Size(), downsamplingfactor, downsamplingfactor, INTER_CUBIC);
 
 
       rows = (dstImage.rows / 256) + (dstImage.rows % 256 ? 1 : 0);

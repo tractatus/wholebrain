@@ -145,7 +145,7 @@ public:
     int hideFilter = 0;
     double matchingResize = 64;
     int blurSize = 4;
-    int brainThresh = 200;
+    int brainThresh = 1;
     vector<vector<Point> > contours;  
     vector<Vec4i> hierarchy;
     vector<float> eccentricity;

@@ -64,3 +64,4 @@ export(bargraph)
 
 export(mrd)
 export(make.atlas.nissl)
+export(imflip)

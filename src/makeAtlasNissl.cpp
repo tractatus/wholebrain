@@ -39,7 +39,6 @@ string ImgTyper(int imgTypeInt)
 }
 
 
-/* apply operation to stack */
 RcppExport SEXP getAtlasNissl(SEXP maskfile, SEXP ageafile) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
@@ -67,6 +66,28 @@ BEGIN_RCPP
   Mat outputMat;
   ageaResize.copyTo(outputMat, mask);
   normalize(outputMat, outputMat, 0, 255, NORM_MINMAX, CV_8UC1);
+  imwrite(ffname, outputMat);
+ 
+  return R_NilValue;
+   /*
+  END
+  */
+END_RCPP  
+}
+
+RcppExport SEXP rotateImage(SEXP filename) {
+BEGIN_RCPP
+  Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
+  //Rcpp::CharacterVector std::vector< std::string >
+  Rcpp::CharacterVector fname(filename);
+  std::string ffname(fname[0]);
+    
+  Mat src = imread(ffname, -1);
+
+  Mat outputMat;
+
+  flip(src,outputMat,0);
+ 
   imwrite(ffname, outputMat);
  
   return R_NilValue;
