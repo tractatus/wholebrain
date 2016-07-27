@@ -59,8 +59,7 @@ BEGIN_RCPP
 
   bool verbose = Rcpp::as<bool>(writetoconsole);
 
-  double resizeParam = Rcpp::as<int>(resizeP);
-  resizeParam = resizeParam/100;
+  double resizeParam = Rcpp::as<double>(resizeP);
   int blurImage = Rcpp::as<int>(blurImg);
 
 
@@ -70,7 +69,7 @@ BEGIN_RCPP
   if(verbose){Rcpp::Rcout << "====== LOADING DONE ======" << std::endl;}
 
    if(verbose){
-    Rcpp::Rcout << "Resizing to: " <<  resizeParam*100 << "% of original size." << std::endl;
+    Rcpp::Rcout << "Resizing to: " <<  resizeParam << "% of original size." << std::endl;
     Rcpp::Rcout << "Image type: " <<  ImgTypes(img.type()) << "_" << img.type()  << std::endl;
   }
   resize(img, img, Size(), resizeParam, resizeParam, INTER_LINEAR);

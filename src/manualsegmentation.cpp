@@ -144,6 +144,7 @@ public:
     int eccentricityThresh;
     int hideFilter = 0;
     double matchingResize = 64;
+    double resizeParam = 0.25;
     int blurSize = 4;
     int brainThresh = 1;
     vector<vector<Point> > contours;  
@@ -189,7 +190,7 @@ public:
 
         //do contour
         if(matchingResize!=0){
-          resize(src, resized, Size(),4*(matchingResize/2500), 4*(matchingResize/2500), INTER_LINEAR);
+          resize(src, resized, Size(),(1/resizeParam)*(matchingResize/2500), (1/resizeParam)*(matchingResize/2500), INTER_LINEAR);
         }else{
           src.copyTo(resized);
         }
@@ -356,7 +357,7 @@ public:
         }
           if(brainContours.size()>0){
             Scalar darkcyan = Scalar( 138, 138,14 );
-            polylines( dsp, Mat( brainContours[largest_contour_index] ) * ( 1/(4*(matchingResize/2500)) ) , true, darkcyan, 2, 8);
+            polylines( dsp, Mat( brainContours[largest_contour_index] ) * ( 1/((1/resizeParam)*(matchingResize/2500)) ) , true, darkcyan, 2, 8);
           }
         }
         //REMOVE
@@ -1073,6 +1074,7 @@ clock_t tStart, tStop;
   }
  
   pd.dosegmentation = true;
+  pd.resizeParam = resizeParam;
 
   if( widgets[0].guiPixelValue.size()==0 ){
     pd.minThresh = 0;
@@ -1190,6 +1192,10 @@ clock_t tStart, tStop;
   }
     //return R_NilValue;
 
+}else{
+  pd.endSegment = true;
+  pd.runthreshold();
+  cout << '\n' << "OUTPUT SEGMENTED CELLS: " << pd.centroidX.size() << endl;
 }
 
   vector<float> arealimits;
@@ -1211,6 +1217,7 @@ clock_t tStart, tStop;
     _["brain.threshold"] = pd.brainThresh,
     _["blur"] = pd.blurSize,
     _["resize"] = (pd.matchingResize/2500),
+    _["downsample"] = resizeParam,
     _["x"] = pd.centroidX,
     _["y"] = pd.centroidY,
     _["intensity"] = pd.intensitySoma,

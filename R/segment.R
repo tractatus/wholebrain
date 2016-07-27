@@ -9,7 +9,7 @@
 #' #stitch images
 #' segment(system.file('sample_tiles/rabiesEGFP.tif', package='wholebrain')) 
 
-segment<-function(input, numthresh=8, resize=0.25, filter=NULL, aco=TRUE, display=TRUE){
+segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, aco=TRUE, display=TRUE){
   if(aco){
     print('Ant Colony Optimization /aco currently disabled, waiting update. Contact Daniel Fürth (daniel.furth@ki.se')
   }
@@ -26,7 +26,7 @@ segment<-function(input, numthresh=8, resize=0.25, filter=NULL, aco=TRUE, displa
   file <- system.file('double_slider.png', package='wholebrain')
   fileslider <- system.file('slider.png', package='wholebrain')
   filebackground <- system.file('GUI_background.png', package='wholebrain')
-  resizeP = as.integer(resize*100)
+  resizeP = as.integer(downsample*100)
 
   if(is.null(filter)){
     areaMin<-(-999)
@@ -49,14 +49,15 @@ segment<-function(input, numthresh=8, resize=0.25, filter=NULL, aco=TRUE, displa
     renderMin<-filter$Min
     bThresh<-filter$brain.threshold
     resizeB<-filter$resize
+    resizeP<-as.integer(filter$downsample*100)
     gaussBlur<-filter$blur
   }
 
   a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground, display, areaMin, areaMax, threshMin, threshMax, eccent, renderMin, renderMax, bThresh, resizeB, gaussBlur)
-  a$x<-(1/ resize)*a$x
-  a$y<-(1/ resize)*a$y
-  a$soma.area <-(1/ resize)*a$soma.area
-  outputlist<-list(filter=list(alim= a$alim, threshold.range = a$threshold.range, eccentricity = a$eccentricity,  Max = a$Max, Min = a$Mina, brain.threshold=a$brain.threshold, resize=a$resize, blur=a$blur), soma = list(x =a$x, y=a$y, intensity = a$intensity, area = a$soma.area))
+  a$x<-(1/ downsample)*a$x
+  a$y<-(1/ downsample)*a$y
+  a$soma.area <-(1/ downsample)*a$soma.area
+  outputlist<-list(filter=list(alim= a$alim, threshold.range = a$threshold.range, eccentricity = a$eccentricity,  Max = a$Max, Min = a$Mina, brain.threshold=a$brain.threshold, resize=a$resize, blur=a$blur, downsample=a$downsample), soma = list(x =a$x, y=a$y, intensity = a$intensity, area = a$soma.area))
   if(is.null(outputlist$filter$Min)){
     outputlist$filter$Min<-0
   }

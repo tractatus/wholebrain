@@ -34,8 +34,7 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
     int width = img.cols;
     int height = img.rows;
 
-    double resizeParam = Rcpp::as<int>(resizeP);
-    resizeParam = resizeParam/100;
+    double resizeParam = Rcpp::as<double>(resizeP);
 
     double Max = Rcpp::as<int>(MaxDisp);
     double Min = Rcpp::as<int>(MinDisp);

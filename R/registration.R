@@ -85,7 +85,7 @@ get.contour<-function(input, threshold = 'otsu', get.largest.object = TRUE, num.
       stop(file, ", file not found")
     file <- path.expand(file)
     if(is.character(threshold)){threshold<-0}
-    resizeP = as.integer(resize*100)
+    resizeP = resize
     saveoutput<-0
      if(savefilename==TRUE){
       savefilename<-paste(tempdir(),'/miniature_',basename(file), sep='')
@@ -354,7 +354,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
    #(1/8)
    #/4)*9.75
 
-  transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, as.integer(resizeP*100), MaxDisp, MinDisp, outputfile)
+  transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
 
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
   xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
