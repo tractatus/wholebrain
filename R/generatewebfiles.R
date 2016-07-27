@@ -784,6 +784,13 @@ window.open(url, \'_blank\');
     cat(footer)
     cat(footer2)
     sink()
+    sink(paste(outputfile,".js",sep=''), append=FALSE)
+cat('var imageProperties = {
+    "width": ',a$width,',
+    "height": ', a$height,'};')
+cat('var neurons = {};')
+cat('var allenoutlines = {};')
+    sink()
     setwd('../')
 
     return(paste(getwd(), paste('Web', outputfile, sep='_'), sep='' ))
