@@ -19,6 +19,15 @@ showImage <- function(file) {
   return(a)
 }
 
+map.to.atlas<-function(image.number=c(24,32,45,65), coordinate=c(1.1,0.1,-0.9,-2.75), sampling.period=0.1){
+  coord<-seq(image.number[1]*sampling.period+coordinate[1], coordinate[1], length.out=image.number[1])
+  for(i in 2:length(image.number)){
+    coord.add<-seq(coord[length(coord)]-sampling.period, coordinate[i], length.out= image.number[i]-image.number[i-1])
+    coord<-append(coord, coord.add)
+  }
+  return(coord)
+}
+
 liftingscheme <- function(file) {
     file <- as.character(file)[1]
     ## check for existence

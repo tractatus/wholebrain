@@ -61,6 +61,7 @@ export(stereotactic.coordinates)
 export(inspect.registration)
 export(get.region)
 export(bargraph)
+export(map.to.atlas)
 
 export(mrd)
 export(make.atlas.nissl)

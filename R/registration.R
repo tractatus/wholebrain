@@ -521,7 +521,7 @@ if(is.null(regi$transformationgrid$myF)){
     registration<-get.forward.warp(registration)
   }
 }
-
+cat('\nGetting anatomical assignment for segmented objects')
 dataset<-get.cell.ids(registration, segmentation)
 
   scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration$transformationgrid$height,registration$transformationgrid$width) )
