@@ -23,14 +23,15 @@ using namespace std;
 #include "CThinPlateSpline.h"
 
 
-RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY){
+RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP mupp){
 	BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
 
-    Rcpp::NumericMatrix mX(mx);
-    Rcpp::NumericMatrix mY(my);
-    Rcpp::NumericMatrix transmx(transMX);
-    Rcpp::NumericMatrix transmy(transMY);
+
+    Rcpp::IntegerMatrix mX(mx);
+    Rcpp::IntegerMatrix mY(my);
+    Rcpp::IntegerMatrix transmx(transMX);
+    Rcpp::IntegerMatrix transmy(transMY);
     int nrows = mX.nrow();
     int ncolumns = mX.ncol();
 
@@ -42,6 +43,8 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY){
         	}
         }
     }
+
+    
         		int top;
         		int bottom;
         		int right;
@@ -58,14 +61,14 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY){
     int sample;
     for (int i = 0; i < nrows; i++) {
         for (int j = 0; j < ncolumns; j++) {
-        	if( mX(i,j) == NA_INTEGER ){
+        	if( mX(i,j) == -2147483648 ){
         		sample = 0;
         		if( i >= (nrows-1) ){
       				top = 0;
     			}else{
       				top = 1;
     			}
-    			if(mX(i+top, j)== NA_INTEGER ){
+    			if(mX(i+top, j)== -2147483648 ){
     				topX = 0;
     				topY = 0;
     			}else{
@@ -79,7 +82,7 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY){
     			}else{
       				bottom = 1;
     			}
-    			if( mX(i-bottom, j)  == NA_INTEGER ){
+    			if( mX(i-bottom, j)  == -2147483648 ){
     				bottomX = 0;
     				bottomY = 0;
     			}else{
@@ -93,7 +96,7 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY){
     			}else{
       				right = 1;
     			}
-    			if( mX(i+right, j)  == NA_INTEGER ){
+    			if( mX(i+right, j)  == -2147483648 ){
     				rightX = 0;
     				rightY = 0;
     			}else{
@@ -107,7 +110,7 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY){
     			}else{
       				left = 1;
     			}
-    			if( mX(i-left, j)  == NA_INTEGER ){
+    			if( mX(i-left, j)  == -2147483648 ){
     				leftX = 0;
     				leftY = 0;
     			}else{
@@ -122,6 +125,7 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY){
         	}
 		}
     }
+
     return List::create(
     	_["mx"] = mX,
     	_["my"] = mY
