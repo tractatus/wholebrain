@@ -206,6 +206,51 @@ get.forward.warp<-function(registration){
   return(registration)
 }
 
+
+get.forward.warpRCPP<-function(registration){
+  trans<-list()
+  trans$mx<-registration$transformationgrid$mx
+  trans$my<-registration$transformationgrid$my
+
+  mx<-matrix(rep(NA,prod(dim(trans$mx))), nrow=dim(trans$mx)[1])
+  my<-matrix(rep(NA,prod(dim(trans$mx))), nrow=dim(trans$mx)[1])
+
+  a<-.Call("forwardWarp", mx, my, trans$mx, trans$my)
+  mx<-a$mx
+  my<-a$my
+
+  index<-which(is.na(my), arr.ind=TRUE)
+  for(i in 1:nrow(index)){
+    if(index[i,1]>=dim(mx)[1]){
+      top<-0
+    }else{
+      top<-1
+    }
+    if(index[i,1]<=1){
+      bottom<-0
+    }else{
+      bottom<-1
+    }
+    if(index[i,2]>=dim(mx)[2]){
+      right<-0
+    }else{
+      right<-1
+    }
+    if(index[i,2]<=1){
+      left<-0
+    }else{
+      left<-1
+    }
+    mx[index[i,1],index[i,2]]<-mean(c(mx[index[i,1]-bottom,index[i,2]], mx[index[i,1]+top,index[i,2]], mx[index[i,1],index[i,2]+right], mx[index[i,1],index[i,2]-left] ),na.rm=TRUE)
+    my[index[i,1],index[i,2]]<-mean(c(my[index[i,1]-bottom,index[i,2]], my[index[i,1]+top,index[i,2]], my[index[i,1],index[i,2]+right], my[index[i,1],index[i,2]-left] ),na.rm=TRUE)
+  }
+
+
+  registration$transformationgrid<-list(mx=registration$transformationgrid$mx, my=registration$transformationgrid$my, mxF=mx, myF=my, width=registration$transformationgrid$width  ,height=registration$transformationgrid$height)
+
+  return(registration)
+}
+
 #' Register
 #'
 #' An image sensor of a camera is composed of a two dimensional array of light sensitive detectors or pixels. The sesnor array is #'mechanically quite stable with the pixels retaining a rigidly fixed geometric relationship. Each pixel within the array, however, #'has its own unique light sensitivity characteristics. As these characteristics affect camera performance, they must be removed #'through calibration. The process by which a camera is calibrated is known as "Flat Fielding" or "Shading Correction".
@@ -508,7 +553,7 @@ stereotactic.coordinates <-function(x,y,registration,inverse=FALSE){
 
 
 
-inspect.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, cex=0.5){
+inspect.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, cex=0.5, draw.trans.grid=TRUE){
   quartz(width= 12.280488, height=  6.134146)
 par(yaxs='i',xaxs='i', mfrow=c(1,2), mar=c(4,4,1,1))
 
@@ -518,11 +563,11 @@ if(is.null(regi$transformationgrid$myF)){
   cat(paste('Forward warps has not been not computed, have to compute that first!\n If you want to avoid this from happening either turn forward.warp==TRUE in registration() or sink the output of this object into the registration output, i.e.:\n', paste(registration.nm,'<-plot.registration(', registration.nm ,',forward.warp=TRUE)', sep='') ))
   if(forward.warps){
     cat('\nCOMPUTING FORWARD WARPS... this might take some time')
-    registration<-get.forward.warp(registration)
+    registration<-get.forward.warpRCPP(registration)
   }
 }
 cat('\nGetting anatomical assignment for segmented objects')
-dataset<-get.cell.ids(registration, segmentation)
+dataset<-get.cell.ids(registration, segmentation, forward.warp=forward.warps)
 
   scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration$transformationgrid$height,registration$transformationgrid$width) )
   
@@ -544,14 +589,15 @@ mtext('Medio-lateral (mm)',side=1,line=-1.5)
  lapply(1:numPaths, function(x){polygon(outlines[[x]]$xr/scale.factor,outlines[[x]]$yr/scale.factor, border='black', col=as.character(registration$atlas$col[x]) )})
         lapply(1:numPaths, function(x){polygon(outlines[[x]]$xl/scale.factor,outlines[[x]]$yl/scale.factor, border='black', col=as.character(registration$atlas$col[x]) )})
 
-hei<-dim(registration $transformationgrid$mx)[1]
-wid<-dim(registration $transformationgrid$mx)[2]
+hei<-dim(registration$transformationgrid$mx)[1]
+wid<-dim(registration$transformationgrid$mx)[2]
 
+if(draw.trans.grid){
 lapply(seq(1, hei,by=100), function(x){lines(registration$transformationgrid$mxF[x,]/scale.factor,registration$transformationgrid$myF[x,]/scale.factor, col='lightblue')})
 lines(registration$transformationgrid$mxF[hei,]/scale.factor,registration$transformationgrid$myF[hei,]/scale.factor, col='lightblue')
 lapply(seq(1, wid,by=100), function(x){lines(registration$transformationgrid$mxF[,x]/scale.factor,registration$transformationgrid$myF[,x]/scale.factor, col='lightblue')})
 lines(registration$transformationgrid$mxF[, wid]/scale.factor,registration$transformationgrid$myF[, wid]/scale.factor, col='lightblue')
-
+}
  
  index<-round(scale.factor*cbind(dataset$y, dataset$x))
  somaX<-registration$transformationgrid$mxF[index]/scale.factor
@@ -593,20 +639,19 @@ img<-paste(registration$outputfile,'_undistorted.png', sep='')
 lapply(1:numPaths, function(x){polygon(outlines[[x]]$xrT/scale.factor,outlines[[x]]$yrT/scale.factor, border=rgb(154,73,109,maxColorValue=255))})
         lapply(1:numPaths, function(x){polygon(outlines[[x]]$xlT/scale.factor,outlines[[x]]$ylT/scale.factor, border=rgb(154,73,109,maxColorValue=255) )})
         
-
+if(draw.trans.grid){
 lapply(seq(1,hei,by=100), function(x){lines(registration$transformationgrid$mx[x,]/scale.factor,registration$transformationgrid$my[x,]/scale.factor, col='lightblue')})
 lines(registration$transformationgrid$mx[hei,]/scale.factor,registration$transformationgrid$my[hei,]/scale.factor, col='lightblue')
 lapply(seq(1, wid,by=100), function(x){lines(registration$transformationgrid$mx[,x]/scale.factor,registration$transformationgrid$my[,x]/scale.factor, col='lightblue')})
 lines(registration$transformationgrid$mx[,wid]/scale.factor,registration$transformationgrid$my[, wid]/scale.factor, col='lightblue')
-        
-
+}
 
  points(dataset$x, dataset$y, pch=21, bg= dataset$color, col= circle.color, cex=cex)
 #lapply(id, function(x){polygon(rois[[x]]$coords, col=rgb(100,163,117,120,maxColorValue=255));text(apply(rois[[x]]$coords,2,mean)[1],apply(rois[[x]]$coords,2,mean)[2],x, cex=0.7, col='white')})
 return(dataset)
 }
 
-get.cell.ids<-function(registration, segmentation, forward.warp=NULL){
+get.cell.ids<-function(registration, segmentation, forward.warp=FALSE){
   coordinate<-registration$coordinate
 
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
@@ -641,6 +686,17 @@ get.cell.ids<-function(registration, segmentation, forward.warp=NULL){
   segmentation$soma$color<- neuroncolor
   segmentation$soma$right.hemisphere<-right.hemisphere
   dataset<-data.frame(segmentation$soma)
+  if(forward.warp==TRUE){
+    if(!(length(registration$transformationgrid$mxF)>0) ){
+      registration<-get.forward.warpRCPP(registration)
+    }
+    index<-round(scale.factor*cbind(dataset$y, dataset$x))
+    somaX<-registration$transformationgrid$mxF[index]/scale.factor
+    somaY<-registration$transformationgrid$myF[index]/scale.factor
+    tomecoord<-stereotactic.coordinates(somaX,somaY,registration, inverse=FALSE)
+    dataset$ML<-tomecoord$x
+    dataset$DV<-tomecoord$y
+  }
   dataset$acronym<-rep(NA, length(dataset$id))
   class(dataset$acronym)<-'character'
   dataset$acronym[dataset$id>0]<-as.character(acronym.from.id(dataset$id[dataset$id>0]))

@@ -1081,7 +1081,7 @@ BEGIN_RCPP
   stepwisethreshold(tobefiltered, fluorThresh, true, minArea[0], minArea[1], contoursStepwise, hierarchyStepwise, fluorescenceMask);
   */
   // INITIALIZE A THRESHOLD OBJECT
-  Rcpp::Rcout << "Initialize threshold:" << std::endl;
+ /* Rcpp::Rcout << "Initialize threshold:" << std::endl;
   int depth;
   if(!nofilter){
     StepThreshold pd;
@@ -1101,13 +1101,13 @@ BEGIN_RCPP
     pd.maxArea = filtermaxArea;
     pd.eccentricityThresh = filtereccentricity;
     pd.displayImage = false; //need to turn displayImage off otherwise interactive mode will start.
-
+    pd.numThresholds = 8;
     pd.runthreshold();
 
     fluorescenceMask = pd.out.clone();
   }
   Rcpp::Rcout << "Threshold done:" << std::endl;
-  // END OF A THRESHOLD OBJECT
+  // END OF A THRESHOLD OBJECT */
 
   //bitwise_not( fluorescenceMask, fluorescenceMask ); //invert for background subtraction
 
@@ -1639,7 +1639,7 @@ BEGIN_RCPP
     if(blendedSegmentation){
   segmented = spl[2] - spl[1];
   
-  bitwise_or(segmented, fluorescenceMask, segmented);
+  //bitwise_or(segmented, fluorescenceMask, segmented);
     }
     else{
         segmented=fluorescenceMask;

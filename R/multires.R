@@ -1,4 +1,4 @@
-mrd <- function(input, scales=6, family='db2', output='waveletoutput') {
+mrd <- function(input, scales=6, family='db2', output='waveletoutput',  scale.of.interest = 3, energy.trace=0, coherency=0, orientation=0, max=0, min=0) {
     file <- as.character(input)[1]
     family <- as.character(family)[1]
     outputfile <- as.character(output)[1]
@@ -11,15 +11,22 @@ mrd <- function(input, scales=6, family='db2', output='waveletoutput') {
     create.output.directory('approximations_coefficents')
     lapply(1:scales-1, function(x){create.output.directory( paste('d',x, sep='') ) } )
     create.output.directory('output')
-    
-    
+    if(energy.trace){
+        create.output.directory('trace')
+    }
+    if(coherency){
+        create.output.directory('coherency')
+    }
+    if(orientation){
+        create.output.directory('orientation')
+    }
 
     ## expand path
     file <- path.expand(file)
     #############################
     #           CALL            #
     #############################
-    a <- .Call("multiresolutiondecomposition", file, scales, family, outputfile)
+    a <- .Call("multiresolutiondecomposition", file, scales, family, outputfile, scale.of.interest, energy.trace, coherency, orientation, ceiling(max), floor(min))
     cat("IMAGE PROCESSED\n")
 
   }

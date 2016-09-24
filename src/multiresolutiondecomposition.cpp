@@ -69,12 +69,16 @@ template<> SEXP wrap(const cv::Mat &obj) {
 }
 */
 /* show a image */
-RcppExport SEXP multiresolutiondecomposition(SEXP input, SEXP scales, SEXP family, SEXP outputfile) {
+RcppExport SEXP multiresolutiondecomposition(SEXP input, SEXP scales, SEXP family, SEXP outputfile, SEXP cellBodies, SEXP computeenergy, SEXP computecoherency, SEXP computeorientation, SEXP maxV, SEXP minV) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
   //define wavelet scales
   int J = Rcpp::as<int>(scales);
+  bool compEnergy = Rcpp::as<int>(computeenergy);
+  int cellB = Rcpp::as<int>(cellBodies);
 
+  int maxNorm = Rcpp::as<int>(maxV);
+  int minNorm = Rcpp::as<int>(minV);
   //fluorescence threshold to minimize false positives
   //int fluorThresh = Rcpp::as<int>(fluorescenceThreshold);
   //std::vector<int> fluorThresh  = Rcpp::as< std::vector<int> >(fluorescenceThreshold);
@@ -337,7 +341,9 @@ clock_t t0, t1;
       resize(dest2, dest2, upsampledsize, INTER_LINEAR);
     }
 
-
+    if(j==cellB){
+      cellImg = dest2.clone();
+    }
     //adjust brightness contrast
 
     /*double minS, maxS;
@@ -375,6 +381,77 @@ clock_t t0, t1;
 
   }
 
+  if(compEnergy){
+    //compute optional tensor energy
+    Mat gx, gy;
+    Scharr(cellImg, gx, CV_32F, 1, 0); //CV_32F
+    Scharr(cellImg, gy, CV_32F, 0, 1);
+
+
+    /// Generate grad_x and grad_y
+    Mat grad_x, grad_y;
+    Mat abs_grad_x, abs_grad_y;
+
+    /// Gradient X
+    //Scharr( src_gray, grad_x, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
+    Scharr( cellImg, grad_x, CV_32F, 1, 0, 1, 0, BORDER_DEFAULT );
+    convertScaleAbs( grad_x, abs_grad_x );
+
+    /// Gradient Y
+    //Scharr( src_gray, grad_y, ddepth, 0, 1, scale, delta, BORDER_DEFAULT );
+    Scharr( cellImg, grad_y, CV_32F, 0, 1, 1, 0, BORDER_DEFAULT );
+    convertScaleAbs( grad_y, abs_grad_y );
+
+    /// Total Gradient (approximate)
+    Mat grad;
+    addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, grad );
+    //resize(grad, grad, Size(), 0.25, 0.25);
+
+    //imshow( "Sobel test", grad );
+  
+
+    // Compute the structure tensor, and from it, anisotropy
+    int Sigma = 10;
+    Mat gx2, gxy, gy2;
+    GaussianBlur(gx.mul(gx), gx2, Size(0, 0), Sigma); 
+    GaussianBlur(gx.mul(gy), gxy, Size(0, 0), Sigma);
+    GaussianBlur(gy.mul(gy), gy2, Size(0, 0), Sigma);
+    MatExpr trace = gx2 + gy2;
+    MatExpr det = gx2.mul(gy2) - gxy.mul(gxy);
+    Mat second_term;
+    sqrt(trace.mul(trace) / 4 - det, second_term);
+    MatExpr eig1 = trace / 2 + second_term;
+    MatExpr eig2 = trace / 2 - second_term;
+    //compute the tensors
+    //Mat anisotropy = eig1 / eig2;
+    double maxVal, minVal;
+
+
+
+    Mat energy = trace;
+  minMaxLoc(energy, &minVal, &maxVal);
+  Rcpp::Rcout << minVal << " MAXVALUE" << endl;
+    Rcpp::Rcout << maxVal << " MAXVALUE" << endl;
+
+    if(maxNorm!=0){
+      maxVal = (double)maxNorm;
+      minVal = (double)minNorm;
+    }
+
+  energy.convertTo(energy, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+
+    
+    string cellBodyfilename = static_cast<ostringstream*>( &(ostringstream() << cellB) )->str();
+    input = "trace/d" + cellBodyfilename + "_" + "Energy_" + off + ".tif";
+    try {
+      imwrite(input, energy);
+      Rcpp::Rcout << input << " SAVED" << endl;
+    }
+    catch (runtime_error& ex) {
+      Rcpp::Rcout << "Cannot save: exception converting image to correct format:\n" << endl;
+      return(R_NilValue);
+    }
+  }
      /*
   END
   */

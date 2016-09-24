@@ -22,6 +22,35 @@ using namespace std;
 //#include <highgui.h>
 #include "CThinPlateSpline.h"
 
+
+RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY){
+	BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+
+    Rcpp::NumericMatrix mX(mx);
+    Rcpp::NumericMatrix mY(my);
+    Rcpp::NumericMatrix transmx(transMX);
+    Rcpp::NumericMatrix transmy(transMY);
+    int nrows = mX.nrow();
+    int ncolumns = mX.ncol();
+
+    for (int i = 0; i < nrows; i++) {
+        for (int j = 0; j < ncolumns; j++) {
+        	if(( transmx(i,j)>=0)&(transmx(i,j)<ncolumns)&(transmy(i,j)>=0)&(transmy(i,j)<nrows)){
+            	mX(transmy(i,j), transmx(i,j) ) = j;
+        		mY(transmy(i,j), transmx(i,j) ) = i;
+        	}
+        }
+    }
+
+    return List::create(
+    	_["mx"] = mX,
+    	_["my"] = mY
+  	);
+
+    END_RCPP    
+}
+
 RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dstX, SEXP dstY, SEXP resizeP, SEXP MaxDisp, SEXP MinDisp, SEXP outputfile){
     BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
