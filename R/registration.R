@@ -219,31 +219,31 @@ get.forward.warpRCPP<-function(registration){
   mx<-a$mx
   my<-a$my
 
-  index<-which(is.na(my), arr.ind=TRUE)
-  for(i in 1:nrow(index)){
-    if(index[i,1]>=dim(mx)[1]){
-      top<-0
-    }else{
-      top<-1
-    }
-    if(index[i,1]<=1){
-      bottom<-0
-    }else{
-      bottom<-1
-    }
-    if(index[i,2]>=dim(mx)[2]){
-      right<-0
-    }else{
-      right<-1
-    }
-    if(index[i,2]<=1){
-      left<-0
-    }else{
-      left<-1
-    }
-    mx[index[i,1],index[i,2]]<-mean(c(mx[index[i,1]-bottom,index[i,2]], mx[index[i,1]+top,index[i,2]], mx[index[i,1],index[i,2]+right], mx[index[i,1],index[i,2]-left] ),na.rm=TRUE)
-    my[index[i,1],index[i,2]]<-mean(c(my[index[i,1]-bottom,index[i,2]], my[index[i,1]+top,index[i,2]], my[index[i,1],index[i,2]+right], my[index[i,1],index[i,2]-left] ),na.rm=TRUE)
-  }
+  #index<-which(is.na(my), arr.ind=TRUE)
+  #for(i in 1:nrow(index)){
+  #  if(index[i,1]>=dim(mx)[1]){
+  #    top<-0
+  #  }else{
+  #    top<-1
+  #  }
+  #  if(index[i,1]<=1){
+  #    bottom<-0
+  #  }else{
+  #    bottom<-1
+  #  }
+  #  if(index[i,2]>=dim(mx)[2]){
+  #    right<-0
+  #  }else{
+  #    right<-1
+  #  }
+  #  if(index[i,2]<=1){
+  #    left<-0
+  #  }else{
+   #   left<-1
+  #  }
+   # mx[index[i,1],index[i,2]]<-mean(c(mx[index[i,1]-bottom,index[i,2]], mx[index[i,1]+top,index[i,2]], mx[index[i,1],index[i,2]+right], mx[index[i,1],index[i,2]-left] ),na.rm=TRUE)
+   # my[index[i,1],index[i,2]]<-mean(c(my[index[i,1]-bottom,index[i,2]], my[index[i,1]+top,index[i,2]], my[index[i,1],index[i,2]+right], my[index[i,1],index[i,2]-left] ),na.rm=TRUE)
+  #}
 
 
   registration$transformationgrid<-list(mx=registration$transformationgrid$mx, my=registration$transformationgrid$my, mxF=mx, myF=my, width=registration$transformationgrid$width  ,height=registration$transformationgrid$height)

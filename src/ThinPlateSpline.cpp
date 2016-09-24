@@ -42,7 +42,86 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY){
         	}
         }
     }
+        		int top;
+        		int bottom;
+        		int right;
+        		int left;
 
+        		int topX;
+        		int bottomX;
+        		int rightX;
+        		int leftX;
+        		int topY;
+        		int bottomY;
+        		int rightY;
+        		int leftY;
+    int sample;
+    for (int i = 0; i < nrows; i++) {
+        for (int j = 0; j < ncolumns; j++) {
+        	if( mX(i,j) == NA_REAL ){
+        		sample = 0;
+        		if( i >= (nrows-1) ){
+      				top = 0;
+    			}else{
+      				top = 1;
+    			}
+    			if(mX(i+top, j)== NA_REAL ){
+    				topX = 0;
+    				topY = 0;
+    			}else{
+    				topX = mX(i+top, j);
+    				topY = mY(i+top, j);
+    				sample++;
+    			}
+
+    			if(i == 0){
+      				bottom = 0;
+    			}else{
+      				bottom = 1;
+    			}
+    			if( mX(i-bottom, j)  == NA_REAL ){
+    				bottomX = 0;
+    				bottomY = 0;
+    			}else{
+    				bottomX = mX(i-bottom, j);
+    				bottomY = mY(i-bottom, j);
+    				sample++;
+    			}
+
+    			if(j>=(ncolumns-1) ){
+      				right = 0;
+    			}else{
+      				right = 1;
+    			}
+    			if( mX(i+right, j)  == NA_REAL ){
+    				rightX = 0;
+    				rightY = 0;
+    			}else{
+    				rightX = mX(i, j+right);
+    				rightY = mY(i, j+right);
+    				sample++;
+    			}
+
+    			if(j == 0){
+      				left = 0;
+    			}else{
+      				left = 1;
+    			}
+    			if( mX(i-left, j)  == NA_REAL ){
+    				leftX = 0;
+    				leftY = 0;
+    			}else{
+    				leftX = mX(i, j-left);
+    				leftY = mX(i, j-left);
+    				sample++;
+    			}
+
+    			mX(i,j) = (topX + bottomX + leftX +rightX)/sample;
+    			mY(i,j) = (topY + bottomY + leftY +rightY)/sample;
+
+        	}
+		}
+    }
     return List::create(
     	_["mx"] = mX,
     	_["my"] = mY
