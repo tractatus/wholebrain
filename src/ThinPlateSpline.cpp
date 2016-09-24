@@ -61,14 +61,14 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP m
     int sample;
     for (int i = 0; i < nrows; i++) {
         for (int j = 0; j < ncolumns; j++) {
-        	if( mX(i,j) == -2147483648 ){
+        	if( mX(i,j) == NA_INTEGER ){
         		sample = 0;
         		if( i >= (nrows-1) ){
       				top = 0;
     			}else{
       				top = 1;
     			}
-    			if(mX(i+top, j)== -2147483648 ){
+    			if(mX(i+top, j)== NA_INTEGER ){
     				topX = 0;
     				topY = 0;
     			}else{
@@ -82,7 +82,7 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP m
     			}else{
       				bottom = 1;
     			}
-    			if( mX(i-bottom, j)  == -2147483648 ){
+    			if( mX(i-bottom, j)  == NA_INTEGER ){
     				bottomX = 0;
     				bottomY = 0;
     			}else{
@@ -96,7 +96,7 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP m
     			}else{
       				right = 1;
     			}
-    			if( mX(i+right, j)  == -2147483648 ){
+    			if( mX(i+right, j)  == NA_INTEGER ){
     				rightX = 0;
     				rightY = 0;
     			}else{
@@ -110,7 +110,7 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP m
     			}else{
       				left = 1;
     			}
-    			if( mX(i-left, j)  == -2147483648 ){
+    			if( mX(i-left, j)  == NA_INTEGER ){
     				leftX = 0;
     				leftY = 0;
     			}else{
@@ -118,7 +118,7 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP m
     				leftY = mX(i, j-left);
     				sample++;
     			}
-
+    				if(sample==0){sample=1;}
     			mX(i,j) = (topX + bottomX + leftX +rightX)/sample;
     			mY(i,j) = (topY + bottomY + leftY +rightY)/sample;
 
