@@ -28,10 +28,10 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP m
     Rcpp::RNGScope __rngScope;
 
 
-    Rcpp::IntegerMatrix mX(mx);
-    Rcpp::IntegerMatrix mY(my);
-    Rcpp::IntegerMatrix transmx(transMX);
-    Rcpp::IntegerMatrix transmy(transMY);
+    Rcpp::NumericMatrix mX(mx);
+    Rcpp::NumericMatrix mY(my);
+    Rcpp::NumericMatrix transmx(transMX);
+    Rcpp::NumericMatrix transmy(transMY);
     int nrows = mX.nrow();
     int ncolumns = mX.ncol();
 
@@ -50,31 +50,21 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP m
         		int right;
         		int left;
 
-        		int topX;
-        		int bottomX;
-        		int rightX;
-        		int leftX;
-        		int topY;
-        		int bottomY;
-        		int rightY;
-        		int leftY;
-    int sample;
+        		std::vector<double> vecX;
+        		std::vector<double> vecY;
     for (int i = 0; i < nrows; i++) {
         for (int j = 0; j < ncolumns; j++) {
-        	if( mX(i,j) == NA_INTEGER ){
-        		sample = 0;
+        	if( mX(i,j) == -999 ){
+        		vecX.clear();
+        		vecY.clear();
         		if( i >= (nrows-1) ){
       				top = 0;
     			}else{
       				top = 1;
     			}
-    			if(mX(i+top, j)== NA_INTEGER ){
-    				topX = 0;
-    				topY = 0;
-    			}else{
-    				topX = mX(i+top, j);
-    				topY = mY(i+top, j);
-    				sample++;
+    			if(mX(i+top, j)!= -999 ){
+    				vecX.push_back( mX(i+top, j) );
+    				vecY.push_back( mY(i+top, j) );
     			}
 
     			if(i == 0){
@@ -82,13 +72,9 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP m
     			}else{
       				bottom = 1;
     			}
-    			if( mX(i-bottom, j)  == NA_INTEGER ){
-    				bottomX = 0;
-    				bottomY = 0;
-    			}else{
-    				bottomX = mX(i-bottom, j);
-    				bottomY = mY(i-bottom, j);
-    				sample++;
+    			if( mX(i-bottom, j)  != -999 ){
+    				vecX.push_back( mX(i-bottom, j) );
+    				vecY.push_back( mY(i-bottom, j) );
     			}
 
     			if(j>=(ncolumns-1) ){
@@ -96,13 +82,9 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP m
     			}else{
       				right = 1;
     			}
-    			if( mX(i+right, j)  == NA_INTEGER ){
-    				rightX = 0;
-    				rightY = 0;
-    			}else{
-    				rightX = mX(i, j+right);
-    				rightY = mY(i, j+right);
-    				sample++;
+    			if( mX(i, j+right)  != -999 ){
+    				vecX.push_back( mX(i, j+right) );
+    				vecY.push_back( mY(i, j+right) );
     			}
 
     			if(j == 0){
@@ -110,17 +92,15 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP m
     			}else{
       				left = 1;
     			}
-    			if( mX(i-left, j)  == NA_INTEGER ){
-    				leftX = 0;
-    				leftY = 0;
-    			}else{
-    				leftX = mX(i, j-left);
-    				leftY = mX(i, j-left);
-    				sample++;
+    			if( mX(i, j-left)  != -999 ){
+    				vecX.push_back( mX(i, j-left) );
+    				vecY.push_back( mY(i, j-left) );
     			}
-    				if(sample==0){sample=1;}
-    			mX(i,j) = (topX + bottomX + leftX +rightX)/sample;
-    			mY(i,j) = (topY + bottomY + leftY +rightY)/sample;
+    			
+    			double averageX = std::accumulate(vecX.begin(), vecX.end(), 0.0) / vecX.size();
+    			double averageY = std::accumulate(vecY.begin(), vecY.end(), 0.0) / vecY.size();
+    			mX(i,j) = averageX;
+    			mY(i,j) = averageY;
 
         	}
 		}

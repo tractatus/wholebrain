@@ -212,8 +212,8 @@ get.forward.warpRCPP<-function(registration){
   trans$mx<-registration$transformationgrid$mx
   trans$my<-registration$transformationgrid$my
 
-  mx<-matrix(rep(NA,prod(dim(trans$mx))), nrow=dim(trans$mx)[1])
-  my<-matrix(rep(NA,prod(dim(trans$mx))), nrow=dim(trans$mx)[1])
+  mx<-matrix(rep(-999,prod(dim(trans$mx))), nrow=dim(trans$mx)[1])
+  my<-matrix(rep(-999,prod(dim(trans$mx))), nrow=dim(trans$mx)[1])
   a<-.Call("forwardWarp", mx, my, trans$mx, trans$my)
   mx<-a$mx
   my<-a$my
