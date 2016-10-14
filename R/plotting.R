@@ -20,7 +20,7 @@ coordinates<-unique(dataset$AP)
 
 for(q in 1:length(coordinates)){
 dataset<-datasets[which(dataset$AP==coordinates[q]),]
-
+coordinate<-dataset$AP
 #quartz(width=7.513513* 0.4171346 , height=4.540540* 0.4171346)
 k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
 plate<-atlasIndex$plate.id[which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))]
