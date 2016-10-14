@@ -64,6 +64,9 @@ export(bargraph)
 export(map.to.atlas)
 export(get.forward.warpRCPP)
 
+#export(export.rosettajson)
+export(schematic.plot)
+
 export(mrd)
 export(make.atlas.nissl)
 export(imflip)
