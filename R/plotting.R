@@ -1,26 +1,34 @@
-#data(glassbrain, envir=environment())
+data(glassbrain, envir=environment())
 data(EPSatlas, envir=environment())
 data(atlasIndex, envir=environment())
 #data(atlasOntology, envir=environment())
 data(ontology, envir=environment())
 
 
-schematic.plot<-function(dataset){
-	if(length(which(dataset$color=='#000000'))>0){
-dataset<-dataset[-which(dataset$color=='#000000'),]
-}
+schematic.plot<-function(dataset, save.plot=FALSE, dev.size=c(5.4, 4.465)){
+	
 
-if(table(dataset$right.hemisphere)[2] < table(dataset$right.hemisphere)[1]){
-	dataset$ML<- -dataset$ML
+if(length(which(dataset$color=='#000000'))>0){
+dataset<-dataset[-which(dataset$color=='#000000'),]
 }
 
 datasets<-dataset
 
-coordinates<-unique(dataset$AP)
 
+for(animal.index in unique(datasets$animal)[-1] ){
+	
+coordinates<-sort(unique(datasets$AP[which(datasets$animal==animal.index)]), decreasing=TRUE )	
 for(q in 1:length(coordinates)){
-dataset<-datasets[which(dataset$AP==coordinates[q]),]
-coordinate<-dataset$AP
+dataset<-datasets[which(datasets$AP==coordinates[q] & datasets$animal==animal.index ),]
+
+
+if( length(table(dataset$right.hemisphere)) > 1)
+if(table(dataset$right.hemisphere)[2] < table(dataset$right.hemisphere)[1]){
+	dataset$ML<- -dataset$ML
+}
+
+
+coordinate<-unique(dataset$AP)
 #quartz(width=7.513513* 0.4171346 , height=4.540540* 0.4171346)
 k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
 plate<-atlasIndex$plate.id[which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))]
@@ -37,6 +45,9 @@ if(atlasIndex$plate.id[k] %in%c(100960309, 100960312, 100960316, 100960320)){
   ventricles<-append(ventricles, fibertracts) 
 }
 
+if(save.plots){
+	quartz(width=dev.size[1], height=dev.size[1])
+}
 par(mar=c(0,0,0,0))
 xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
 plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, col=0, xlim=c(0,97440), ylim=c(0, 68234.56), axes=F, ylab='', xlab='', asp=1, main= '' )
@@ -64,10 +75,17 @@ polygon(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin, EPSatlas$plates[[k]][[i]]@p
 polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, col=gray(0.85), border='black', lwd=1)
 }
 
-points( (dataset$ML*scale*1000+bregmaX)*97440/11700+ 1748.92, (8210+dataset$DV*scale*1000-bregmaY)*97440/11700, pch=21, bg= dataset$color , cex=0.5 )
+points( (dataset$ML*scale*1000+bregmaX)*97440/11700+ 1748.92, (8210+dataset$DV*scale*1000-bregmaY)*97440/11700, pch=21, bg= as.character(dataset$color) , cex=0.5 )
 #paste('../d159_images/',substr(basename(filename), 1, nchar(basename(filename))-5), 'png', sep='')
+if(save.plots){
+filename <- paste(animal.index,formatC(q,digits=3,flag="0"), round(unique(coordinate),3),".pdf",sep="_")
+quartz.save(filename, type = "pdf")
+dev.off()
+}
 
 }
+}
+
 
 }
 
@@ -76,18 +94,19 @@ paxTOallen<-function(paxinos){
 }
 
 glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col='region', cex=0.5, hemisphere='right'){
-	dataset<-na.omit(dataset)
+	dataset<-dataset[-which(dataset$color=='#000000'),]
 	if(device){
 		open3d(windowRect = c(0,  0, 1280, 720))
 	}
+	par3d(persp)
 	if(high.res){
-		drawScene.rgl(list(VOLUMESMALL))
-	}else{
 		drawScene.rgl(list(VOLUME))
+	}else{
+		drawScene.rgl(list(VOLUMESMALL))
 	}
 
 	if(col=='region'){
-		color<-(dataset$color)
+		color<-as.character(dataset$color)
 	}else{
 		color<-col
 	}

@@ -66,6 +66,7 @@ export(get.forward.warpRCPP)
 
 #export(export.rosettajson)
 export(schematic.plot)
+export(glassbrain)
 
 export(mrd)
 export(make.atlas.nissl)
