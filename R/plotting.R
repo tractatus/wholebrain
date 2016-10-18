@@ -1,4 +1,4 @@
-data(glassbrain, envir=environment())
+data(glasbrain, envir=environment())
 data(EPSatlas, envir=environment())
 data(atlasIndex, envir=environment())
 #data(atlasOntology, envir=environment())
