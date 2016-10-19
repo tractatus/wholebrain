@@ -5,9 +5,12 @@ data(atlasIndex, envir=environment())
 data(ontology, envir=environment())
 
 
-schematic.plot<-function(dataset, save.plot=FALSE, dev.size=c(5.4, 4.465)){
+schematic.plot<-function(dataset, title=TRUE, save.plot=FALSE, dev.size=c(5.4, 4.465)){
 	
 
+if(!save.plot){
+	quartz(width=dev.size[1], height=dev.size[1])
+}
 if(length(which(dataset$color=='#000000'))>0){
 dataset<-dataset[-which(dataset$color=='#000000'),]
 }
@@ -15,7 +18,7 @@ dataset<-dataset[-which(dataset$color=='#000000'),]
 datasets<-dataset
 
 
-for(animal.index in unique(datasets$animal)[-1] ){
+for(animal.index in unique(datasets$animal) ){
 	
 coordinates<-sort(unique(datasets$AP[which(datasets$animal==animal.index)]), decreasing=TRUE )	
 for(q in 1:length(coordinates)){
@@ -45,6 +48,12 @@ if(atlasIndex$plate.id[k] %in%c(100960309, 100960312, 100960316, 100960320)){
   ventricles<-append(ventricles, fibertracts) 
 }
 
+if(title){
+	main.title<-paste(animal.index,'\n bregma: ', round(coordinate,2), 'mm', '\n image: ', unique(dataset$image))
+}else{
+	main.title<-''
+}
+
 if(save.plots){
 	quartz(width=dev.size[1], height=dev.size[1])
 }
@@ -53,7 +62,7 @@ xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
 plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, col=0, xlim=c(0,97440), ylim=c(0, 68234.56), axes=F, ylab='', xlab='', asp=1, main= '' )
 polygon(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, col=gray(0.95), border='black' )
 polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - 97440/2)+97440/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col=gray(0.95), border='black')	
-
+mtext(main.title, 1,-5.5, cex=0.5, font=2)
 
 numPaths<-EPSatlas$plates[[k]]@summary@numPaths
 
@@ -76,7 +85,6 @@ polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatla
 }
 
 points( (dataset$ML*scale*1000+bregmaX)*97440/11700+ 1748.92, (8210+dataset$DV*scale*1000-bregmaY)*97440/11700, pch=21, bg= as.character(dataset$color) , cex=0.5 )
-#paste('../d159_images/',substr(basename(filename), 1, nchar(basename(filename))-5), 'png', sep='')
 if(save.plots){
 filename <- paste(animal.index,formatC(q,digits=3,flag="0"), round(unique(coordinate),3),".pdf",sep="_")
 quartz.save(filename, type = "pdf")
