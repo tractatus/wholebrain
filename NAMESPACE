@@ -67,6 +67,7 @@ export(get.forward.warpRCPP)
 #export(export.rosettajson)
 export(schematic.plot)
 export(glassbrain)
+export(get.cellcounts)
 
 export(mrd)
 export(make.atlas.nissl)

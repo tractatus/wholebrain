@@ -755,13 +755,42 @@ get.region<-function(acronym, registration){
 }
 
 
+get.cellcounts<-function(formula = acronym ~ right.hemisphere + animal, roi=NULL, dataset, exclude=TRUE){
+  dataset$acronym<-as.character(dataset$acronym)
+  
+
+  for(i in roi){
+    id<-id.from.acronym(i)
+    index<-which(dataset$id==id)
+    
+    if(length(index)==0){
+      while(length(index)==0){
+        id<-ontology$id[which(ontology$parent%in%id)]
+        index<-which(dataset$id%in%id)
+      }
+      }
+      
+      dataset$acronym[index]<-i
+    } 
+    
+    if(exclude){
+       dataset<-dataset[which(dataset$acronym%in%roi), ]
+    } 
+      
+      mf <- model.frame(formula=formula, data= dataset)
+      
+    
+     return( table(mf) )
+ }   
+
+
 bargraph <- function(dataset, device=TRUE) {
   
   
   with(dataset, {
      
 
-    counts<-table(acronym, right.hemisphere)
+    counts<-table(as.character(acronym), right.hemisphere)
     hemisphere.to.sort<-which.max(apply(counts, 2, sum))
     counts <-counts[order(counts[,hemisphere.to.sort], decreasing=TRUE),]
     counts <-log10(counts)
