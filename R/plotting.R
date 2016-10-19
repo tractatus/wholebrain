@@ -8,7 +8,7 @@ data(ontology, envir=environment())
 schematic.plot<-function(dataset, title=TRUE, mm.grid=TRUE, save.plots=FALSE, dev.size=c(5.4, 4.465)){
 	
 
-if(!save.plot){
+if(!save.plots){
 	quartz(width=dev.size[1], height=dev.size[1])
 }
 if(length(which(dataset$color=='#000000'))>0){
