@@ -5,7 +5,7 @@ data(atlasIndex, envir=environment())
 data(ontology, envir=environment())
 
 
-schematic.plot<-function(dataset, title=TRUE, mm.grid=TRUE, save.plot=FALSE, dev.size=c(5.4, 4.465)){
+schematic.plot<-function(dataset, title=TRUE, mm.grid=TRUE, save.plots=FALSE, dev.size=c(5.4, 4.465)){
 	
 
 if(!save.plot){
