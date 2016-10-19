@@ -5,7 +5,7 @@ data(atlasIndex, envir=environment())
 data(ontology, envir=environment())
 
 
-schematic.plot<-function(dataset, title=TRUE, save.plot=FALSE, dev.size=c(5.4, 4.465)){
+schematic.plot<-function(dataset, title=TRUE, mm.grid=TRUE, save.plot=FALSE, dev.size=c(5.4, 4.465)){
 	
 
 if(!save.plot){
@@ -60,6 +60,11 @@ if(save.plots){
 par(mar=c(0,0,0,0))
 xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
 plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, col=0, xlim=c(0,97440), ylim=c(0, 68234.56), axes=F, ylab='', xlab='', asp=1, main= '' )
+if(mm.grid){
+	abline(h=seq(0, 97440, by=(97440/456)*(1000/25) ), col='lightblue')
+abline(v=seq(6040, 97440, by=(97440/456)*(1000/25) ), col='lightblue')
+}
+
 polygon(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, col=gray(0.95), border='black' )
 polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - 97440/2)+97440/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col=gray(0.95), border='black')	
 mtext(main.title, 1,-5.5, cex=0.5, font=2)
