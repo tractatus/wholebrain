@@ -57,7 +57,11 @@ if(title){
 if(save.plots){
 	quartz(width=dev.size[1], height=dev.size[1])
 }
+if(mm.grid){
+
+	}else{
 par(mar=c(0,0,0,0))
+}
 xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
 plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, col=0, xlim=c(0,97440), ylim=c(0, 68234.56), axes=F, ylab='', xlab='', asp=1, main= '' )
 if(mm.grid){
@@ -67,7 +71,25 @@ abline(v=seq(6040, 97440, by=(97440/456)*(1000/25) ), col='lightblue')
 
 polygon(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, col=gray(0.95), border='black' )
 polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - 97440/2)+97440/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col=gray(0.95), border='black')	
+if(title&(!mm.grid)){
 mtext(main.title, 1,-5.5, cex=0.5, font=2)
+}else{
+	title(main.title)
+}
+if(mm.grid){
+box()
+axis(2, at=seq( max(EPSatlas$plates[[k]][[1]]@paths$path@y)
+, 4798.189, by= -(97440/456)*(1000/25)/10 ), labels=FALSE, las=1, col='orange', tck=-0.0125)
+axis(2, at=seq( max(EPSatlas$plates[[k]][[1]]@paths$path@y)
+, 4798.189, by= -(97440/456)*(1000/25)/2 ), labels=FALSE, las=1, col='darkblue', tck=-0.025)
+
+axis(2, at=seq( max(EPSatlas$plates[[k]][[1]]@paths$path@y)
+, 4798.189, by= -(97440/456)*(1000/25) ), labels=c(0:-6), las=1)
+axis(1, at=seq(6040, 91514, by=(97440/456)*(1000/25)/10 ), labels=FALSE, las=1, col='orange', tck=-0.0125)
+axis(1, at=seq(6040, 91514, by=(97440/456)*(1000/25)/2 ), labels=FALSE, las=1, col='darkblue', tck=-0.025)
+
+axis(1, at=seq(6040, 91514, by=(97440/456)*(1000/25) ), labels=c(-5:5))
+}
 
 numPaths<-EPSatlas$plates[[k]]@summary@numPaths
 
