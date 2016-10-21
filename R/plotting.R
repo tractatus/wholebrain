@@ -4,17 +4,20 @@ data(atlasIndex, envir=environment())
 #data(atlasOntology, envir=environment())
 data(ontology, envir=environment())
 
+
 suggestions<-function(dataset, exclude.below=10, reduce.below=100){
 
 dataset$acronym<-as.character(dataset$acronym)
-test<-table(dataset$acronym, dataset$animal)
-test <-test[order(test[,1], decreasing=TRUE),]
-average.cells<-sort(rowMeans(test), decreasing=TRUE)
+tableCount<-table(dataset$acronym, dataset$animal)
+tableCount <-tableCount[order(tableCount[,1], decreasing=TRUE),]
+average.cells<-sort(rowMeans(tableCount), decreasing=TRUE)
 
+if(length(which(dataset$acronym%in%c('fiber tracts', 'grey', names(which(average.cells<exclude.below)) ) ))){
 dataset<-dataset[-which(dataset$acronym%in%c('fiber tracts', 'grey', names(which(average.cells<exclude.below)) ) ), ]
-test<-table(dataset$acronym, dataset$animal)
-test <-test[order(test[,1], decreasing=TRUE),]
-average.cells<-sort(rowMeans(test), decreasing=TRUE)
+}
+tableCount<-table(dataset$acronym, dataset$animal)
+tableCount <-tableCount[order(tableCount[,1], decreasing=TRUE),]
+average.cells<-sort(rowMeans(tableCount), decreasing=TRUE)
 
 while(length(which(average.cells<reduce.below))>0){
 
@@ -26,31 +29,37 @@ for(i in to.be.replaced){
 }
 
 
-test<-table(dataset$acronym, dataset$animal)
-test <-test[order(test[,1], decreasing=TRUE),]
-average.cells<-sort(rowMeans(test), decreasing=TRUE)
+tableCount<-table(dataset$acronym, dataset$animal)
+tableCount <-tableCount[order(tableCount[,1], decreasing=TRUE),]
+average.cells<-sort(rowMeans(tableCount), decreasing=TRUE)
 
 
 }
 
-test<-test[-which(row.names(test)=='root'),]
+if( length(which(row.names(tableCount)=='root')) > 0){
+tableCount<-tableCount[-which(row.names(tableCount)=='root'),]
+}
 
-test<-test[order(row.names(test)), ]
+print(tableCount)
+print(row.names(tableCount))
 
-group<-color.from.acronym(row.names(test))
+tableCount<-tableCount[order(row.names(tableCount)), ]
 
-test<-test[order(group , row.names(test)), ]
+group<-color.from.acronym(row.names(tableCount))
+
+tableCount<-tableCount[order(group , row.names(tableCount)), ]
 
 
 for(j in unique(group)){
 	
-	test[which(group==j), ]<-test[which(group==j)[order( rowMeans(test)[which(group==j)], decreasing=TRUE )],]
-	group<-color.from.acronym(row.names(test))
+	tableCount[which(group==j), ]<-tableCount[which(group==j)[order( rowMeans(tableCount)[which(group==j)], decreasing=TRUE )],]
+	group<-color.from.acronym(row.names(tableCount))
 
 }
 
-return(test)
+return(tableCount)
 }
+
 
 plot.suggestions<-function(dataset, group = NULL, title='Groups:', color=gray(0.4), exclude.below=10, reduce.below=100, device=TRUE){
 
@@ -139,11 +148,11 @@ lapply(1:nrow(counts), function(x) {
         
                 box()
         par(xpd = TRUE)
-        polygon(c(x.range[1] + 0.25, x.range[1] + 0.5, x.range[1] + 
-            0.5, x.range[1] + 0.25), c(-15, -15, nrow(counts) + 
+        polygon(c(x.range[1] + 1/x.range[2], x.range[1] + 1/x.range[2]/2, x.range[1] + 
+            1/x.range[2]/2, x.range[1] + 1/x.range[2]), c(-15, -15, nrow(counts) + 
             15, nrow(counts) + 15), col = "white", border = "white")
         par(xpd = FALSE)
-        abline(v = c(x.range[1] + 0.25, x.range[1] + 0.5))
+        abline(v = c(x.range[1] + 1/x.range[2], x.range[1] + 1/x.range[2]/2))
         mtext("Cell count", 3, 2.2, cex = 0.8)
         mtext("Cell count", 1, 2.2, cex = 0.8)
         

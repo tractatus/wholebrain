@@ -64,6 +64,7 @@ export(bargraph)
 export(map.to.atlas)
 export(get.forward.warpRCPP)
 
+export(color.from.acronym)
 #export(export.rosettajson)
 export(schematic.plot)
 export(glassbrain)
@@ -72,6 +73,7 @@ export(read.brains)
 export(get.acronym.parent)
 export(suggestions)
 export(plot.suggestions)
+
 
 export(mrd)
 export(make.atlas.nissl)
