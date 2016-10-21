@@ -4,6 +4,154 @@ data(atlasIndex, envir=environment())
 #data(atlasOntology, envir=environment())
 data(ontology, envir=environment())
 
+suggestions<-function(dataset, exclude.below=10, reduce.below=100){
+
+dataset$acronym<-as.character(dataset$acronym)
+test<-table(dataset$acronym, dataset$animal)
+test <-test[order(test[,1], decreasing=TRUE),]
+average.cells<-sort(rowMeans(test), decreasing=TRUE)
+
+dataset<-dataset[-which(dataset$acronym%in%c('fiber tracts', 'grey', names(which(average.cells<exclude.below)) ) ), ]
+test<-table(dataset$acronym, dataset$animal)
+test <-test[order(test[,1], decreasing=TRUE),]
+average.cells<-sort(rowMeans(test), decreasing=TRUE)
+
+while(length(which(average.cells<reduce.below))>0){
+
+
+to.be.replaced<-names(average.cells[average.cells<reduce.below])
+for(i in to.be.replaced){
+	dataset$acronym[which(dataset$acronym==i)]<- as.character( get.acronym.parent(i) ) 
+	# dataset$acronym[which(dataset$acronym==i)]<-
+}
+
+
+test<-table(dataset$acronym, dataset$animal)
+test <-test[order(test[,1], decreasing=TRUE),]
+average.cells<-sort(rowMeans(test), decreasing=TRUE)
+
+
+}
+
+test<-test[-which(row.names(test)=='root'),]
+
+test<-test[order(row.names(test)), ]
+
+group<-color.from.acronym(row.names(test))
+
+test<-test[order(group , row.names(test)), ]
+
+
+for(j in unique(group)){
+	
+	test[which(group==j), ]<-test[which(group==j)[order( rowMeans(test)[which(group==j)], decreasing=TRUE )],]
+	group<-color.from.acronym(row.names(test))
+
+}
+
+return(test)
+}
+
+plot.suggestions<-function(dataset, group = NULL, title='Groups:', color=gray(0.4), exclude.below=10, reduce.below=100, device=TRUE){
+
+counts<-suggestions(dataset, exclude.below, reduce.below)
+
+counts <- log10(counts)
+        if (device) {
+            quartz(width = 7.036585, height = 0.2099039 * nrow(counts))
+        }
+        layout(matrix(c(1, 1, 1, 2, 2, 2, 2), nrow = 1))
+        par(mar = c(4, 0, 4, 0))
+        plot(rep(2.5, nrow(counts)), nrow(counts):1, col = 0, 
+            axes = F, ylim = c(0.5, nrow(counts) + 0.5), ylab = "", 
+            xlab = "", xlim = c(1, 5))
+        mtext("Input region:", 3, cex = 0.9)
+        for (i in 1:nrow(counts)) {
+            regioncolor <- color.from.acronym(row.names(counts)[i])
+            regioncolor <- adjustcolor(regioncolor, alpha.f = 0.2)
+            y.lab <- (nrow(counts) + 1) - i
+            polygon(c(1, 5, 5, 1), c(y.lab - 0.5, y.lab - 0.5, 
+                y.lab + 0.5, y.lab + 0.5), col = regioncolor, 
+                border = FALSE)
+            text(3, y.lab, name.from.acronym(row.names(counts)[i]), 
+                cex = 0.9)
+        }
+        
+        
+        if(!is.null(group)){
+        	par(xpd = TRUE)
+        legend(3, -0.75, unique(group), pch = c(21), pt.bg = color, title = title, bg = "white", 
+            horiz = TRUE, cex = 1.3, xjust = 0.5)
+        par(xpd = FALSE)
+        }
+        
+par(mar = c(4, 4, 4, 6))
+        zeros <- min(is.finite(counts)) - 1
+        counts[!is.finite(counts)] <- zeros
+        x.range <- c( round(range(counts[is.finite(counts)])[1]), ceiling(range(counts[is.finite(counts)])[2]) )
+        plot(apply(counts, 1, max), nrow(counts):1 - 0.125, pch = 21, 
+            bg = "white", ylim = c(0.5, nrow(counts) + 0.5), 
+            xlim = x.range, xlab = "", axes = F, ylab = "", col = 0)
+        for (i in 1:nrow(counts)) {
+            regioncolor <- color.from.acronym(row.names(counts)[i])
+            regioncolor <- adjustcolor(regioncolor, alpha.f = 0.15)
+            y.lab <- (nrow(counts) + 1) - i
+            polygon(c(x.range, rev(x.range)), c(y.lab - 0.5, 
+                y.lab - 0.5, y.lab + 0.5, y.lab + 0.5), col = regioncolor, 
+                border = FALSE)
+        }
+        log.range <- 10^seq(x.range[1], x.range[2])
+        axis(1, at = seq(x.range[1], x.range[2]), las = 1, labels = c(0, 
+            log.range[-1]))
+        axis(3, at = seq(x.range[1], x.range[2]), las = 1, labels = c(0, 
+            log.range[-1]))
+        log.range <- unlist(lapply(1:(length(log.range) - 1), 
+            function(x) {
+                seq(log.range[x], log.range[x + 1], by = log.range[x])
+            }))
+        axis(1, at = log10(log.range), labels = FALSE)
+        axis(3, at = log10(log.range), labels = FALSE)
+        axis(2, at = nrow(counts):1, labels = row.names(counts), 
+            las = 1)
+        axis(4, at = nrow(counts):1, labels = row.names(counts), 
+            las = 1)
+        abline(h = 1:nrow(counts), lty = 2, col = "gray")
+        abline(v = log10(log.range), col = "lightblue")
+        
+
+
+	if(is.null(group)){
+lapply(1:nrow(counts), function(x) {
+            points(counts[x, ], rep(nrow(counts) - x + 1, ncol(counts) ), 
+                pch = 21, bg = color, cex = 1.2)
+        })
+        }else{
+        	k<-1
+        	vertical<-seq(-0.15,0.15,length.out=length(unique(group)))
+        	for(j in unique(group)){
+        		lapply(1:nrow(counts), function(x) {
+            		points(counts[x, which(group==j)], rep(nrow(counts) - x + 1 + vertical[k], length(which(group==j)) ), 
+                	pch = 21, bg = color[k], cex = 1.2)
+        		})
+        		k<-k+1
+        	}
+        }
+        
+                box()
+        par(xpd = TRUE)
+        polygon(c(x.range[1] + 0.25, x.range[1] + 0.5, x.range[1] + 
+            0.5, x.range[1] + 0.25), c(-15, -15, nrow(counts) + 
+            15, nrow(counts) + 15), col = "white", border = "white")
+        par(xpd = FALSE)
+        abline(v = c(x.range[1] + 0.25, x.range[1] + 0.5))
+        mtext("Cell count", 3, 2.2, cex = 0.8)
+        mtext("Cell count", 1, 2.2, cex = 0.8)
+        
+        
+
+}
+
+
 
 schematic.plot<-function(dataset, title=TRUE, mm.grid=TRUE, save.plots=FALSE, dev.size=c(5.4, 4.465)){
 	

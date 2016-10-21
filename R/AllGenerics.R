@@ -25,6 +25,26 @@ color.from.acronym<-function(x){
 	unlist(lapply(x, function(y){if(length(which(ontology$acronym ==y))!=0){return(as.character(ontology$allen.color[which(ontology$acronym ==y)]))}else{return(NA)} }))
 }
 
+get.acronym.parent<-function(x){
+	ids<-unlist(lapply(x, function(y){if(length(which(ontology$acronym ==y))!=0){return(ontology$parent[which(ontology$acronym ==y)])}else{return(NA)} }))
+	return(acronym.from.id(ids))
+}
+
+read.brains<-function(filenames, animalID=NULL){
+
+data<-read.table(filenames[1], sep=',', header=TRUE, fill=TRUE)
+if(!is.null(animalID)){
+data$animal<-animalID[1]
+}
+for(i in 1:length(filenames)){
+	data.tmp<-read.table(filenames[i], sep=',', header=TRUE, fill=TRUE)
+	if(!is.null(animalID)){
+		data.tmp$animal<-animalID[i]
+	}
+	data<-rbind(data, data.tmp)
+}
+return(data)
+}
 
 check.progress<-function(barWidth, progress, stages, message, timing){
 	cat("  [")
