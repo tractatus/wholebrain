@@ -5,7 +5,7 @@ data(atlasIndex, envir=environment())
 data(ontology, envir=environment())
 
 
-suggestions<-function(dataset, exclude.below=10, reduce.below=100){
+suggestions<-function(dataset, normalize.by=NULL, exclude.below=10, reduce.below=100){
 
 dataset$acronym<-as.character(dataset$acronym)
 tableCount<-table(dataset$acronym, dataset$animal)
@@ -57,15 +57,47 @@ for(j in unique(group)){
 
 }
 
+#if(!is.null(normalize.by)){
+#	if(length(normalize.by)!=ncol(tableCount)){
+#		print(paste('Error: You have ', ncol(tableCount), ' animals, but entered values ', length(normalize.by),' for normalization.'))
+#		return()
+#	}
+#	
+#	for(j in 1:ncol(counts)){
+#		tableCount[,j]<-tableCount[,j]/normalize.by[j]
+#	}
+#}
+
 return(tableCount)
 }
 
 
-plot.suggestions<-function(dataset, group = NULL, title='Groups:', color=gray(0.4), exclude.below=10, reduce.below=100, device=TRUE){
+plot.suggestions<-function(dataset, normalize.by=NULL, group = NULL, title='Groups:', color=gray(0.4), exclude.below=10, reduce.below=100, exclude.regions=NULL, xlab='Cell count', device=TRUE){
 
-counts<-suggestions(dataset, exclude.below, reduce.below)
+counts<-suggestions(dataset, exclude.below=exclude.below, reduce.below=reduce.below)
+
+if(!is.null(exclude.regions)){
+	remove<-which(row.names(counts)%in%exclude.regions)
+	if(length(remove)>0){
+		counts<-counts[-remove,]
+	}
+}
+
+
+
+if(!is.null(normalize.by)){
+	if(length(normalize.by)!=ncol(counts)){
+		print(paste('Error: You have ', ncol(counts), ' animals, but entered values ', length(normalize.by),' for normalization.'))
+		return()
+	}
+	
+	for(j in 1:ncol(counts)){
+		counts[,j]<-counts[,j]/normalize.by[j]
+	}
+}
 
 counts <- log10(counts)
+
         if (device) {
             quartz(width = 7.036585, height = 0.2099039 * nrow(counts))
         }
@@ -95,9 +127,15 @@ counts <- log10(counts)
         }
         
 par(mar = c(4, 4, 4, 6))
-        zeros <- min(is.finite(counts)) - 1
+        zeros <- floor(range(counts[is.finite(counts)])[1])
+        no.zero.values<-FALSE
+        print(which(!is.finite(counts), arr.ind=TRUE))
+        print( zeros)
+        if(length(which(!is.finite(counts)))==0){
+        	no.zero.values<-TRUE
+        }
         counts[!is.finite(counts)] <- zeros
-        x.range <- c( round(range(counts[is.finite(counts)])[1]), ceiling(range(counts[is.finite(counts)])[2]) )
+        x.range <- c( floor(range(counts[is.finite(counts)])[1]), ceiling(range(counts[is.finite(counts)])[2]) )
         plot(apply(counts, 1, max), nrow(counts):1 - 0.125, pch = 21, 
             bg = "white", ylim = c(0.5, nrow(counts) + 0.5), 
             xlim = x.range, xlab = "", axes = F, ylab = "", col = 0)
@@ -105,15 +143,22 @@ par(mar = c(4, 4, 4, 6))
             regioncolor <- color.from.acronym(row.names(counts)[i])
             regioncolor <- adjustcolor(regioncolor, alpha.f = 0.15)
             y.lab <- (nrow(counts) + 1) - i
-            polygon(c(x.range, rev(x.range)), c(y.lab - 0.5, 
+            polygon(c(x.range[1]-1, x.range[2]+1, x.range[2]+1, x.range[1]-1), c(y.lab - 0.5, 
                 y.lab - 0.5, y.lab + 0.5, y.lab + 0.5), col = regioncolor, 
                 border = FALSE)
         }
         log.range <- 10^seq(x.range[1], x.range[2])
+        if(no.zero.values){
+			axis(1, at = seq(x.range[1], x.range[2]), las = 1, labels = c( 
+            log.range))
+        	axis(3, at = seq(x.range[1], x.range[2]), las = 1, labels = c( 
+            log.range))
+        	}else{
         axis(1, at = seq(x.range[1], x.range[2]), las = 1, labels = c(0, 
             log.range[-1]))
         axis(3, at = seq(x.range[1], x.range[2]), las = 1, labels = c(0, 
             log.range[-1]))
+    	}
         log.range <- unlist(lapply(1:(length(log.range) - 1), 
             function(x) {
                 seq(log.range[x], log.range[x + 1], by = log.range[x])
@@ -147,14 +192,20 @@ lapply(1:nrow(counts), function(x) {
         }
         
                 box()
+        if(!no.zero.values){
         par(xpd = TRUE)
-        polygon(c(x.range[1] + 1/x.range[2], x.range[1] + 1/x.range[2]/2, x.range[1] + 
-            1/x.range[2]/2, x.range[1] + 1/x.range[2]), c(-15, -15, nrow(counts) + 
+        polygon(c( mean(log10(log.range)[1:2]), log10(log.range)[2], log10(log.range)[2], mean(log10(log.range)[1:2])), c(-15, -15, nrow(counts) + 
             15, nrow(counts) + 15), col = "white", border = "white")
+        
+        #polygon(c(x.range[1] + 1/x.range[2], x.range[1] + 1/x.range[2]/2, x.range[1] + 
+        #    1/x.range[2]/2, x.range[1] + 1/x.range[2]), c(-15, -15, nrow(counts) + 
+        #    15, nrow(counts) + 15), col = "white", border = "white")
         par(xpd = FALSE)
-        abline(v = c(x.range[1] + 1/x.range[2], x.range[1] + 1/x.range[2]/2))
-        mtext("Cell count", 3, 2.2, cex = 0.8)
-        mtext("Cell count", 1, 2.2, cex = 0.8)
+        abline(v = c(mean(log10(log.range)[1:2]), log10(log.range)[2]))
+        #abline(v = c(x.range[1] + 1/x.range[2], x.range[1] + 1/x.range[2]/2))
+    	}
+        mtext(xlab, 3, 2.2, cex = 0.8)
+        mtext(xlab, 1, 2.2, cex = 0.8)
         
         
 

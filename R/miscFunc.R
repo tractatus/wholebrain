@@ -194,7 +194,25 @@ imgSWT <- function(input, filter.parameters=NULL, scales=6, cell.bodies = 3, pro
     #############################
     #           CALL            #
     #############################
-    a <- .Call("filterImage", file, noFilter, filter_minArea, filter_maxArea, filter_minThresh, filter_maxThresh, filter_eccentricity, filter_alpha, filter_beta, filter_Max, filter_Min, scales, cellBodies, processes, family, sigmaR, areaSize, processLength, outputfile)
+    a <- .Call("filterImage", file, 
+                              noFilter, 
+                              filter_minArea, 
+                              filter_maxArea, 
+                              filter_minThresh, 
+                              filter_maxThresh, 
+                              filter_eccentricity, 
+                              filter_alpha, 
+                              filter_beta, 
+                              filter_Max, 
+                              filter_Min, 
+                              scales, 
+                              cellBodies, 
+                              processes, 
+                              family, 
+                              sigmaR, 
+                              areaSize, 
+                              processLength, 
+                              outputfile)
     cat("IMAGE PROCESSED\n")
     #############################
     #           PLOT            #

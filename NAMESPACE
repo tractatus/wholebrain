@@ -65,6 +65,7 @@ export(map.to.atlas)
 export(get.forward.warpRCPP)
 
 export(color.from.acronym)
+export(color.from.id)
 #export(export.rosettajson)
 export(schematic.plot)
 export(glassbrain)
