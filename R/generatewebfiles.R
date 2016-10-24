@@ -1,6 +1,6 @@
 
 printJSONneuron<-function(neuX, neuY, intensity, area, structureAN, ytop){
-
+#probably should remove ytop
 cat('var neurons = {\n
   
     "type": "FeatureCollection",\n
@@ -13,10 +13,10 @@ for(i in 1:length(neuX)){
             "geometry": {\n
                 "type": "Point",\n
                 "coordinates": [\n',
-          ytop -neuY[i],',\n',
+          neuY[i],',\n',
           neuX[i],
                 '\n]\n',
-            '},\n "type": "Feature",\n "properties": {\n "popupContent": "<b><u>Pixel properties:</u></b> <br> <b>Mean intensity:</b> ', round(log(intensity[i],2),3), ' bits<br> <b>Soma size:</b> ', round(area[i]), ' &mu;m<sup>2</sup> <br> </br> <b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', '?', ': ', 'Undefined/unspecific', '<br>"\n},\n "hexcolor": ', paste('"#',ontology$allen.color[which(ontology$id== structureAN[i])], '"', sep=''), ',\n"linecolor": ', paste('"',line.color, '"', sep=''),', \n"id": ', i, '\n },\n'))
+            '},\n "type": "Feature",\n "properties": {\n "popupContent": "<b><u>Pixel properties:</u></b> <br> <b>Mean intensity:</b> ', round(log(intensity[i],2),3), ' bits<br> <b>Soma size:</b> ', round(area[i]), ' &mu;m<sup>2</sup> <br> </br> <b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', '?', ': ', 'Undefined/unspecific', '<br>"\n},\n "hexcolor": ', paste('"',ontology$allen.color[which(ontology$id== structureAN[i])], '"', sep=''), ',\n"linecolor": ', paste('"',line.color, '"', sep=''),', \n"id": ', i, '\n },\n'))
     
   }else{
   line.color<-"#000"
@@ -25,10 +25,10 @@ for(i in 1:length(neuX)){
             "geometry": {\n
                 "type": "Point",\n
                 "coordinates": [\n',
-          ytop - neuY[i],',\n',
+          neuY[i],',\n',
           neuX[i],
                 '\n]\n',
-            '},\n "type": "Feature",\n "properties": {\n "popupContent": "<b><u>Pixel properties:</u></b> <br> <b>Mean intensity:</b> ', round(log(intensity[i],2),3), ' bits<br> <b>Soma size:</b> ', round(area[i]), ' &mu;m<sup>2</sup> <br> </br> <b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', ontology$acronym[which(id== structureAN[i])], ': ',  ontology$name[which(ontology$id== structureAN[i])], '<br>"\n},\n "hexcolor": ', paste('"#',ontology$allen.color[which(ontology$id== structureAN[i])], '"', sep=''), ',\n"linecolor": ', paste('"',line.color, '"', sep=''),', \n"id": ', i, '\n },\n'))
+            '},\n "type": "Feature",\n "properties": {\n "popupContent": "<b><u>Pixel properties:</u></b> <br> <b>Mean intensity:</b> ', round(log(intensity[i],2),3), ' bits<br> <b>Soma size:</b> ', round(area[i]), ' &mu;m<sup>2</sup> <br> </br> <b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', ontology$acronym[which(ontology$id== structureAN[i])], ': ',  ontology$name[which(ontology$id== structureAN[i])], '<br>"\n},\n "hexcolor": ', paste('"',ontology$allen.color[which(ontology$id== structureAN[i])], '"', sep=''), ',\n"linecolor": ', paste('"',line.color, '"', sep=''),', \n"id": ', i, '\n },\n'))
   
   }
   
@@ -40,8 +40,10 @@ cat(']\n};')
 
 
 printJSONoutlines<-function(registration){
-
-k=length(outlines)
+scaleup<-registration$transformationgrid$width/dim(registration$transformationgrid$mx)[2]
+k=registration$atlas$numRegions
+line.type<-rep(2,k)
+line.type[which(registration$atlas$col%in%c('#cccccc', '#aaaaaa'))]<-1
 for(i in 1:k){
 
 if(i==1){
@@ -67,11 +69,11 @@ cat('    "geometry": {\n')
 cat('        "type": "Polygon",\n')
 cat('        "coordinates": [[\n')
 
-for(j in 1:length(outlines[[i]]$xrT)){
-  if(j != length(outlines[[i]]$xrT)){
-    cat(paste('            [', 13107 -outlines[[i]]$yrT[j]*scaleup,', ', outlines[[i]]$xrT[j]*scaleup, '],\n', sep=''))
+for(j in 1:length(registration$atlas$outlines[[i]]$xrT)){
+  if(j != length(registration$atlas$outlines[[i]]$xrT)){
+    cat(paste('            [', registration$atlas$outlines[[i]]$yrT[j]*scaleup,', ', registration$atlas$outlines[[i]]$xrT[j]*scaleup, '],\n', sep=''))
   }else{
-    cat(paste('            [', 13107 -outlines[[i]]$yrT[j]*scaleup,', ', outlines[[i]]$xrT[j]*scaleup, ']\n', sep=''))
+    cat(paste('            [', registration$atlas$outlines[[i]]$yrT[j]*scaleup,', ', registration$atlas$outlines[[i]]$xrT[j]*scaleup, ']\n', sep=''))
   }
 }
 cat('        ]]\n')
@@ -99,11 +101,11 @@ cat('    "geometry": {\n')
 cat('        "type": "Polygon",\n')
 cat('        "coordinates": [[\n')
 
-for(j in 1:length(outlines[[i]]$xlT)){
-  if(j != length(outlines[[i]]$xlT)){
-    cat(paste('            [', 13107 -outlines[[i]]$ylT[j]*scaleup,', ', outlines[[i]]$xlT[j]*scaleup, '],\n', sep=''))
+for(j in 1:length(registration$atlas$outlines[[i]]$xlT)){
+  if(j != length(registration$atlas$outlines[[i]]$xlT)){
+    cat(paste('            [', registration$atlas$outlines[[i]]$ylT[j]*scaleup,', ', registration$atlas$outlines[[i]]$xlT[j]*scaleup, '],\n', sep=''))
   }else{
-    cat(paste('            [', 13107 -outlines[[i]]$ylT[j]*scaleup,', ', outlines[[i]]$xlT[j]*scaleup, ']\n', sep=''))
+    cat(paste('            [', registration$atlas$outlines[[i]]$ylT[j]*scaleup,', ', registration$atlas$outlines[[i]]$xlT[j]*scaleup, ']\n', sep=''))
   }
 }
 cat('        ]]\n')
@@ -206,7 +208,7 @@ slidetray<-function(input, filter, folder.prefix=NULL, start.at=1, dont.run=NULL
 #' #stitch images
 #' stitch(images, type = 'snake.by.row', order = 'left.&.up', tilesize=2048, overlap=0.1, show.image=TRUE)
 
-makewebmap<-function(img, filter, segmentation=NULL, registration=NULL, dataset=NULL, folder.name = NULL, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', combine = NULL, enable.drawing=TRUE, verbose=FALSE, registration = FALSE, AP=0,ML=0,DV=0){
+makewebmap<-function(img, filter, segmentation=NULL, registration=NULL, dataset=NULL, folder.name = NULL, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', combine = NULL, enable.drawing=TRUE, verbose=FALSE){
     file <- as.character(img)[1]
     if(!file.exists(file))
     stop(file, "not found")
@@ -249,6 +251,11 @@ makewebmap<-function(img, filter, segmentation=NULL, registration=NULL, dataset=
       beta<-0
     }
     a <- .Call("createWeb", file, alpha, beta, verbose, outputfile)
+
+    if(!is.null(registration)){
+      bregmaX<-round(stereotactic.coordinates(0, 0, registration, inverse = TRUE)$x)
+      bregmaY<-round(stereotactic.coordinates(0, 0, registration, inverse = TRUE)$y) 
+    }
 
 
     headerP01<-'<!DOCTYPE html>
@@ -502,7 +509,7 @@ footer<-sprintf('<div id=\"map\"></div>
 
     function onEachFeature(feature, layer) {
     var popupContent = \"<h3>Neuron ID: #\" +
-        feature.id + \"<br>Data type: \" + feature.geometry.type + \"</h3><hr>\";
+        feature.id + \"</h3><hr>\";
 
     if (feature.properties && feature.properties.popupContent) {
       popupContent += feature.properties.popupContent;
@@ -787,13 +794,14 @@ window.open(url, \'_blank\');
     sink(paste(outputfile,".js",sep=''), append=FALSE)
 cat('var imageProperties = {
     "width": ',a$width,',
-    "height": ', a$height,'};')
-if( (!is.null(dataset)&!is.null(registration)) ){
+    "height": ', a$height,'};\n')
+if( (!is.null(dataset))&(!is.null(registration)) ){
   printJSONneuron(dataset$x, dataset$y, dataset$intensity, dataset$area*scale, dataset$id, registration$transformationgrid$height)
+  printJSONoutlines(registration)
 }else{
   cat('var neurons = {};')
+  cat('var allenoutlines = {};')
 }
-cat('var allenoutlines = {};')
     sink()
     setwd('../')
 

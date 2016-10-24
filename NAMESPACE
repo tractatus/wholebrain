@@ -41,6 +41,8 @@ export(name.from.acronym)
 
 export(segment)
 export(makewebmap)
+export(printJSONneuron)
+export(printJSONoutlines)
 export(imshow)
 
 export(getWholeSection)
