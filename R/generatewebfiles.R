@@ -206,7 +206,7 @@ slidetray<-function(input, filter, folder.prefix=NULL, start.at=1, dont.run=NULL
 #' #stitch images
 #' stitch(images, type = 'snake.by.row', order = 'left.&.up', tilesize=2048, overlap=0.1, show.image=TRUE)
 
-makewebmap<-function(img, filter, folder.name = NULL, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', combine = NULL, enable.drawing=TRUE, verbose=FALSE, registration = FALSE, AP=0,ML=0,DV=0){
+makewebmap<-function(img, filter, segmentation=NULL, registration=NULL, dataset=NULL, folder.name = NULL, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', combine = NULL, enable.drawing=TRUE, verbose=FALSE, registration = FALSE, AP=0,ML=0,DV=0){
     file <- as.character(img)[1]
     if(!file.exists(file))
     stop(file, "not found")
@@ -788,7 +788,11 @@ window.open(url, \'_blank\');
 cat('var imageProperties = {
     "width": ',a$width,',
     "height": ', a$height,'};')
-cat('var neurons = {};')
+if( (!is.null(dataset)&!is.null(registration)) ){
+  printJSONneuron(dataset$x, dataset$y, dataset$intensity, dataset$area*scale, dataset$id, registration$transformationgrid$height)
+}else{
+  cat('var neurons = {};')
+}
 cat('var allenoutlines = {};')
     sink()
     setwd('../')
