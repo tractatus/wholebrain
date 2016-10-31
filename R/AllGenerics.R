@@ -26,8 +26,12 @@ color.from.acronym<-function(x){
 }
 
 get.acronym.parent<-function(x){
-	ids<-unlist(lapply(x, function(y){if(length(which(ontology$acronym ==y))!=0){return(ontology$parent[which(ontology$acronym ==y)])}else{return(NA)} }))
+	ids<-unlist(lapply(x, function(y){if(length(which(ontology$acronym ==y))!=0){if(y=='root'){return('997')}else{return(ontology$parent[which(ontology$acronym ==y)])}}else{return(NA)} }))
 	return(acronym.from.id(ids))
+}
+
+pax.to.allen<-function(paxinos){
+ 	round(214+(20-(paxinos*1000))/25)
 }
 
 read.brains<-function(filenames, animalID=NULL){
