@@ -65,6 +65,7 @@ export(get.region)
 export(bargraph)
 export(map.to.atlas)
 export(get.forward.warpRCPP)
+export(plot.registration)
 
 export(color.from.acronym)
 export(color.from.id)

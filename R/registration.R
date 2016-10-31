@@ -550,6 +550,43 @@ stereotactic.coordinates <-function(x,y,registration,inverse=FALSE){
   }
 }
 
+plot.registration<-function(registration, main=NULL, border=rgb(154,73,109,maxColorValue=255), draw.trans.grid=FALSE){
+
+  scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration$transformationgrid$height,registration$transformationgrid$width) )
+  
+  xMax<-max(c(registration$transformationgrid$mx,registration$transformationgrid$mxF),na.rm=TRUE)*(1/scale.factor)
+    xMin<-min(c(registration$transformationgrid$mx,registration$transformationgrid$mxF),na.rm=TRUE)*(1/scale.factor)
+  yMax<-max(c(registration$transformationgrid$my,registration$transformationgrid$myF),na.rm=TRUE)*(1/scale.factor)
+    yMin<-min(c(registration$transformationgrid$my,registration$transformationgrid$myF),na.rm=TRUE)*(1/scale.factor)
+
+if(is.null(main)){
+  main.title<-basename(registration$outputfile)
+}
+  plot(c(xMin, xMax), c(yMin, yMax), ylim=c(yMax,yMin), xlim=c(xMin, xMax), asp=1, axes=F, xlab='', ylab='', col=0, main=main.title, font.main=1)
+  polygon(c(0,rep(registration$transformationgrid$width,2),0),c(0, 0,rep(registration$transformationgrid$height,2)))
+
+  img<-paste(registration$outputfile,'_undistorted.png', sep='')
+        img <- readPNG(img)
+
+        img = as.raster(img[,])
+
+        if(batch.mode){img <- apply(img, 2, rev)}
+
+
+        rasterImage(img,0,0, registration$transformationgrid$width, registration$transformationgrid$height)
+
+
+  lapply(1:numPaths, function(x){polygon(outlines[[x]]$xrT/scale.factor,outlines[[x]]$yrT/scale.factor, border=border ) })
+        lapply(1:numPaths, function(x){polygon(outlines[[x]]$xlT/scale.factor,outlines[[x]]$ylT/scale.factor, border=border )})
+        
+if(draw.trans.grid){
+lapply(seq(1,hei,by=100), function(x){lines(registration$transformationgrid$mx[x,]/scale.factor,registration$transformationgrid$my[x,]/scale.factor, col='lightblue')})
+lines(registration$transformationgrid$mx[hei,]/scale.factor,registration$transformationgrid$my[hei,]/scale.factor, col='lightblue')
+lapply(seq(1, wid,by=100), function(x){lines(registration$transformationgrid$mx[,x]/scale.factor,registration$transformationgrid$my[,x]/scale.factor, col='lightblue')})
+lines(registration$transformationgrid$mx[,wid]/scale.factor,registration$transformationgrid$my[, wid]/scale.factor, col='lightblue')
+}
+
+}
 
 
 inspect.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, cex=0.5, draw.trans.grid=TRUE){
