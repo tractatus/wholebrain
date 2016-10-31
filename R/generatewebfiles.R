@@ -208,7 +208,7 @@ slidetray<-function(input, filter, folder.prefix=NULL, start.at=1, dont.run=NULL
 #' #stitch images
 #' stitch(images, type = 'snake.by.row', order = 'left.&.up', tilesize=2048, overlap=0.1, show.image=TRUE)
 
-makewebmap<-function(img, filter, segmentation=NULL, registration=NULL, dataset=NULL, folder.name = NULL, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', combine = NULL, enable.drawing=TRUE, verbose=FALSE){
+makewebmap<-function(img, filter, registration=NULL, dataset=NULL, folder.name = NULL, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', combine = NULL, enable.drawing=TRUE, verbose=FALSE){
     file <- as.character(img)[1]
     if(!file.exists(file))
     stop(file, "not found")

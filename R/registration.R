@@ -611,8 +611,9 @@ lines(registration$transformationgrid$mxF[, wid]/scale.factor,registration$trans
 circle.color<-rep('', nrow(dataset))
 circle.color[dataset$id>0]<-'black'
 circle.color[dataset$id==0]<-'red'
-points(somaX,somaY,pch=21,bg= dataset$color, col= circle.color, cex=cex)
-
+if(soma){
+  points(somaX,somaY,pch=21,bg= dataset$color, col= circle.color, cex=cex)
+}
 axis(1, at=stereotactic.coordinates(seq(-4,4,by=0.1),NA,registration, inverse=TRUE)$x, line=-4, labels=FALSE, tck=-0.01, col.ticks='lightblue')
 axis(1, at=stereotactic.coordinates(seq(-4,4,by=0.5),NA,registration, inverse=TRUE)$x, line=-4, labels=FALSE, tck=-0.02, col.ticks='coral')
 axis(1, at=stereotactic.coordinates(c(-4:4),c(0:-6),registration, inverse=TRUE)$x, line=-4, labels=c(-4:4))
@@ -644,8 +645,9 @@ lines(registration$transformationgrid$mx[hei,]/scale.factor,registration$transfo
 lapply(seq(1, wid,by=100), function(x){lines(registration$transformationgrid$mx[,x]/scale.factor,registration$transformationgrid$my[,x]/scale.factor, col='lightblue')})
 lines(registration$transformationgrid$mx[,wid]/scale.factor,registration$transformationgrid$my[, wid]/scale.factor, col='lightblue')
 }
-
+if(soma){
  points(dataset$x, dataset$y, pch=21, bg= dataset$color, col= circle.color, cex=cex)
+}
 #lapply(id, function(x){polygon(rois[[x]]$coords, col=rgb(100,163,117,120,maxColorValue=255));text(apply(rois[[x]]$coords,2,mean)[1],apply(rois[[x]]$coords,2,mean)[2],x, cex=0.7, col='white')})
 return(dataset)
 }
