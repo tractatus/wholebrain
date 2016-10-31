@@ -213,12 +213,14 @@ lapply(1:nrow(counts), function(x) {
 
 
 
-schematic.plot<-function(dataset, title=TRUE, mm.grid=TRUE, save.plots=FALSE, dev.size=c(5.4, 4.465)){
+schematic.plot<-function(dataset, coordinate=NULL, title=TRUE, mm.grid=TRUE, save.plots=FALSE, dev.size=c(5.4, 4.465)){
 	
 
 if(!save.plots){
 	quartz(width=dev.size[1], height=dev.size[1])
 }
+
+if( is.null(coordinate) ){
 if(length(which(dataset$color=='#000000'))>0){
 dataset<-dataset[-which(dataset$color=='#000000'),]
 }
@@ -240,6 +242,7 @@ if(table(dataset$right.hemisphere)[2] < table(dataset$right.hemisphere)[1]){
 
 
 coordinate<-unique(dataset$AP)
+}
 #quartz(width=7.513513* 0.4171346 , height=4.540540* 0.4171346)
 k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
 plate<-atlasIndex$plate.id[which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))]
@@ -322,7 +325,9 @@ polygon(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin, EPSatlas$plates[[k]][[i]]@p
 polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, col=gray(0.85), border='black', lwd=1)
 }
 
+if(!is.null(dataset)){
 points( (dataset$ML*scale*1000+bregmaX)*97440/11700+ 1748.92, (8210+dataset$DV*scale*1000-bregmaY)*97440/11700, pch=21, bg= as.character(dataset$color) , cex=0.5 )
+}
 if(save.plots){
 filename <- paste(animal.index,formatC(q,digits=3,flag="0"), round(unique(coordinate),3),".pdf",sep="_")
 quartz.save(filename, type = "pdf")
