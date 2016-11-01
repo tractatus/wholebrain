@@ -124,6 +124,165 @@ if(i==k){
 
 }
 
+
+write.section<-function(){
+  tobewritten<-sprintf("<!-- BEGIN -->  
+<div class=\"element-item ctxpl str d1\" data-category=\"d1\">
+   <iframe src=\'http://www.wholebrainsoftware.org/interface/brainmap.php?image=%27../sections/1/1/71/7.1-1.02_ch00_modified/%27&width=20281&height=14834\' frameborder=\"1\" style=\"border-width: 8px;   -moz-border-radius: 12px;
+      -webkit-border-radius: 12px;
+      border-radius: 10px;box-shadow: 0px 0px 0px 4px #6e84bd;\" width=287px height=240px></iframe>
+   <h3 class=\"name\">Mercury</h3>
+   <div style=\"float:left;width: 100%\">
+      <div style=\"float:left;width:30%;\">
+         <ul class=\"coordinates\" style=\"visibility: visible; padding: 0px;margin: 0 0;\">
+            <li class=\"subject\">
+               71
+            </li>
+            <li class=\"AP\">5.8</li>
+            <li class=\"ML\">
+               0
+            </li>
+            <li class=\"DV\">
+               0
+            </li>
+            <li class=\"cellcount\">
+               3450
+            </li>
+         </ul>
+      </div>
+      <div style=\"float:left;width:40%;\">
+         <ul class=\"coordinates\" style=\"visibility: visible; padding: 0px;margin: 0 0;\">
+            <li class=\"transgenic\">
+               D1-Cre
+            </li>
+            <li class=\"labeling\">
+               (EnvA)B19ΔG-EGFP
+            </li>
+            <li class=\"target\">
+               CP
+            </li>
+         </ul>
+      </div>
+      <ul class=\"tools\" >
+         <li class=\"expand\">
+            <a href=\"#\" class=\"opener\">Expand</a>
+         </li>
+      </ul>
+   </div>
+</div>
+<!-- END -->", imgURL, )
+
+}
+
+slidetray.HTML<-function(){
+  header01<-"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" 
+\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">
+<html xmlns=\"http://www.w3.org/1999/xhtml\">
+<head>  
+  <meta charset=\"utf-8\">
+  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">
+  <title>WholeBrain - webinterface</title>
+  <meta name=\"description\" content=\"\">
+  <meta name=\"author\" content=\"\">
+  
+  <meta http-equiv=\"Cache-Control\" content=\"no-cache\" />
+  <meta http-equiv=\"Pragma\" content=\"no-cache\" />
+  <meta http-equiv=\"Expires\" content=\"0\" />
+  
+  <script src=\"http://cdn.openbrainmap.org/0.0.1/slidetray/pace/pace.min.js\"></script>
+  <link href=\"http://cdn.openbrainmap.org/0.0.1/slidetray/pace/pace.css\" rel=\"stylesheet\" />
+  
+  
+  <link rel=\"stylesheet\" href=\"http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.css\" />
+      <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,800,800italic,400italic|Adamina' rel='stylesheet' type='text/css'>
+
+    <link href=\"http://netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css\" rel=\"stylesheet\"> 
+  <style type=\"text/css\">
+        
+    </style>
+  
+  <link rel=\"stylesheet\" href=\"http://cdn.openbrainmap.org/0.0.1/slidetray/css/normalise.css\">
+  <link rel=\"stylesheet\" href=\"http://cdn.openbrainmap.org/0.0.1/slidetray/css/custom.css\">
+  
+    <link rel=\"stylesheet\" href=\"http://cdn.openbrainmap.org/0.0.1/slidetray/css/style.css\" media=\"screen\" type=\"text/css\" />
+    <script type=\"text/javascript\" src=\"http://cdn.openbrainmap.org/0.0.1/slidetray/js/jquery-latest.js\"></script>
+
+  
+  <link rel=\"stylesheet\" href=\"http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.css\" />
+</head>"
+
+header02<-"<body>
+<div class=\'filterpanel\'>
+  Filter menu<br>   
+      <div id=\"filters\" class=\"button-group\">  
+        <button class=\"button is-checked\" data-filter=\"*\">show all<br><div class=\'img-circular\' style=\"background-image: url(\'./img/ALL_parts01.png\');\"></div><p>ALL</button>
+        <button class=\"button\" data-filter=\".ctxpl\"><font style=\'font-size: 12px;\'>Cortical plate</font><br><div class=\'img-circular\' style=\"background-image: url(\'http://cdn.openbrainmap.org/0.0.1/slidetray/img/CTXpl_parts01.png\');\"></div><p>CTXpl</button>
+        <button class=\"button\" data-filter=\".ctxsp\"><font style=\'font-size: 12px;\'>Cortical subplate</font><br><div class=\'img-circular\' style=\"background-image: url(\'http://cdn.openbrainmap.org/0.0.1/slidetray/img/CTXsp_parts01.png\');\"></div><p>CTXsp</button>
+        <button class=\"button\" data-filter=\".str\"><font style=\'font-size: 12px;\'>Striatum</font><br><div class=\'img-circular\' style=\"background-image: url(\'http://cdn.openbrainmap.org/0.0.1/slidetray/img/STR_parts01.png\');\"></div><p>STR</button>
+        <button class=\"button\" data-filter=\".pal\"><font style=\'font-size: 12px;\'>Pallidum</font><br><div class=\'img-circular\' style=\"background-image: url(\'http://cdn.openbrainmap.org/0.0.1/slidetray/img/PAL_parts01.png\');\"></div><p>PAL</button>
+        <button class=\"button\" data-filter=\".th\"><font style=\'font-size: 12px;\'>Thalamus</font><br><div class=\'img-circular\' style=\"background-image: url(\'http://cdn.openbrainmap.org/0.0.1/slidetray/img/TH_parts01.png\');\"></div><p>TH</button>
+        <button class=\"button\" data-filter=\".hy\"><font style=\'font-size: 12px;\'>Hypothalamus</font><br><div class=\'img-circular\' style=\"background-image: url(\'http://cdn.openbrainmap.org/0.0.1/slidetray/img/HY_parts01.png\');\"></div><p>HY</button>
+        <button class=\"button\" data-filter=\".mb\"><font style=\'font-size: 12px;\'>Midbrain</font><br><div class=\'img-circular\' style=\"background-image: url(\'http://cdn.openbrainmap.org/0.0.1/slidetray/img/MB_parts01.png\');\"></div><p>MB</button>  
+        <button class=\"button\" data-filter=\".hb\"><font style=\'font-size: 12px;\'>Hindbrain</font><br><div class=\'img-circular\' style=\"background-image: url(\'http://cdn.openbrainmap.org/0.0.1/slidetray/img/HB_parts01.png\');\"></div><p>HB</button>
+        <button class=\"button\" data-filter=\".cb\"><font style=\'font-size: 12px;\'>Cerebellum</font><br><div class=\'img-circular\' style=\"background-image: url(\'http://cdn.openbrainmap.org/0.0.1/slidetray/img/CB_parts01.png\');\"></div><p>CB</button>
+    </div>
+    <div style=\"margin: -10px; display: inline;\">
+      <div id=\"sorts\" class=\"button-group\"  style=\"display:inline-block; margin: 10px; vertical-align: top;\">  
+        <div class=\'sorters\'>
+          Order:</br>
+        <button class=\"button\" data-sort-by=\"name\" ascending=\"true\">image name</button>
+        <button class=\"button\" data-sort-by=\"subject\" ascending=\"false\">animal</button>
+        <button class=\"button\" data-sort-by=\"AP\" ascending=\"false\">AP</button>
+        <button class=\"button\" data-sort-by==\"ML\" ascending=\"false\">ML</button>
+        <button class=\"button\" data-sort-by=\"DV\" ascending=\"false\">DV</button>
+        <button class=\"button\" data-sort-by=\"probe\" ascending=\"false\">probe</button>
+        <button class=\"button\" data-sort-by=\"transgenic\" ascending=\"false\">genotype</button>
+          </div>
+      <!--</div> -->
+                
+      <!-- <div id=\"sorts\" class=\"button-group\" style=\"display:inline-block; margin: 10px; vertical-align: top;\"> -->
+        <div class=\'sorters2\'>
+        Cell count:</br>
+        <button class=\"button\" data-sort-by=\"cellcount\" ascending=\"false\">total</button>
+        <button class=\"button\" data-sort-by=\"cellregions\" ascending=\"false\">regions</button>
+          <button class=\"button\" data-sort-by=\"cellcount\" ascending=\"true\">min</button> 
+          <button class=\"button\" data-sort-by=\"cellcount\" ascending=\"false\">max</button> 
+          </div>
+      </div>"
+
+customGenotypeMenu<-"<div id=\"filtersGeno\" class=\"button-group\" style=\"display:inline-block; margin: 10px; vertical-align: top;\">
+        
+        <div class=\'sorters\'>
+        Project specific tags:</br>
+      <ul class=\"tags\" >
+        <li><a href=\"#\" data-filter=\".d1\">Input to D1 dorsal striatum</a></li>
+      </ul>
+      <ul class=\"tags\" >
+        <li><a href=\"#\" class=\"second\" data-filter=\".chat\">Input to ChAT dorsal striatum</a></li>
+      </ul>
+
+      </div>
+      </div>
+      <br>
+      <br>
+      <br>
+      
+    </div>
+      
+
+      
+    </div>
+
+      
+      
+      <div class=\"isotope\">"
+
+
+
+
+}
+
+
 slidetray<-function(input, filter, folder.prefix=NULL, start.at=1, dont.run=NULL, coordinates=NULL){
 
 
