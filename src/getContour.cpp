@@ -77,6 +77,10 @@ BEGIN_RCPP
   if(DISPLAY){
     imshow("Original", img);
   }
+  if(img.type()==16){
+    cvtColor(img , img , CV_BGR2GRAY);
+    Rcpp::Rcout << "Image type: " <<  ImgTypes(img.type()) << "_" << img.type()  << std::endl;
+  }
   if(img.type()==24){
     cvtColor(img , img , CV_BGRA2GRAY);
     Rcpp::Rcout << "Image type: " <<  ImgTypes(img.type()) << "_" << img.type()  << std::endl;
