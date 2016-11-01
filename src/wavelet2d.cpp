@@ -33,7 +33,7 @@
 #include <fftw3.h>
 using namespace std;
 
-extern "C" int _get_output_format( void ){ return 0; }
+//extern "C" int _get_output_format( void ){ return 0; }
 fftw_plan plan_forward_inp,plan_forward_filt, plan_backward;
 static unsigned int transient_size_of_fft = 0;
 
