@@ -265,6 +265,11 @@ get.forward.warpRCPP<-function(registration){
 #' registration(image, AP=1.05, brain.threshold=220)
 
 registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', verbose=TRUE){
+    if(.Platform$OS.type=="windows") {
+      
+      batch.mode=TRUE
+  }
+
     if(is.null(coordinate)){
       if(is.null(correspondance)){
         coordinate<-0
@@ -440,6 +445,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
         img = as.raster(img[,])
 
         #img <- apply(img, 2, rev)
+        if(batch.mode){img <- apply(img, 2, rev)}
 
         par(xaxs='r', yaxs='r')
         plot(c(0, dim(img)[2]*2),c(0, dim(img)[1]), axes=F, asp=1, col=0, xlab='', ylab='', ylim=c(dim(img)[1],0))
@@ -590,6 +596,9 @@ lines(registration$transformationgrid$mx[,wid]/scale.factor,registration$transfo
 
 
 inspect.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, cex=0.5, draw.trans.grid=TRUE){
+  if(.Platform$OS.type=="windows") {
+      batch.mode=TRUE
+  }
   quartz(width= 12.280488, height=  6.134146)
 par(yaxs='i',xaxs='i', mfrow=c(1,2), mar=c(4,4,1,1))
 
