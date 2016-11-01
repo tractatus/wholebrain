@@ -10,6 +10,7 @@ Description: This package uses the OpenCV library to provide R users with some
 License: GPL-3
 NeedsCompilation: yes
 Imports: Rcpp (>= 0.11.0), png, MASS, grImport, sp, rgl, misc3d
+LinkingTo: Rcpp
 Depends: Rcpp (>= 0.11.0), png, MASS, grImport, sp, rgl, misc3d
 Suggests: plotrix (>= 3.5-12), knitr
 LazyData: no
