@@ -888,8 +888,8 @@ bargraph <- function(dataset, device=TRUE) {
     abline(v=log10(log.range), col='lightblue')
     
     lapply(1:nrow(counts), function(x){lines(counts[x,], rep(nrow(counts)-x+1,2), lwd=2)})
-    points(counts[,(hemisphere.to.sort==2)+1], nrow(counts):1, pch=21, bg=gray(0.2), cex=1.2)
-    points(counts[, (hemisphere.to.sort==2)+0], nrow(counts):1, pch=21, bg='white', cex=1.2)
+    points(counts[,(hemisphere.to.sort==2)+2], nrow(counts):1, pch=21, bg=gray(0.2), cex=1.2)
+    points(counts[, (hemisphere.to.sort==2)+1], nrow(counts):1, pch=21, bg='white', cex=1.2)
 
     
     box()
