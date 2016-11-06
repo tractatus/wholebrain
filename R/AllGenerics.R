@@ -2,7 +2,7 @@
 
 
 acronym.from.id<-function(x){
-	unlist(lapply(x, function(y){if(length(which(ontology$id ==y))!=0){return(ontology$acronym[which(ontology$id ==y)])}else{return(NA)} }))
+	unlist(lapply(x, function(y){if(length(which(ontology$id ==y))!=0){return(as.character(ontology$acronym[which(ontology$id ==y)]))}else{return(NA)} }))
 }
 
 id.from.acronym <-function(x){
@@ -28,6 +28,41 @@ color.from.acronym<-function(x){
 get.acronym.parent<-function(x){
 	ids<-unlist(lapply(x, function(y){if(length(which(ontology$acronym ==y))!=0){if(y=='root'){return('997')}else{return(ontology$parent[which(ontology$acronym ==y)])}}else{return(NA)} }))
 	return(acronym.from.id(ids))
+}
+
+get.acronym.child<-function(x){
+	ids<-unlist(lapply(x, function(y){if(length(which(ontology$parent == ontology$id[which(ontology$acronym == y)]))!=0){if(y=='root'){return('997')}else{return(ontology$id[which(ontology$parent == ontology$id[which(ontology$acronym == y)])])}}else{return(NA)} }))
+	return(acronym.from.id(ids))
+}
+
+get.sup.structure<-function(x){
+	tmp<-get.acronym.parent(x)
+	if((tmp%in%c('CTX','CNU','IB','MB','HB','grey','root','VS','fiber tracts'))){
+    	tmp<-x  
+	}
+	tmp2<-tmp
+	while(!(tmp%in%c('CTX','CNU','IB','MB','HB','grey','root','VS','fiber tracts')) ){
+    	tmp2<-tmp
+    	tmp<-get.acronym.parent(tmp)
+    }
+	return(tmp2)
+}
+
+get.sub.structure<-function(x){
+	tmp<-get.acronym.child(x)
+	if(sum(is.na(tmp)/length(tmp))!=0){
+    	tmp<-x
+    	return(tmp)  
+	}
+	tmp2<-tmp
+	for(i in tmp){
+		tmp2<-append(tmp2, get.sub.structure(i) )
+	}
+	return(tmp2)
+}
+
+legacy<-function(dataset){
+
 }
 
 pax.to.allen<-function(paxinos){

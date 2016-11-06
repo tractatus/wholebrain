@@ -125,7 +125,7 @@ if(i==k){
 }
 
 
-write.section<-function(){
+write.section<-function(imgURL){
   tobewritten<-sprintf("<!-- BEGIN -->  
 <div class=\"element-item ctxpl str d1\" data-category=\"d1\">
    <iframe src=\'http://www.wholebrainsoftware.org/interface/brainmap.php?image=%27../sections/1/1/71/7.1-1.02_ch00_modified/%27&width=20281&height=14834\' frameborder=\"1\" style=\"border-width: 8px;   -moz-border-radius: 12px;
@@ -136,7 +136,7 @@ write.section<-function(){
       <div style=\"float:left;width:30%;\">
          <ul class=\"coordinates\" style=\"visibility: visible; padding: 0px;margin: 0 0;\">
             <li class=\"subject\">
-               71
+               %d
             </li>
             <li class=\"AP\">5.8</li>
             <li class=\"ML\">
@@ -153,24 +153,24 @@ write.section<-function(){
       <div style=\"float:left;width:40%;\">
          <ul class=\"coordinates\" style=\"visibility: visible; padding: 0px;margin: 0 0;\">
             <li class=\"transgenic\">
-               D1-Cre
+               %s
             </li>
             <li class=\"labeling\">
-               (EnvA)B19ΔG-EGFP
+               %s
             </li>
             <li class=\"target\">
-               CP
+               %s
             </li>
          </ul>
       </div>
       <ul class=\"tools\" >
          <li class=\"expand\">
-            <a href=\"#\" class=\"opener\">Expand</a>
+            <a href=\"%s\" class=\"opener\">Expand</a>
          </li>
       </ul>
    </div>
 </div>
-<!-- END -->", imgURL, )
+<!-- END -->", imgURL, subjectID, line, probe, target, imgURL)
 
 }
 
