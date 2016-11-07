@@ -76,7 +76,9 @@ for(j in unique(group)){
 }    
 
 
-plot.suggestions<-function(dataset, normalize.by=NULL, group = NULL, title='Groups:', color=gray(0.4), exclude.below=10, reduce.below=100, exclude.regions=NULL, xlab='Cell count', log.scale=TRUE, xlim=NULL, device=TRUE){
+plot.suggestions<-function(dataset, normalize.by=NULL, group = NULL, title='Groups:', color=gray(0.4), exclude.below=10, reduce.below=100, exclude.regions=NULL, include.regions=NULL, xlab='Cell count', log.scale=TRUE, bargraph=FALSE, fun = function(x) mean(x, 
+        na.rm = TRUE), ci.fun = function(x) c(fun(x) - 1.96*se(x), 
+        fun(x) + 1.96*se(x)), xlim=NULL, device=TRUE){
 
 counts<-suggestions(dataset, exclude.below=exclude.below, reduce.below=reduce.below)
 
@@ -87,6 +89,17 @@ if(!is.null(exclude.regions)){
     }
 }
 
+if(!is.null(include.regions)){
+    dataset$acronym<-as.character(dataset$acronym)
+    tableCount<-table(dataset$acronym, dataset$animal)
+
+    to.be.included<-lapply(include.regions, function(x){ colSums(tableCount[which(row.names(tableCount)%in%get.sub.structure(x)), ]) } )
+
+    to.be.included<-do.call(rbind, to.be.included)
+    row.names(to.be.included)<-include.regions
+
+    counts<-rbind(counts, to.be.included)
+}
 
 
 if(!is.null(normalize.by)){
@@ -196,18 +209,39 @@ par(mar = c(4, 4, 4, 6))
         }
 
     if(is.null(group)){
+
+        if(bargraph){
+            #barfunction
+                lapply(1:nrow(counts), function(x) {
+            polygon(c(x.range[1], rep(fun(counts[x, ]), 2), x.range[1]), c(rep(nrow(counts) - x + 1, 4 ) + c(-0.25,-0.25,0.25,0.25) ),  col=color );
+           
+              lines(ci.fun(counts[x, ]), rep(nrow(counts) - x + 1, 2), lwd=1.5);
+               points(fun(counts[x, ]), nrow(counts) - x + 1, 
+                pch = 21, bg = color, cex = 1.2)
+            })
+
+            }else{
+                #pointfunction
 lapply(1:nrow(counts), function(x) {
             points(counts[x, ], rep(nrow(counts) - x + 1, ncol(counts) ), 
-                pch = 21, bg = color, cex = 1.2)
-        })
+                pch = 21, bg = color, cex = 1.2)})
+            }
         }else{
+            #GROUPS
             k<-1
             vertical<-seq(-0.15,0.15,length.out=length(unique(group)))
             for(j in unique(group)){
-                lapply(1:nrow(counts), function(x) {
-                    points(counts[x, which(group==j)], rep(nrow(counts) - x + 1 + vertical[k], length(which(group==j)) ), 
-                    pch = 21, bg = color[k], cex = 1.2)
-                })
+                if(bargraph){
+                    lapply(1:nrow(counts), function(x) {
+                        polygon(c(x.range[1], rep(fun(counts[x,  which(group==j)]), 2), x.range[1]), c(rep(nrow(counts) - x + 1 + vertical[k], 4 ) + c(-0.25,-0.25,0.25,0.25)/length(unique(group)) ),  col=color[k] );
+                        lines(ci.fun(counts[x,  which(group==j)]), rep(nrow(counts) - x + 1  + vertical[k], 2), lwd=1.5);
+                        points(fun(counts[x, which(group==j) ]), nrow(counts) - x + 1  + vertical[k], pch = 21, bg = color[k], cex = 1.2)
+                    })
+                }else{
+                    lapply(1:nrow(counts), function(x) {
+                        points(counts[x, which(group==j)], rep(nrow(counts) - x + 1 + vertical[k], length(which(group==j)) ), pch = 21, bg = color[k], cex = 1.2)
+                    })
+                }
                 k<-k+1
             }
         }

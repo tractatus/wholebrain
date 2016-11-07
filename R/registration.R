@@ -18,7 +18,7 @@ data(ontology, envir=environment())
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
 
-get.atlas.image<-function(coordinate, directory='TEMPORARY', width=456, plate=FALSE, close.image=TRUE, save.image=TRUE){
+get.atlas.image<-function(coordinate, directory='TEMPORARY', width=456, plate=FALSE, right.hemisphere=NULL, close.image=TRUE, save.image=TRUE){
 
 if(plate){
   k<-coordinate
@@ -42,8 +42,12 @@ xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
 quartz(width= 11.300 , height= 7.900)
 par(mar=c(0,0,0,0), bg='black', xaxs='i', yaxs='i')
 plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, col=0, xlim=c(0,97440), ylim=c(0, 68234.56), axes=F)
-polygon(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white' )
-polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - 97440/2)+97440/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white')
+if(!is.null(right.hemisphere)){
+  polygon(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white' )
+  polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - 97440/2)+97440/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white')
+}else{
+  #check if right or left hemisphere
+}
 if(coordinate <1.3){
 for(i in ventricles){
 polygon(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
@@ -78,7 +82,7 @@ return(full.filename)
 #' image<-'/Volumes/microscope/animal001/slide001/section001.tif'
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
-get.contour<-function(input, threshold = 'otsu', get.largest.object = TRUE, num.nested.objects = 2, blur=0, watershed=FALSE, resize=0.25, display=TRUE, verbose=TRUE, savefilename=FALSE){
+get.contour<-function(input, threshold = 'otsu', invert=FALSE, get.largest.object = TRUE, num.nested.objects = 2, blur=0, watershed=FALSE, resize=0.25, display=TRUE, verbose=TRUE, savefilename=FALSE){
     file <- as.character(input)
     ## check for existence
     if(!file.exists(file))
@@ -92,7 +96,7 @@ get.contour<-function(input, threshold = 'otsu', get.largest.object = TRUE, num.
       saveoutput<-1
      }
 
-    a<-.Call("getContour", file, as.integer(threshold), as.integer(get.largest.object), as.integer(num.nested.objects), as.integer(display), resizeP, blur, as.integer(verbose), savefilename, saveoutput)
+    a<-.Call("getContour", file, as.integer(threshold), as.integer(invert), as.integer(get.largest.object), as.integer(num.nested.objects), as.integer(display), resizeP, blur, as.integer(verbose), savefilename, saveoutput)
     if(saveoutput==1){
     print(savefilename)
     }
@@ -264,7 +268,7 @@ get.forward.warpRCPP<-function(registration){
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
 
-registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', verbose=TRUE){
+registration<- function(input, coordinate=NULL, plane="coronal", right.hemisphere=NULL, brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', verbose=TRUE){
     if(.Platform$OS.type=="windows") {
       
       batch.mode=TRUE
@@ -343,7 +347,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", brain.threshold
     contoursI<-as.numeric(names(sort(tapply(contourInput$x,contourInput$contour.ID, min))))
 
     #get correspondance points for atlas
-    filename<-get.atlas.image(coordinate)
+    filename<-get.atlas.image(coordinate, right.hemisphere=right.hemisphere)
     contourAtlas<-get.contour(filename, resize=1, blur=blurring[2], num.nested.objects=num.nested.objects, display=FALSE)
     contours<-as.numeric(names(sort(tapply(contourAtlas$x,contourAtlas$contour.ID, min))))
     cor.pointsInput<-list()
