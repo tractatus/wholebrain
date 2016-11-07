@@ -61,6 +61,10 @@ get.sub.structure<-function(x){
 	return(tmp2)
 }
 
+make.movie<-function(directory){
+	
+}
+
 legacy<-function(dataset){
 
 }
