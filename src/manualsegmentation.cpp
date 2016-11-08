@@ -1063,6 +1063,15 @@ clock_t tStart, tStop;
   Rcpp::Rcout << "Image type: " <<  getImgTypes(pd.src.type()) << "_" << pd.src.type()  << std::endl;
 
   int depth;
+  if(pd.src.type()==16){
+    //if RGB image 8bit
+    cvtColor(pd.src,pd.src,CV_RGB2GRAY);
+    bitwise_not ( pd.src, pd.src );
+    //pd.src.convertTo(pd.src, CV_16S);
+    Rcpp::Rcout << "Changed image type to: " <<  getImgTypes(pd.src.type()) << "_" << pd.src.type() << std::endl;
+
+  }
+
   if(pd.src.type()==0){
     pd.imgdepth = 255;  
     depth = 255;

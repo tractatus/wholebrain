@@ -82,7 +82,7 @@ export(get.acronym.parent)
 export(suggestions)
 export(plot.suggestions)
 
-
+export(rgb2gray)
 export(mrd)
 export(make.atlas.nissl)
 export(imflip)

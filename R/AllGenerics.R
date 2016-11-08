@@ -61,6 +61,37 @@ get.sub.structure<-function(x){
 	return(tmp2)
 }
 
+#' Convert to grayscale
+#'
+#' Get the contours of a binary segmented image
+#' @param input input a character vector consisting of the full path name to 16-bit raw tif image files.
+#' @param coordinate matching coordinates in the main plane to be registered to (in millimeters).
+#' @param plane the main plane to register too: "coronal", "sagital", "".
+#' @param brain.threshold a integer value, which determien sthe segmentation of the brain slice.
+#' @param verbose boolean value. If true diagnostic output is written to the R console. Deafult is true.
+#' @examples
+#' #path to image
+#' image<-'/Volumes/microscope/animal001/slide001/section001.tif'
+#' #register the image
+#' registration(image, AP=1.05, brain.threshold=220)
+rgb2gray<-function(input, verbose=TRUE, savefilename=TRUE, invert=TRUE){
+    file <- as.character(input)
+    ## check for existence
+    if(!file.exists(file))
+      stop(file, ", file not found")
+    file <- path.expand(file)
+    
+     if(savefilename==TRUE){
+      pos <- regexpr("\\.([[:alnum:]]+)$", basename(file))	
+      filename<-ifelse(pos > -1L, substring(basename(file), 1, pos - 1L), "")
+      savefilename<-paste(getwd(),'/grayscale_',filename,'.tif', sep='')
+     }
+
+    a<-.Call("rgbTogray", file, as.integer(verbose), savefilename, as.integer(invert))
+    
+    return(savefilename)
+}
+
 make.movie<-function(directory){
 	
 }

@@ -76,6 +76,9 @@ for(j in unique(group)){
 }    
 
 
+se<-function (x, na.rm = TRUE) 
+sqrt(var(x, na.rm = na.rm)/length(x[complete.cases(x)]))
+
 plot.suggestions<-function(dataset, normalize.by=NULL, group = NULL, title='Groups:', color=gray(0.4), exclude.below=10, reduce.below=100, exclude.regions=NULL, include.regions=NULL, xlab='Cell count', log.scale=TRUE, bargraph=FALSE, fun = function(x) mean(x, 
         na.rm = TRUE), ci.fun = function(x) c(fun(x) - 1.96*se(x), 
         fun(x) + 1.96*se(x)), xlim=NULL, device=TRUE){
@@ -229,7 +232,7 @@ lapply(1:nrow(counts), function(x) {
         }else{
             #GROUPS
             k<-1
-            vertical<-seq(-0.15,0.15,length.out=length(unique(group)))
+            vertical<-seq(0.15,-0.15,length.out=length(unique(group)))
             for(j in unique(group)){
                 if(bargraph){
                     lapply(1:nrow(counts), function(x) {
