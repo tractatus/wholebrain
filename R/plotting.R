@@ -387,7 +387,7 @@ polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatla
 }
 
 if(!is.null(dataset)){
-points( (dataset$ML*scale*1000+bregmaX)*97440/11700+ 1748.92, (8210+dataset$DV*scale*1000-bregmaY)*97440/11700, pch=21, bg= as.character(dataset$color) , cex=0.5 )
+points( (dataset$ML*scale*1000+bregmaX)*97440/456/25+ 1748.92, (8210+dataset$DV*scale*1000-bregmaY)*97440/456/25, pch=21, bg= as.character(dataset$color) , cex=0.5 )
 }
 if(save.plots){
 filename <- paste(animal.index,formatC(q,digits=3,flag="0"), round(unique(coordinate),3),".pdf",sep="_")

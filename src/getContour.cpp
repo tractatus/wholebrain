@@ -41,7 +41,7 @@ string ImgTypes(int imgTypeInt)
 
 
 /* apply operation to stack */
-RcppExport SEXP getContour(SEXP input, SEXP thresho,  SEXP getLarge, SEXP getNested, SEXP display, SEXP resizeP, SEXP blurImg, SEXP writetoconsole, SEXP saveoutput, SEXP writeout) {
+RcppExport SEXP getContour(SEXP input, SEXP thresho, SEXP invertimg, SEXP getLarge, SEXP getNested, SEXP display, SEXP resizeP, SEXP blurImg, SEXP writetoconsole, SEXP saveoutput, SEXP writeout) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
   //Rcpp::CharacterVector std::vector< std::string >
@@ -54,6 +54,7 @@ BEGIN_RCPP
   std::string ffoutputfilename(outputfilename[0]);
 
   int thresh = Rcpp::as<int>(thresho);
+  int invert = Rcpp::as<int>(invertimg);
   int DISPLAY = Rcpp::as<int>(display);
   int numNested = Rcpp::as<int>(getNested);
 
@@ -79,6 +80,9 @@ BEGIN_RCPP
   }
   if(img.type()==16){
     cvtColor(img , img , CV_BGR2GRAY);
+    if(invert){
+      bitwise_not ( img, img );
+    }
     Rcpp::Rcout << "Image type: " <<  ImgTypes(img.type()) << "_" << img.type()  << std::endl;
   }
   if(img.type()==24){
@@ -185,7 +189,6 @@ BEGIN_RCPP
    vector<int>::iterator it;
    int counter = 0;  // counter.
 
-
    if(contours.size()>1){    
    for( int i = 0; i< contours.size(); i++ ){
       if(hierarchy[i][3]==largest_contour_index){
@@ -194,9 +197,13 @@ BEGIN_RCPP
       }
    }
 
+    printf("LOOP DONE: %d \n", contours.size() ); 
 
    std::vector<int> ventricles_selected; 
    ventricles_selected.push_back(largest_contour_index);
+
+
+   if(numNested>0){
 
    std::partial_sort(ventricles_size.begin(), ventricles_size.begin()+2,ventricles_size.end(), std::greater<int>());
 
@@ -211,7 +218,7 @@ BEGIN_RCPP
    //printf("\n"); 
    std::sort( ventricles_selected.begin(), ventricles_selected.end() );
    ventricles_selected.erase( unique( ventricles_selected.begin(), ventricles_selected.end() ), ventricles_selected.end() );
-
+  }
 
    
 
@@ -232,7 +239,7 @@ BEGIN_RCPP
   }
   printf("\n"); 
   }else{
-    
+      printf("Contours less than 1: "); 
       for (int j = 0; j < contours[0].size(); ++j){
       // Do whatever you need to do with the points in the ith contour
         xPoint.push_back(contours[0][j].x);

@@ -42,16 +42,21 @@ xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
 quartz(width= 11.300 , height= 7.900)
 par(mar=c(0,0,0,0), bg='black', xaxs='i', yaxs='i')
 plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, col=0, xlim=c(0,97440), ylim=c(0, 68234.56), axes=F)
-if(!is.null(right.hemisphere)){
+if(is.null(right.hemisphere)){
   polygon(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white' )
   polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - 97440/2)+97440/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white')
 }else{
   #check if right or left hemisphere
+  if(right.hemisphere==TRUE){
+      polygon(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white' )
+    }else{
+      polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - 97440/2)+97440/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white')
+    }
 }
 if(coordinate <1.3){
 for(i in ventricles){
-polygon(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
-polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
+  polygon(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
+  polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
 }
 }
 if(directory == 'TEMPORARY'){
@@ -268,7 +273,7 @@ get.forward.warpRCPP<-function(registration){
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
 
-registration<- function(input, coordinate=NULL, plane="coronal", right.hemisphere=NULL, brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', verbose=TRUE){
+registration<- function(input, coordinate=NULL, plane="coronal", right.hemisphere=NULL, brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', batch.mode=FALSE, verbose=TRUE){
     if(.Platform$OS.type=="windows") {
       
       batch.mode=TRUE
@@ -349,6 +354,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
     #get correspondance points for atlas
     filename<-get.atlas.image(coordinate, right.hemisphere=right.hemisphere)
     contourAtlas<-get.contour(filename, resize=1, blur=blurring[2], num.nested.objects=num.nested.objects, display=FALSE)
+
     contours<-as.numeric(names(sort(tapply(contourAtlas$x,contourAtlas$contour.ID, min))))
     cor.pointsInput<-list()
     cor.pointsAtlas<-list()
@@ -418,19 +424,50 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
 
   outlines<-list()
   for(i in 1:numPaths){
-    xr<-4*((EPSatlas$plates[[k]][[i]]@paths$path@x-xmin)*scale.factor-centroidNorm[1])
-    yr<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
-    xl<-4*((-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin - 97440/2)+97440/2)*scale.factor-centroidNorm[1])
-    yl<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
+    if(is.null(right.hemisphere)){
+      xr<-4*((EPSatlas$plates[[k]][[i]]@paths$path@x-xmin)*scale.factor-centroidNorm[1])
+      yr<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
+      xl<-4*((-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin - 97440/2)+97440/2)*scale.factor-centroidNorm[1])
+      yl<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
 
 
-    index<-cbind(as.integer(round(yr)), as.integer(round(xr)))
-    xrT<-(xr+(transformationgrid$mx[index]-xr) )
-    yrT<-(yr+(transformationgrid$my[index]-yr) )
+      index<-cbind(as.integer(round(yr)), as.integer(round(xr)))
+      xrT<-(xr+(transformationgrid$mx[index]-xr) )
+      yrT<-(yr+(transformationgrid$my[index]-yr) )
 
-    index<-cbind(as.integer(round(yl)), as.integer(round(xl)))
-    xlT<-(xl+(transformationgrid$mx[index]-xl) )
-    ylT<-(yl+(transformationgrid$my[index]-yl) )
+      index<-cbind(as.integer(round(yl)), as.integer(round(xl)))
+      xlT<-(xl+(transformationgrid$mx[index]-xl) )
+      ylT<-(yl+(transformationgrid$my[index]-yl) )
+    }else{
+      if(right.hemisphere){
+        xr<-4*((EPSatlas$plates[[k]][[i]]@paths$path@x-xmin)*scale.factor-centroidNorm[1])
+        yr<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
+        xl<-NA
+        yl<-NA
+
+
+        index<-cbind(as.integer(round(yr)), as.integer(round(xr)))
+        xrT<-(xr+(transformationgrid$mx[index]-xr) )
+        yrT<-(yr+(transformationgrid$my[index]-yr) )
+
+        
+        xlT<-NA
+        ylT<-NA
+
+      }else{
+        xr<-NA
+        yr<-NA
+        xl<-4*((-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin - 97440/2)+97440/2)*scale.factor-centroidNorm[1])
+        yl<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
+
+        xrT<-NA
+        yrT<-NA
+
+        index<-cbind(as.integer(round(yl)), as.integer(round(xl)))
+        xlT<-(xl+(transformationgrid$mx[index]-xl) )
+        ylT<-(yl+(transformationgrid$my[index]-yl) )
+      }
+    }
   
     outlines[[i]]<-list(xr  = xr, yr = yr, xl = xl, yl = yl, xrT = xrT, yrT= yrT, xlT = xlT, ylT = ylT)
   }
@@ -459,11 +496,21 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
         rasterImage(img,dim(img)[2],0, 2*dim(img)[2], dim(img)[1])
         abline(v=dim(img)[2], lwd=2, col='white')
              
-        lapply(1:numPaths, function(x){polygon(outlines[[x]]$xr,outlines[[x]]$yr, border='orange' )})
-        lapply(1:numPaths, function(x){polygon(outlines[[x]]$xl,outlines[[x]]$yl, border='orange' )})
+        if(is.null(right.hemisphere)){     
+          lapply(1:numPaths, function(x){polygon(outlines[[x]]$xr,outlines[[x]]$yr, border='orange' )})
+          lapply(1:numPaths, function(x){polygon(outlines[[x]]$xl,outlines[[x]]$yl, border='orange' )})
 
-        lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xrT,outlines[[x]]$yrT, border='purple' )})
-        lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xlT,outlines[[x]]$ylT, border='purple' )})
+          lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xrT,outlines[[x]]$yrT, border='purple' )})
+          lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xlT,outlines[[x]]$ylT, border='purple' )})
+        }else{
+          if(right.hemisphere){
+              lapply(1:numPaths, function(x){polygon(outlines[[x]]$xr,outlines[[x]]$yr, border='orange' )})
+              lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xrT,outlines[[x]]$yrT, border='purple' )})
+            }else{
+              lapply(1:numPaths, function(x){polygon(outlines[[x]]$xl,outlines[[x]]$yl, border='orange' )})
+              lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xlT,outlines[[x]]$ylT, border='purple' )})
+            }
+        }
 
         #lapply(unique(shape), function(x){polygon(referenceP.x[which(shape==x)], referenceP.y[which(shape==x)], col=rgb(1,1,0.1,0.3), border=rgb(1,1,0.1))})
         #lapply(unique(shape), function(x){polygon(targetP.x[which(shape==x)], targetP.y[which(shape==x)], col=rgb(0.1,1,1,0.3), border=rgb(0.1,1,1))})

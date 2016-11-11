@@ -48,8 +48,9 @@ for(i in 1:k){
 
 if(i==1){
   cat('var allenoutlines = [\n')
-} 
-  
+}
+
+if(!is.na(registration$atlas$outlines[[i]]$xrT)) { 
 ###############   
 cat('   {\n')
 cat('    "type": "Feature",\n')
@@ -79,9 +80,11 @@ for(j in 1:length(registration$atlas$outlines[[i]]$xrT)){
 cat('        ]]\n')
 cat('    }\n')
 cat('},\n')
+}
 
 ###########
 
+if(!is.na(registration$atlas$outlines[[i]]$xlT)) { 
 ###############   
 cat('   {\n')
 cat('    "type": "Feature",\n')
@@ -111,7 +114,7 @@ for(j in 1:length(registration$atlas$outlines[[i]]$xlT)){
 cat('        ]]\n')
 cat('    }\n')
 cat('},\n')
-
+}
 ###########
     
     
