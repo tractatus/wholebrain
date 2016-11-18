@@ -1,0 +1,21 @@
+staoseq.prune.features<-function(features, width=26000, height){
+ if(is.missing(height)){
+ 	height<-width
+ }
+ if(is.missing(width)){
+ 	width<-height
+ }
+
+
+poly<-list()
+poly$x<-c(median(features$soma$x)+c(-width/2,+width/2,+width/2,-width/2))
+poly$y<-c(median(features$soma$y)+c(-height/2,-height/2,+height/2,+height/2))
+
+remove<-which(point.in.polygon(features$soma$x, features$soma$y, poly$x, poly$y)==0)
+
+features$soma$x<-features$soma$x[-remove]
+features$soma$y<-features$soma$y[-remove]
+features$soma$intensity<-features$soma$area[-remove]
+features$soma$area <-features$soma$area[-remove]
+
+}
