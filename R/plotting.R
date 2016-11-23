@@ -233,7 +233,7 @@ lapply(1:nrow(counts), function(x) {
             #GROUPS
             k<-1
             vertical<-seq(0.15,-0.15,length.out=length(unique(group)))
-            for(j in unique(group)){
+            for(j in sort(unique(group))){
                 if(bargraph){
                     lapply(1:nrow(counts), function(x) {
                         polygon(c(x.range[1], rep(fun(counts[x,  which(group==j)]), 2), x.range[1]), c(rep(nrow(counts) - x + 1 + vertical[k], 4 ) + c(-0.25,-0.25,0.25,0.25)/length(unique(group)) ),  col=color[k] );

@@ -646,11 +646,11 @@ lines(registration$transformationgrid$mx[,wid]/scale.factor,registration$transfo
 }
 
 
-inspect.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, cex=0.5, draw.trans.grid=TRUE){
+inspect.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, cex=0.5, draw.trans.grid=TRUE, width= 12.280488, height=  6.134146){
   if(.Platform$OS.type=="windows") {
       batch.mode=TRUE
   }
-  quartz(width= 12.280488, height=  6.134146)
+  quartz(width= width, height=  height)
 par(yaxs='i',xaxs='i', mfrow=c(1,2), mar=c(4,4,1,1))
 
 if(is.null(regi$transformationgrid$myF)){

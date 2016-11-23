@@ -1,8 +1,8 @@
 staoseq.prune.features<-function(features, width=26000, height){
- if(is.missing(height)){
+ if(missing(height)){
  	height<-width
  }
- if(is.missing(width)){
+ if(missing(width)){
  	width<-height
  }
 
@@ -17,5 +17,8 @@ features$soma$x<-features$soma$x[-remove]
 features$soma$y<-features$soma$y[-remove]
 features$soma$intensity<-features$soma$area[-remove]
 features$soma$area <-features$soma$area[-remove]
+
+
+return(features)
 
 }
