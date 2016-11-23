@@ -143,7 +143,7 @@ counts <- log10(counts)
         
         if(!is.null(group)){
             par(xpd = TRUE)
-        legend(3, -0.75, unique(group), pch = c(21), pt.bg = color, title = title, bg = "white", 
+        legend(3, -0.75, sort(unique(group)), pch = c(21), pt.bg = color, title = title, bg = "white", 
             horiz = TRUE, cex = 1.3, xjust = 0.5)
         par(xpd = FALSE)
         }
