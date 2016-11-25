@@ -9,8 +9,8 @@ Description: This package uses the OpenCV library to provide R users with some
   basic functions to read and manipulate video files. 
 License: GPL-3
 NeedsCompilation: yes
-Imports: Rcpp (>= 0.11.0), png, MASS, grImport, sp, rgl, misc3d
+Imports: Rcpp (>= 0.11.0), png, MASS, grImport, sp, rgl, misc3d, plyr
 LinkingTo: Rcpp
-Depends: Rcpp (>= 0.11.0), png, MASS, grImport, sp, rgl, misc3d
+Depends: Rcpp (>= 0.11.0), png, MASS, grImport, sp, rgl, misc3d, plyr
 Suggests: plotrix (>= 3.5-12), knitr
 LazyData: no

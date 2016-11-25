@@ -10,6 +10,7 @@ import(grImport)
 import(grid)
 import(XML)
 import(sp)
+import(plyr)
 
 ## class
 
@@ -30,6 +31,8 @@ export(get.grid.coordinates)
 export(stitch)
 export(stitch.animal)
 export(stitch.experiment)
+export(data.summary)
+export(add.group)
 
 export(file_ext)
 export(get.images)
@@ -42,6 +45,7 @@ export(get.sup.structure)
 export(get.sub.structure)
 export(get.acronym.parent)
 export(get.acronym.child)
+export(reflect.cells)
 
 export(segment)
 export(makewebmap)
@@ -70,6 +74,7 @@ export(bargraph)
 export(map.to.atlas)
 export(get.forward.warpRCPP)
 export(plot.registration)
+export(roi.cell.count)
 
 export(color.from.acronym)
 export(color.from.id)

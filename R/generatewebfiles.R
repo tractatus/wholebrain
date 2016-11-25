@@ -370,7 +370,7 @@ slidetray<-function(input, filter, folder.prefix=NULL, start.at=1, dont.run=NULL
 #' #stitch images
 #' stitch(images, type = 'snake.by.row', order = 'left.&.up', tilesize=2048, overlap=0.1, show.image=TRUE)
 
-makewebmap<-function(img, filter, registration=NULL, dataset=NULL, folder.name = NULL, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', combine = NULL, enable.drawing=TRUE, verbose=FALSE){
+makewebmap<-function(img, filter, registration=NULL, dataset=NULL, folder.name = NULL, scale = 0.64, bregmaX = 0, bregmaY = 0, fluorophore = 'Rabies-EGFP', combine = NULL, enable.drawing=TRUE, write.tiles=TRUE, verbose=FALSE){
     file <- as.character(img)[1]
     if(!file.exists(file))
     stop(file, "not found")
@@ -412,8 +412,9 @@ makewebmap<-function(img, filter, registration=NULL, dataset=NULL, folder.name =
       alpha<-0
       beta<-0
     }
-    a <- .Call("createWeb", file, alpha, beta, verbose, outputfile)
-
+    if(write.tiles){
+      a <- .Call("createWeb", file, alpha, beta, verbose, outputfile)
+    }
     if(!is.null(registration)){
       bregmaX<-round(stereotactic.coordinates(0, 0, registration, inverse = TRUE)$x)
       bregmaY<-round(stereotactic.coordinates(0, 0, registration, inverse = TRUE)$y) 
