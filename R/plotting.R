@@ -274,215 +274,316 @@ lapply(1:nrow(counts), function(x) {
 
 
 
-schematic.plot<-function(dataset, coordinate=NULL, title=TRUE, mm.grid=TRUE, save.plots=FALSE, dev.size=c(5.4, 4.465)){
+schematic.plot<-function (dataset, coordinate = NULL, title = TRUE, mm.grid = TRUE, 
+    save.plots = FALSE, dev.size = c(5.4, 4.465), pch=21, cex=0.5, col='black', scale.bar=FALSE) 
+{
+    if (!save.plots) {
+        quartz(width = dev.size[1], height = dev.size[1])
+    }
+    if (is.null(coordinate)) {
+        if (length(which(dataset$color == "#000000")) > 0) {
+            dataset <- dataset[-which(dataset$color == "#000000"), 
+                ]
+        }
+        datasets <- dataset
+        for (animal.index in unique(datasets$animal)) {
+            coordinates <- sort(unique(datasets$AP[which(datasets$animal == 
+                animal.index)]), decreasing = TRUE)
+            for (q in 1:length(coordinates)) {
+                dataset <- datasets[which(datasets$AP == coordinates[q] & 
+                  datasets$animal == animal.index), ]
+                if (length(table(dataset$right.hemisphere)) > 
+                  1) 
+                  if (table(dataset$right.hemisphere)[2] < table(dataset$right.hemisphere)[1]) {
+                    dataset$ML <- -dataset$ML
+                  }
+                coordinate <- unique(dataset$AP)
+                k <- which(abs(coordinate - atlasIndex$mm.from.bregma) == 
+                  min(abs(coordinate - atlasIndex$mm.from.bregma)))
+                plate <- atlasIndex$plate.id[which(abs(coordinate - 
+                  atlasIndex$mm.from.bregma) == min(abs(coordinate - 
+                  atlasIndex$mm.from.bregma)))]
+                scale = 0.9579832
+                if(exists(dataset$image)){
+                        bregmaX = 5640
+                        bregmaY = 0
+                    }else{
+                      bregmaX = 5640
+                  bregmaY = 200
+                    }
+                ventricles <- c(which(EPSatlas$plate.info[[k]]$style == 
+                  "#aaaaaa"))
+                if (atlasIndex$plate.id[k] %in% c(100960309, 
+                  100960312, 100960316, 100960320)) {
+                  fibertracts <- c(which(EPSatlas$plate.info[[k]]$style == 
+                    "#cccccc"))
+                  fibertracts <- fibertracts[which.min(sapply(fibertracts, 
+                    function(x) {
+                      min(EPSatlas$plates[[k]][[x]]@paths$path@y)
+                    }))]
+                  ventricles <- append(ventricles, fibertracts)
+                }
+                if (title) {
+                  main.title <- paste(animal.index, "\n bregma: ", 
+                    round(coordinate, 2), "mm", "\n image: ", 
+                    unique(dataset$image))
+                }
+                else {
+                  main.title <- ""
+                }
+                if (save.plots) {
+                  quartz(width = dev.size[1], height = dev.size[1])
+                }
+                if (mm.grid) {
+                }
+                else {
+                  par(mar = c(0, 0, 0, 0))
+                }
+                xmin <- min(EPSatlas$plates[[k]][[1]]@paths$path@x) - 
+                  97440/2
+                plot(EPSatlas$plates[[k]][[1]]@paths$path@x, 
+                  EPSatlas$plates[[k]][[1]]@paths$path@y, col = 0, 
+                  xlim = c(0, 97440), ylim = c(0, 68234.56), 
+                  axes = F, ylab = "", xlab = "", asp = 1, main = "")
+                if (mm.grid) {
+                  abline(h = seq(max(EPSatlas$plates[[k]][[1]]@paths$path@y) + 
+                    6 * (97440/456/25 * 1000), max(EPSatlas$plates[[k]][[1]]@paths$path@y) - 
+                    10 * (97440/456/25 * 1000), by = -(97440/456) * 
+                    (1000/25)), col = "lightblue")
+                  abline(v = seq(6040, 97440, by = (97440/456) * 
+                    (1000/25)), col = "lightblue")
+                  mtext("dorsoventral (mm)", 2, 3)
+                  mtext("mediolateral (mm)", 1, 3)
+                }
+                polygon(EPSatlas$plates[[k]][[1]]@paths$path@x - 
+                  xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, 
+                  col = gray(0.95), border = "black")
+                polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x - 
+                  xmin - 97440/2) + 97440/2, EPSatlas$plates[[k]][[1]]@paths$path@y, 
+                  col = gray(0.95), border = "black")
+                if (title & (!mm.grid)) {
+                  mtext(main.title, 1, -5.5, cex = 0.5, font = 2)
+                }
+                else {
+                  title(main.title)
+                }
+                
+                if (mm.grid) {
+                  box()
+                  axis(2, at = seq(max(EPSatlas$plates[[k]][[1]]@paths$path@y), 
+                    max(EPSatlas$plates[[k]][[1]]@paths$path@y) - 
+                      6 * (97440/456/25 * 1000), by = -(97440/456) * 
+                      (1000/25)/10), labels = FALSE, las = 1, 
+                    col = "orange", tck = -0.0125)
+                  axis(2, at = seq(max(EPSatlas$plates[[k]][[1]]@paths$path@y), 
+                    max(EPSatlas$plates[[k]][[1]]@paths$path@y) - 
+                      6 * (97440/456/25 * 1000), by = -(97440/456) * 
+                      (1000/25)/2), labels = FALSE, las = 1, 
+                    col = "darkblue", tck = -0.025)
+                  axis(2, at = seq(max(EPSatlas$plates[[k]][[1]]@paths$path@y), 
+                    max(EPSatlas$plates[[k]][[1]]@paths$path@y) - 
+                      6 * (97440/456/25 * 1000), by = -(97440/456) * 
+                      (1000/25)), labels = c(0:-6), las = 1)
+                  axis(1, at = seq(6040, 91514, by = (97440/456) * 
+                    (1000/25)/10), labels = FALSE, las = 1, col = "orange", 
+                    tck = -0.0125)
+                  axis(1, at = seq(6040, 91514, by = (97440/456) * 
+                    (1000/25)/2), labels = FALSE, las = 1, col = "darkblue", 
+                    tck = -0.025)
+                  axis(1, at = seq(6040, 91514, by = (97440/456) * 
+                    (1000/25)), labels = c(-5:5))
+                }
+                        if(scale.bar){
+            right.corner<-c(82966.32, 91513.68)    
+                polygon(c(right.corner[1], right.corner[1], right.corner[2], right.corner[2]),  c(0, 0-1000, 0-1000, 0), col='black' )
+        }
+                numPaths <- EPSatlas$plates[[k]]@summary@numPaths
+                lapply(1:numPaths, function(N) {
+                  polygon(EPSatlas$plates[[k]][[N]]@paths$path@x - 
+                    xmin, EPSatlas$plates[[k]][[N]]@paths$path@y, 
+                    col = gray(0.95), border = "black", lwd = 1, 
+                    lty = 3)
+                  polygon(-(EPSatlas$plates[[k]][[N]]@paths$path@x - 
+                    xmin - 97440/2) + 97440/2, EPSatlas$plates[[k]][[N]]@paths$path@y, 
+                    col = gray(0.95), border = "black", lwd = 1, 
+                    lty = 3)
+                })
+                if (coordinate < 1.3) {
+                  for (i in ventricles) {
+                    polygon(EPSatlas$plates[[k]][[i]]@paths$path@x - 
+                      xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, 
+                      col = "black", border = "black", lwd = 4)
+                    polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x - 
+                      xmin - 97440/2) + 97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, 
+                      col = "black", border = "black", lwd = 4)
+                  }
+                }
+                fibertracts <- c(which(EPSatlas$plate.info[[k]]$style == 
+                  "#cccccc"))
+                for (i in fibertracts) {
+                  polygon(EPSatlas$plates[[k]][[i]]@paths$path@x - 
+                    xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, 
+                    col = gray(0.85), border = "black", lwd = 1)
+                  polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x - 
+                    xmin - 97440/2) + 97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, 
+                    col = gray(0.85), border = "black", lwd = 1)
+                }
+                if (!is.null(dataset)) {
+                     if(length(dataset$image)!=0){
+                     if(pch%in%c(21:25)){
+                        points((dataset$ML * 1000) * 97440/456/25+ (97440/2), (8210 + dataset$DV * 1000 - bregmaY) * 97440/456/25, pch = pch, bg = as.character(dataset$color), col=col, cex = cex)
+
+                    }
+                    if(!(pch%in%c(21:25))){
+                        points((dataset$ML * 1000) * 97440/456/25+ (97440/2), (8210 + dataset$DV * 1000 - bregmaY) * 97440/456/25, pch = pch, col = as.character(dataset$color), cex = cex)
+
+                    }
+                     }else{
+                    if(pch%in%c(21:25)){
+                  points((dataset$ML * scale * 1000 + bregmaX) * 
+                    97440/456/25 + 1748.92, (8210 + dataset$DV * 
+                    scale * 1000 - bregmaY) * 97440/456/25, pch = pch, 
+                    bg = as.character(dataset$color), col=col, cex = cex)
+                    }
+                    if(!(pch%in%c(21:25))){
+                    points((dataset$ML * scale * 1000 + bregmaX) * 
+                    97440/456/25 + 1748.92, (8210 + dataset$DV * 
+                    scale * 1000 - bregmaY) * 97440/456/25, pch = pch, 
+                    col = as.character(dataset$color), cex = cex)
+                    }
+                    
+                    }
+                }
+                if (save.plots) {
+                  filename <- paste(animal.index, formatC(q, 
+                    digits = 3, flag = "0"), round(unique(coordinate), 
+                    3), ".pdf", sep = "_")
+                  quartz.save(filename, type = "pdf")
+                  dev.off()
+                }
+            }
+        }
+    }
+    else {
+        k <- which(abs(coordinate - atlasIndex$mm.from.bregma) == 
+            min(abs(coordinate - atlasIndex$mm.from.bregma)))
+        plate <- atlasIndex$plate.id[which(abs(coordinate - atlasIndex$mm.from.bregma) == 
+            min(abs(coordinate - atlasIndex$mm.from.bregma)))]
+        scale = 0.9579832
+        bregmaX = 5640
+        bregmaY = 0
+        ventricles <- c(which(EPSatlas$plate.info[[k]]$style == 
+            "#aaaaaa"))
+        if (atlasIndex$plate.id[k] %in% c(100960309, 100960312, 
+            100960316, 100960320)) {
+            fibertracts <- c(which(EPSatlas$plate.info[[k]]$style == 
+                "#cccccc"))
+            fibertracts <- fibertracts[which.min(sapply(fibertracts, 
+                function(x) {
+                  min(EPSatlas$plates[[k]][[x]]@paths$path@y)
+                }))]
+            ventricles <- append(ventricles, fibertracts)
+        }
+        main.title <- ""
+        if (save.plots) {
+            quartz(width = dev.size[1], height = dev.size[1])
+        }
+        if (mm.grid) {
+        }
+        else {
+            par(mar = c(0, 0, 0, 0))
+        }
+        xmin <- min(EPSatlas$plates[[k]][[1]]@paths$path@x) - 
+            97440/2
+        plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, 
+            col = 0, xlim = c(0, 97440), ylim = c(0, 68234.56), 
+            axes = F, ylab = "", xlab = "", asp = 1, main = "")
+        if (mm.grid) {
+            abline(h = seq(max(EPSatlas$plates[[k]][[1]]@paths$path@y) + 
+                6 * (97440/456/25 * 1000), max(EPSatlas$plates[[k]][[1]]@paths$path@y) - 
+                10 * (97440/456/25 * 1000), by = -(97440/456) * 
+                (1000/25)), col = "lightblue")
+            abline(v = seq(6040, 97440, by = (97440/456) * (1000/25)), 
+                col = "lightblue")
+            mtext("dorsoventral (mm)", 2, 3)
+            mtext("mediolateral (mm)", 1, 3)
+        }
+        polygon(EPSatlas$plates[[k]][[1]]@paths$path@x - xmin, 
+            EPSatlas$plates[[k]][[1]]@paths$path@y, col = gray(0.95), 
+            border = "black")
+        polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x - xmin - 
+            97440/2) + 97440/2, EPSatlas$plates[[k]][[1]]@paths$path@y, 
+            col = gray(0.95), border = "black")
+        if (title & (!mm.grid)) {
+            mtext(main.title, 1, -5.5, cex = 0.5, font = 2)
+        }
+        else {
+            title(main.title)
+        }
+
+        if (mm.grid) {
+            box()
+            axis(2, at = seq(max(EPSatlas$plates[[k]][[1]]@paths$path@y), 
+                max(EPSatlas$plates[[k]][[1]]@paths$path@y) - 
+                  6 * (97440/456/25 * 1000), by = -(97440/456) * 
+                  (1000/25)/10), labels = FALSE, las = 1, col = "orange", 
+                tck = -0.0125)
+            axis(2, at = seq(max(EPSatlas$plates[[k]][[1]]@paths$path@y), 
+                max(EPSatlas$plates[[k]][[1]]@paths$path@y) - 
+                  6 * (97440/456/25 * 1000), by = -(97440/456) * 
+                  (1000/25)/2), labels = FALSE, las = 1, col = "darkblue", 
+                tck = -0.025)
+            axis(2, at = seq(max(EPSatlas$plates[[k]][[1]]@paths$path@y), 
+                max(EPSatlas$plates[[k]][[1]]@paths$path@y) - 
+                  6 * (97440/456/25 * 1000), by = -(97440/456) * 
+                  (1000/25)), labels = c(0:-6), las = 1)
+            axis(1, at = seq(6040, 91514, by = (97440/456) * 
+                (1000/25)/10), labels = FALSE, las = 1, col = "orange", 
+                tck = -0.0125)
+            axis(1, at = seq(6040, 91514, by = (97440/456) * 
+                (1000/25)/2), labels = FALSE, las = 1, col = "darkblue", 
+                tck = -0.025)
+            axis(1, at = seq(6040, 91514, by = (97440/456) * 
+                (1000/25)), labels = c(-5:5))
+        }
+        if(scale.bar){
+            right.corner<-c(82966.32, 91513.68)    
+            polygon(c(right.corner[1], right.corner[1], right.corner[2], right.corner[2]),  c(0, 0-1000, 0-1000, 0), col='black' )
+        }
+        numPaths <- EPSatlas$plates[[k]]@summary@numPaths
+        lapply(1:numPaths, function(N) {
+            polygon(EPSatlas$plates[[k]][[N]]@paths$path@x - 
+                xmin, EPSatlas$plates[[k]][[N]]@paths$path@y, 
+                col = gray(0.95), border = "black", lwd = 1, 
+                lty = 3)
+            polygon(-(EPSatlas$plates[[k]][[N]]@paths$path@x - 
+                xmin - 97440/2) + 97440/2, EPSatlas$plates[[k]][[N]]@paths$path@y, 
+                col = gray(0.95), border = "black", lwd = 1, 
+                lty = 3)
+        })
+        if (coordinate < 1.3) {
+            for (i in ventricles) {
+                polygon(EPSatlas$plates[[k]][[i]]@paths$path@x - 
+                  xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, 
+                  col = "black", border = "black", lwd = 4)
+                polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x - 
+                  xmin - 97440/2) + 97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, 
+                  col = "black", border = "black", lwd = 4)
+            }
+        }
+        fibertracts <- c(which(EPSatlas$plate.info[[k]]$style == 
+            "#cccccc"))
+        for (i in fibertracts) {
+            polygon(EPSatlas$plates[[k]][[i]]@paths$path@x - 
+                xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, 
+                col = gray(0.85), border = "black", lwd = 1)
+            polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x - 
+                xmin - 97440/2) + 97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, 
+                col = gray(0.85), border = "black", lwd = 1)
+        }
+    }
     
-
-if(!save.plots){
-    quartz(width=dev.size[1], height=dev.size[1])
-}
-
-if( is.null(coordinate) ){
-if(length(which(dataset$color=='#000000'))>0){
-dataset<-dataset[-which(dataset$color=='#000000'),]
-}
-
-datasets<-dataset
-
-
-for(animal.index in unique(datasets$animal) ){
     
-coordinates<-sort(unique(datasets$AP[which(datasets$animal==animal.index)]), decreasing=TRUE )  
-for(q in 1:length(coordinates)){
-dataset<-datasets[which(datasets$AP==coordinates[q] & datasets$animal==animal.index ),]
-
-
-if( length(table(dataset$right.hemisphere)) > 1)
-if(table(dataset$right.hemisphere)[2] < table(dataset$right.hemisphere)[1]){
-    dataset$ML<- -dataset$ML
-}
-
-
-coordinate<-unique(dataset$AP)
-
-#quartz(width=7.513513* 0.4171346 , height=4.540540* 0.4171346)
-k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
-plate<-atlasIndex$plate.id[which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))]
-
-
-scale = 0.9579832; 
-bregmaX = 5640;
-bregmaY = 0;#725
-  
-ventricles <-c(which(EPSatlas$plate.info[[k]]$style=='#aaaaaa')) #117 is optic chiasm och   which(EPSatlas$plate.info[[k]]$structure_id== 117)
-if(atlasIndex$plate.id[k] %in%c(100960309, 100960312, 100960316, 100960320)){
-  fibertracts<-c(which(EPSatlas$plate.info[[k]]$style=='#cccccc'))
-  fibertracts <-fibertracts[which.min(sapply(fibertracts, function(x){min(EPSatlas$plates[[k]][[x]]@paths$path@y )}))]
-  ventricles<-append(ventricles, fibertracts) 
-}
-
-if(title){
-    main.title<-paste(animal.index,'\n bregma: ', round(coordinate,2), 'mm', '\n image: ', unique(dataset$image))
-}else{
-    main.title<-''
-}
-
-if(save.plots){
-    quartz(width=dev.size[1], height=dev.size[1])
-}
-if(mm.grid){
-
-    }else{
-par(mar=c(0,0,0,0))
-}
-xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
-plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, col=0, xlim=c(0,97440), ylim=c(0, 68234.56), axes=F, ylab='', xlab='', asp=1, main= '' )
-if(mm.grid){
-    abline(h= seq( max(EPSatlas$plates[[k]][[1]]@paths$path@y)+6*(97440/456/25*1000)
-, max(EPSatlas$plates[[k]][[1]]@paths$path@y) -10*(97440/456/25*1000) , by= -(97440/456)*(1000/25) ) , col='lightblue')
-abline(v=seq(6040, 97440, by=(97440/456)*(1000/25) ), col='lightblue')
-mtext('dorsoventral (mm)', 2, 3)
-mtext('mediolateral (mm)', 1, 3)
-}
-
-polygon(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, col=gray(0.95), border='black' )
-polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - 97440/2)+97440/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col=gray(0.95), border='black')  
-if(title&(!mm.grid)){
-mtext(main.title, 1,-5.5, cex=0.5, font=2)
-}else{
-    title(main.title)
-}
-if(mm.grid){
-box()
-axis(2, at=seq( max(EPSatlas$plates[[k]][[1]]@paths$path@y)
-, max(EPSatlas$plates[[k]][[1]]@paths$path@y) -6*(97440/456/25*1000), by= -(97440/456)*(1000/25)/10 ), labels=FALSE, las=1, col='orange', tck=-0.0125)
-axis(2, at=seq( max(EPSatlas$plates[[k]][[1]]@paths$path@y)
-, max(EPSatlas$plates[[k]][[1]]@paths$path@y) -6*(97440/456/25*1000), by= -(97440/456)*(1000/25)/2 ), labels=FALSE, las=1, col='darkblue', tck=-0.025)
-
-axis(2, at=seq( max(EPSatlas$plates[[k]][[1]]@paths$path@y)
-, max(EPSatlas$plates[[k]][[1]]@paths$path@y) -6*(97440/456/25*1000) , by= -(97440/456)*(1000/25) ), labels=c(0:-6), las=1)
-axis(1, at=seq(6040, 91514, by=(97440/456)*(1000/25)/10 ), labels=FALSE, las=1, col='orange', tck=-0.0125)
-axis(1, at=seq(6040, 91514, by=(97440/456)*(1000/25)/2 ), labels=FALSE, las=1, col='darkblue', tck=-0.025)
-
-axis(1, at=seq(6040, 91514, by=(97440/456)*(1000/25) ), labels=c(-5:5))
-}
-
-numPaths<-EPSatlas$plates[[k]]@summary@numPaths
-
-lapply(1:numPaths, function(N){polygon(EPSatlas$plates[[k]][[N]]@paths$path@x-xmin, EPSatlas$plates[[k]][[N]]@paths$path@y, col=gray(0.95), border='black', lwd=1, lty=3);
- polygon(-(EPSatlas$plates[[k]][[N]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatlas$plates[[k]][[N]]@paths$path@y, col=gray(0.95), border='black', lwd=1, lty=3)
- })
- 
- if(coordinate <1.3){
-for(i in ventricles){
-polygon(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
-polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
-}
-}
-
-
-  fibertracts<-c(which(EPSatlas$plate.info[[k]]$style=='#cccccc'))
-for(i in fibertracts){
-polygon(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, col=gray(0.85), border='black', lwd=1)
-polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, col=gray(0.85), border='black', lwd=1)
-}
-
-if(!is.null(dataset)){
-points( (dataset$ML*scale*1000+bregmaX)*97440/456/25+ 1748.92, (8210+dataset$DV*scale*1000-bregmaY)*97440/456/25, pch=21, bg= as.character(dataset$color) , cex=0.5 )
-}
-if(save.plots){
-filename <- paste(animal.index,formatC(q,digits=3,flag="0"), round(unique(coordinate),3),".pdf",sep="_")
-quartz.save(filename, type = "pdf")
-dev.off()
-}
-
-}
-}
-
-}else{
-    #if coordinate is provided just plot outline
-    #quartz(width=7.513513* 0.4171346 , height=4.540540* 0.4171346)
-k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
-plate<-atlasIndex$plate.id[which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))]
-
-
-scale = 0.9579832; 
-bregmaX = 5640;
-bregmaY = 0;#725
-  
-ventricles <-c(which(EPSatlas$plate.info[[k]]$style=='#aaaaaa')) #117 is optic chiasm och   which(EPSatlas$plate.info[[k]]$structure_id== 117)
-if(atlasIndex$plate.id[k] %in%c(100960309, 100960312, 100960316, 100960320)){
-  fibertracts<-c(which(EPSatlas$plate.info[[k]]$style=='#cccccc'))
-  fibertracts <-fibertracts[which.min(sapply(fibertracts, function(x){min(EPSatlas$plates[[k]][[x]]@paths$path@y )}))]
-  ventricles<-append(ventricles, fibertracts) 
-}
-
-
-    main.title<-''
-
-
-if(save.plots){
-    quartz(width=dev.size[1], height=dev.size[1])
-}
-if(mm.grid){
-
-    }else{
-par(mar=c(0,0,0,0))
-}
-xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
-plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, col=0, xlim=c(0,97440), ylim=c(0, 68234.56), axes=F, ylab='', xlab='', asp=1, main= '' )
-if(mm.grid){
-    abline(h= seq( max(EPSatlas$plates[[k]][[1]]@paths$path@y)+6*(97440/456/25*1000)
-, max(EPSatlas$plates[[k]][[1]]@paths$path@y) -10*(97440/456/25*1000) , by= -(97440/456)*(1000/25) ) , col='lightblue')
-abline(v=seq(6040, 97440, by=(97440/456)*(1000/25) ), col='lightblue')
-mtext('dorsoventral (mm)', 2, 3)
-mtext('mediolateral (mm)', 1, 3)
-}
-
-polygon(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, col=gray(0.95), border='black' )
-polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - 97440/2)+97440/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col=gray(0.95), border='black')  
-if(title&(!mm.grid)){
-mtext(main.title, 1,-5.5, cex=0.5, font=2)
-}else{
-    title(main.title)
-}
-if(mm.grid){
-box()
-axis(2, at=seq( max(EPSatlas$plates[[k]][[1]]@paths$path@y)
-, max(EPSatlas$plates[[k]][[1]]@paths$path@y) -6*(97440/456/25*1000), by= -(97440/456)*(1000/25)/10 ), labels=FALSE, las=1, col='orange', tck=-0.0125)
-axis(2, at=seq( max(EPSatlas$plates[[k]][[1]]@paths$path@y)
-, max(EPSatlas$plates[[k]][[1]]@paths$path@y) -6*(97440/456/25*1000), by= -(97440/456)*(1000/25)/2 ), labels=FALSE, las=1, col='darkblue', tck=-0.025)
-
-axis(2, at=seq( max(EPSatlas$plates[[k]][[1]]@paths$path@y)
-, max(EPSatlas$plates[[k]][[1]]@paths$path@y) -6*(97440/456/25*1000) , by= -(97440/456)*(1000/25) ), labels=c(0:-6), las=1)
-axis(1, at=seq(6040, 91514, by=(97440/456)*(1000/25)/10 ), labels=FALSE, las=1, col='orange', tck=-0.0125)
-axis(1, at=seq(6040, 91514, by=(97440/456)*(1000/25)/2 ), labels=FALSE, las=1, col='darkblue', tck=-0.025)
-
-axis(1, at=seq(6040, 91514, by=(97440/456)*(1000/25) ), labels=c(-5:5))
-}
-
-numPaths<-EPSatlas$plates[[k]]@summary@numPaths
-
-lapply(1:numPaths, function(N){polygon(EPSatlas$plates[[k]][[N]]@paths$path@x-xmin, EPSatlas$plates[[k]][[N]]@paths$path@y, col=gray(0.95), border='black', lwd=1, lty=3);
- polygon(-(EPSatlas$plates[[k]][[N]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatlas$plates[[k]][[N]]@paths$path@y, col=gray(0.95), border='black', lwd=1, lty=3)
- })
- 
- if(coordinate <1.3){
-for(i in ventricles){
-polygon(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
-polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
-}
-}
-
-
-  fibertracts<-c(which(EPSatlas$plate.info[[k]]$style=='#cccccc'))
-for(i in fibertracts){
-polygon(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, col=gray(0.85), border='black', lwd=1)
-polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, col=gray(0.85), border='black', lwd=1)
-}
-
-    
-}
-
 }
 
 paxTOallen<-function(paxinos){
