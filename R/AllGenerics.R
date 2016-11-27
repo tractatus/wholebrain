@@ -95,6 +95,8 @@ roi.cell.count<-function(dataset, rois=c('MO','TH')){
 	regions<-which(row.names(cell.counts)%in%regions)
 	if(length(dim(cell.counts[regions,]))>1){
 		roi.data<-colSums(cell.counts[regions,])
+	}else{
+		roi.data<-cell.counts[regions,]
 	}
 	for(i in rois[-1]){
 		cell.counts<-table(dataset$acronym, dataset$animal)
@@ -102,6 +104,8 @@ roi.cell.count<-function(dataset, rois=c('MO','TH')){
 		regions<-which(row.names(cell.counts)%in%regions)
 		if(length(dim(cell.counts[regions,]))>1){
 			roi.data<-rbind(roi.data, colSums(cell.counts[regions,]))
+		}else{
+			roi.data<-rbind(roi.data, cell.counts[regions,])
 		}
 		
 	}
