@@ -653,7 +653,7 @@ inspect.registration<-function(registration,segmentation,soma=TRUE, forward.warp
   quartz(width= width, height=  height)
 par(yaxs='i',xaxs='i', mfrow=c(1,2), mar=c(4,4,1,1))
 
-if(is.null(regi$transformationgrid$myF)){
+if(is.null(registration$transformationgrid$myF)){
   registration.nm <-deparse(substitute(registration))
 
   cat(paste('Forward warps has not been not computed, have to compute that first!\n If you want to avoid this from happening either turn forward.warp==TRUE in registration() or sink the output of this object into the registration output, i.e.:\n', paste(registration.nm,'<-plot.registration(', registration.nm ,',forward.warp=TRUE)', sep='') ))

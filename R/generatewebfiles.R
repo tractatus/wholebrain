@@ -962,6 +962,9 @@ if( (!is.null(dataset))&(!is.null(registration)) ){
   printJSONneuron(dataset$x, dataset$y, dataset$intensity, dataset$area*scale, dataset$id, registration$transformationgrid$height)
   printJSONoutlines(registration)
 }else{
+  if((is.null(dataset))&(!is.null(registration))){
+      printJSONoutlines(registration)
+  }
   cat('var neurons = {};')
   cat('var allenoutlines = {};')
 }
