@@ -590,7 +590,7 @@ paxTOallen<-function(paxinos){
  	round(214+(20-(paxinos*1000))/25)
 }
 
-glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col='region', cex=0.5, hemisphere='right'){
+glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col='region', cex=0.5, hemisphere='right', spheres=FALSE){
 	dataset<-dataset[-which(dataset$color=='#000000'),]
 	if(device){
 		open3d(windowRect = c(0,  0, 1280, 720))
@@ -629,7 +629,13 @@ glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col=
 		}
 	}
 
-	points3d(paxTOallen(dataset$AP)-530/2+rnorm(length(dataset$AP), 0,(320/9.75)*0.2 ), -dataset$DV*1000/25-320/2, dataset$ML*1000/25, col=color, size=cex )
+    if(spheres){
+    spheres3d(paxTOallen(dataset$AP)-530/2+rnorm(length(dataset$AP), 0,(320/9.75)*0.2 ), -dataset$DV*1000/25-320/2, dataset$ML*1000/25, col=color, radius=cex )
+
+        }else{
+                points3d(paxTOallen(dataset$AP)-530/2+rnorm(length(dataset$AP), 0,(320/9.75)*0.2 ), -dataset$DV*1000/25-320/2, dataset$ML*1000/25, col=color, size=cex )
+
+        }
 
 	
 }

@@ -58,6 +58,7 @@ export(automatic.correspondences)
 export(registration)
 export(testregistration)
 export(get.contour)
+export(nuclear.segment)
 
 export(change.corrpoints)
 export(add.corrpoints)

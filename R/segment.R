@@ -65,6 +65,40 @@ segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, aco=TRUE, di
 }
 
 
+#' Get contour
+#'
+#' Get the contours of a binary segmented image
+#' @param input input a character vector consisting of the full path name to 16-bit raw tif image files.
+#' @param coordinate matching coordinates in the main plane to be registered to (in millimeters).
+#' @param plane the main plane to register too: "coronal", "sagital", "".
+#' @param brain.threshold a integer value, which determien sthe segmentation of the brain slice.
+#' @param verbose boolean value. If true diagnostic output is written to the R console. Deafult is true.
+#' @examples
+#' #path to image
+#' image<-'/Volumes/microscope/animal001/slide001/section001.tif'
+#' #register the image
+#' registration(image, AP=1.05, brain.threshold=220)
+nuclear.segment<-function(input, thresh=0.1, kernel=3, iter=20, threshold = 'otsu', invert=FALSE, get.largest.object = TRUE, num.nested.objects = 2, blur=0, watershed=FALSE, resize=0.25, display=TRUE, verbose=TRUE, savefilename=FALSE){
+    file <- as.character(input)
+    ## check for existence
+    if(!file.exists(file))
+      stop(file, ", file not found")
+    file <- path.expand(file)
+    if(is.character(threshold)){threshold<-0}
+    resizeP = resize
+    saveoutput<-0
+     if(savefilename==TRUE){
+      savefilename<-paste(getwd(),'/miniature_',basename(file), sep='')
+      saveoutput<-1
+     }
+
+    a<-.Call("nuclearSegment", file, as.numeric(thresh), as.integer(kernel), as.integer(iter), as.integer(threshold), as.integer(invert), as.integer(get.largest.object), as.integer(num.nested.objects), as.integer(display), resizeP, blur, as.integer(verbose), savefilename, saveoutput)
+    if(saveoutput==1){
+    print(savefilename)
+    }
+    return(a)
+}
+
 imshow<-function(input, auto.range = FALSE, quantile = c(0.001,0.999), resize=0.25){
   inputfile<-character()
   for(i in 1:length(input)){
