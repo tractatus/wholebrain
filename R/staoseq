@@ -22,3 +22,22 @@ features$soma$area <-features$soma$area[-remove]
 return(features)
 
 }
+
+spatial.transcriptomics<-function(anatomy, cDNA, feature.filter, cell.body.feature, plot=FALSE){
+	anatomyTIF<-rgb2gray(anatomy)
+	cDNATIF<-rgb2gray(cDNA, invert=FALSE)
+	features<-segment(cDNATIF, filter= feature.filter, display=FALSE)
+	print(paste('Features found: ', length(features$soma$x)))
+	features$soma$x<-features$soma$x*4
+	features$soma$y<-features$soma$y*4
+	print('Segmenting out nuclei. this might take several minutes...')
+	cell.bodies<-segment(anatomyTIF, filter= cell.body.feature, display=FALSE)
+	print(paste('Cell nuclei found: ', length(cell.bodies$soma$x)))
+	if(plot){
+par(yaxs='i', xaxs='i')
+plot(round(features$soma$x*(1/(0.5))), round(features$soma$y*(1/(0.5)), -2), asp=1, ylim=c(32768*2, 0), xlim=c(0,2*29184), axes=F, xlab='', ylab='', bg=rgb(1,0,0,0.2), pch=21)
+points(cell.bodies$soma$x*2, cell.bodies$soma$y*2, pch=16, cex=0.25)
+}
+
+	return(list(features =features, cell.bodies =cell.bodies, filename=anatomyTIF))
+}

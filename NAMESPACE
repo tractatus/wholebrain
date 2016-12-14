@@ -33,6 +33,7 @@ export(stitch.animal)
 export(stitch.experiment)
 export(data.summary)
 export(add.group)
+export(spatial.transcriptomics)
 
 export(file_ext)
 export(get.images)
