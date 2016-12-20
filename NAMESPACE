@@ -53,6 +53,7 @@ export(makewebmap)
 export(printJSONneuron)
 export(printJSONoutlines)
 export(imshow)
+export(get.pixel.intensity)
 
 export(getWholeSection)
 export(automatic.correspondences)

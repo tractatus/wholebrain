@@ -61,6 +61,22 @@ get.sub.structure<-function(x){
 	return(tmp2)
 }
 
+remove.whitematter<-function(dataset){
+	dataset<-dataset[-which(dataset$acronym%in%c('grey', 'fibertracts')),]
+	return(dataset)
+}
+
+
+get.pixel.intensity<-function(input, x, y){
+	file <- as.character(input)
+    ## check for existence
+    if(!file.exists(file))
+      stop(file, ", file not found")
+    file <- path.expand(file)
+	intensity<-.Call("getPixelIntensity", file, as.integer(x), as.integer(y))
+	return(intensity)
+}
+
 #' Flip cells to the ipsilateral side
 #'
 #' Flips the cells to the right hemisphere.

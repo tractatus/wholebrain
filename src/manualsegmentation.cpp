@@ -941,6 +941,33 @@ END_RCPP
 }
 
 
+RcppExport SEXP getPixelIntensity(SEXP input, SEXP xPos, SEXP yPos) {
+  BEGIN_RCPP
+  Rcpp::RNGScope __rngScope; 
+
+  Rcpp::IntegerVector x(xPos);
+  Rcpp::IntegerVector y(yPos);
+
+  Rcpp::CharacterVector fname(input);
+  std::string ffname(fname[0]);
+  Rcpp::Rcout << "Loading image:" << ffname << std::endl;
+  Mat src = imread(ffname, -1); // -1 tag means "load as is"
+  Rcpp::Rcout << "Image type: " <<  getImgTypes(src.type()) << "_" << src.type()  << std::endl;
+
+  vector<int> intensity;
+
+  int n = x.size();
+  for(int i = 0; i < n; ++i){
+    intensity.push_back(src.at<ushort>(y[i],x[i]));
+  }
+
+   return List::create(
+    _["intensity"] = intensity
+  );
+
+END_RCPP
+}
+
 RcppExport SEXP GUI(SEXP input, SEXP numthresh, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename, SEXP shouldDisplay, 
   SEXP areaMin, SEXP areaMax, SEXP threshMin, SEXP threshMax, SEXP eccent, SEXP renderMin, SEXP renderMax, SEXP bThresh, SEXP resizeB, SEXP gaussBlur) {
 BEGIN_RCPP
