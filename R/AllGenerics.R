@@ -67,13 +67,20 @@ remove.whitematter<-function(dataset){
 }
 
 
-get.pixel.intensity<-function(input, x, y){
+get.pixel.intensity<-function(input, x, y, type='SNR', roi= 9,  background=40){
 	file <- as.character(input)
     ## check for existence
-    if(!file.exists(file))
+    if(!file.exists(file)){
       stop(file, ", file not found")
+      return(NULL)
+  	}
     file <- path.expand(file)
-	intensity<-.Call("getPixelIntensity", file, as.integer(x), as.integer(y))
+    if(type=='SNR'){
+    	type=2
+    }else{
+    	type=1
+    }
+	intensity<-.Call("getPixelIntensity", file, as.integer(x), as.integer(y), type, roi, background)
 	return(intensity)
 }
 

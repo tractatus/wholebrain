@@ -941,7 +941,7 @@ END_RCPP
 }
 
 
-RcppExport SEXP getPixelIntensity(SEXP input, SEXP xPos, SEXP yPos) {
+RcppExport SEXP getPixelIntensity(SEXP input, SEXP xPos, SEXP yPos, SEXP type, SEXP sideObject, SEXP sideBackground) {
   BEGIN_RCPP
   Rcpp::RNGScope __rngScope; 
 
@@ -949,16 +949,35 @@ RcppExport SEXP getPixelIntensity(SEXP input, SEXP xPos, SEXP yPos) {
   Rcpp::IntegerVector y(yPos);
 
   Rcpp::CharacterVector fname(input);
+  
+  int typeInt = Rcpp::as<int>(type);
+  int side1 = Rcpp::as<int>(sideObject);
+  int side2 = Rcpp::as<int>(sideBackground);
+
   std::string ffname(fname[0]);
   Rcpp::Rcout << "Loading image:" << ffname << std::endl;
   Mat src = imread(ffname, -1); // -1 tag means "load as is"
   Rcpp::Rcout << "Image type: " <<  getImgTypes(src.type()) << "_" << src.type()  << std::endl;
 
-  vector<int> intensity;
-
+  vector<double> intensity;
+  cv::Scalar mean;
+  Mat roiMat;
   int n = x.size();
+  double temp;
   for(int i = 0; i < n; ++i){
-    intensity.push_back(src.at<ushort>(y[i],x[i]));
+    if(typeInt==1){
+      temp = (double)src.at<ushort>(y[i],x[i]);
+    }
+    if(typeInt==2){
+      roiMat = src(cv::Rect(x[i]-side1/2,y[i]-side1/2,side1,side1));
+      mean =  cv::mean(roiMat);
+      temp = (double)mean[0];
+
+      roiMat = src(cv::Rect(x[i]-side2/2,y[i]-side2/2,side2,side2));
+      mean =  cv::mean(roiMat);
+      temp = (temp/(double)mean[0]);
+    }
+    intensity.push_back(temp);
   }
 
    return List::create(
