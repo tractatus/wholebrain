@@ -14,3 +14,4 @@ LinkingTo: Rcpp
 Depends: Rcpp (>= 0.11.0), png, MASS, grImport, sp, rgl, misc3d, plyr
 Suggests: plotrix (>= 3.5-12), knitr
 LazyData: no
+Encoding: UTF-8
