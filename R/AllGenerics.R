@@ -209,6 +209,39 @@ rgb2gray<-function(input, verbose=TRUE, savefilename=TRUE, invert=TRUE){
     return(savefilename)
 }
 
+morph<-function(input, element = 0, size = 0, operator = 'tophat', save.as.8bit = TRUE, verbose = TRUE, savefilename=TRUE) {
+	file <- as.character(input)
+    ## check for existence
+    if(!file.exists(file))
+      stop(file, ", file not found")
+    file <- path.expand(file)
+    #"Operator:\n 0: Opening - 1: Closing \n 2: Gradient - 3: Top Hat \n 4: Black Hat"
+    if(operator=='tophat'){
+    	morphOperator<-3
+    }
+    if(operator=='open'){
+    	morphOperator<-0
+    }
+    if(operator=='close'){
+    	morphOperator<-1
+    }
+    if(operator=='gradient'){
+    	morphOperator<-2
+    }
+    if(operator=='blackhat'){
+    	morphOperator<-4
+    }
+
+    if(savefilename==TRUE){
+      pos <- regexpr("\\.([[:alnum:]]+)$", basename(file))	
+      filename<-ifelse(pos > -1L, substring(basename(file), 1, pos - 1L), "")
+      savefilename<-paste(getwd(),'/',operator,'_',filename,'.tif', sep='')
+     }
+
+     a<-.Call("morphologyEx", input, element, size, morphOperator, as.integer(save.as.8bit), as.integer(verbose), savefilename)
+     return(savefilename)
+}
+
 make.movie<-function(directory){
 	
 }

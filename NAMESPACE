@@ -91,6 +91,7 @@ export(suggestions)
 export(plot.suggestions)
 
 export(rgb2gray)
+export(morph)
 export(mrd)
 export(make.atlas.nissl)
 export(imflip)

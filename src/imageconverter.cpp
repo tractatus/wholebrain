@@ -88,5 +88,66 @@ return R_NilValue;
 END_RCPP  
 }
 
+RcppExport SEXP morphologyEx(SEXP input, SEXP morphElem, SEXP morphSize, SEXP morphOperator, SEXP saveuchar, SEXP writetoconsole, SEXP saveoutput) {
+BEGIN_RCPP
+  Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
+  //Rcpp::CharacterVector std::vector< std::string >
+  Rcpp::CharacterVector fname(input);
+  std::string ffname(fname[0]);
+
+  Rcpp::CharacterVector outputfilename(saveoutput);
+  std::string ffoutputfilename(outputfilename[0]);
+
+  bool eightbit = Rcpp::as<bool>(saveuchar);
+  bool verbose = Rcpp::as<bool>(writetoconsole);
+
+
+
+  Mat src, dst;
+
+  int morph_elem = Rcpp::as<int>(morphElem);// 0;
+  int morph_size = Rcpp::as<int>(morphSize);// 0;
+  int morph_operator = Rcpp::as<int>(morphOperator);// 0;  "Operator:\n 0: Opening - 1: Closing \n 2: Gradient - 3: Top Hat \n 4: Black Hat",
+  int const max_operator = 4;
+  int const max_elem = 2;
+  int const max_kernel_size = 21; //"Kernel size:\n 2n +1"
+
+
+
+  if(verbose){Rcpp::Rcout << "Loading image:" << ffname << std::endl;}
+   src = imread(ffname, -1);
+  if(verbose){Rcpp::Rcout << "====== LOADING DONE ======" << std::endl;}
+
+   if(verbose){
+   // Rcpp::Rcout << "Image type: " <<  ImgTypes(img.type()) << "_" << img.type()  << std::endl;
+  }
+  //resize(img, img, Size(), resizeParam, resizeParam, INTER_LINEAR);
+  //Mat originalImag;
+  //img.copyTo(originalImag);
+
+    /// Apply the specified morphology operation
+    if(verbose){Rcpp::Rcout << "====== APPLYING FILTER ======" << std::endl;}
+
+    int operation = morph_operator + 2;
+
+  Mat element = getStructuringElement( morph_elem, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
+
+  morphologyEx( src, dst, operation, element );
+    if(verbose){Rcpp::Rcout << "====== FILTER DONE ======" << std::endl;}
+
+    if(eightbit){
+      double min, max;
+      cv::minMaxLoc(dst, &min, &max);
+      dst -= min;
+      dst.convertTo(dst,CV_8UC1,255.0/(max-min)); //-255.0/Min
+    }
+
+
+    imwrite(ffoutputfilename, dst);
+
+  return R_NilValue;
+
+END_RCPP  
+}
 
 
