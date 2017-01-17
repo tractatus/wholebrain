@@ -10,8 +10,8 @@ using namespace std;
 using namespace Rcpp;
 
 
-/*
-string ImgTypes(int imgTypeInt)
+
+string ImgTypesConv(int imgTypeInt)
 {
     int numImgTypes = 35; // 7 base types, with five channel options each (none or C1, ..., C4)
 
@@ -37,7 +37,7 @@ string ImgTypes(int imgTypeInt)
     }
     return "unknown image type";
 }
-*/
+
 
 
 /* apply operation to stack */
@@ -119,18 +119,19 @@ BEGIN_RCPP
   if(verbose){Rcpp::Rcout << "====== LOADING DONE ======" << std::endl;}
 
    if(verbose){
-   // Rcpp::Rcout << "Image type: " <<  ImgTypes(img.type()) << "_" << img.type()  << std::endl;
+    Rcpp::Rcout << "Image type: " <<  ImgTypesConv(src.type()) << "_" << src.type()  << std::endl;
   }
   //resize(img, img, Size(), resizeParam, resizeParam, INTER_LINEAR);
   //Mat originalImag;
   //img.copyTo(originalImag);
 
     /// Apply the specified morphology operation
-    if(verbose){Rcpp::Rcout << "====== APPLYING FILTER ======" << std::endl;}
+    if(verbose){Rcpp::Rcout << "====== SETTING OPERATOR ======" << std::endl;}
 
     int operation = morph_operator + 2;
 
-  Mat element = getStructuringElement( morph_elem, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
+  Mat element = getStructuringElement( MORPH_RECT, Size( 2*morph_size + 1, 2*morph_size+1 ), Point( morph_size, morph_size ) );
+    if(verbose){Rcpp::Rcout << "====== APPLYING FILTER ======" << std::endl;}
 
   morphologyEx( src, dst, operation, element );
     if(verbose){Rcpp::Rcout << "====== FILTER DONE ======" << std::endl;}
