@@ -35,17 +35,25 @@ get.acronym.child<-function(x){
 	return(acronym.from.id(ids))
 }
 
-get.sup.structure<-function(x){
+get.sup.structure<-function(x, matching.string=c('CTX','CNU','IB','MB','HB','grey','root','VS','fiber tracts')){
+	
+	if(tmp%in%matching.string){
+		return(tmp)
+	}
 	tmp<-get.acronym.parent(x)
-	if((tmp%in%c('CTX','CNU','IB','MB','HB','grey','root','VS','fiber tracts'))){
+	if((tmp%in%matching.string)){
     	tmp<-x  
 	}
 	tmp2<-tmp
-	while(!(tmp%in%c('CTX','CNU','IB','MB','HB','grey','root','VS','fiber tracts')) ){
+	while(!(tmp%in% matching.string) ){
     	tmp2<-tmp
     	tmp<-get.acronym.parent(tmp)
     }
-	return(tmp2)
+	if(tmp=='root'|tmp=='grey'|tmp=='CH'){
+		return(tmp2)
+	}else{
+		return(tmp)
+	}
 }
 
 get.sub.structure<-function(x){
