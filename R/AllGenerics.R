@@ -37,8 +37,8 @@ get.acronym.child<-function(x){
 
 get.sup.structure<-function(x, matching.string=c('CTX','CNU','IB','MB','HB','grey','root','VS','fiber tracts')){
 	
-	if(tmp%in%matching.string){
-		return(tmp)
+	if(x%in%matching.string){
+		return(x)
 	}
 	tmp<-get.acronym.parent(x)
 	if((tmp%in%matching.string)){

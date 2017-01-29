@@ -275,7 +275,7 @@ lapply(1:nrow(counts), function(x) {
 
 
 schematic.plot<-function (dataset, coordinate = NULL, title = TRUE, mm.grid = TRUE, 
-    save.plots = FALSE, dev.size = c(5.4, 4.465), pch=21, cex=0.5, col='black', scale.bar=FALSE) 
+    save.plots = FALSE, dev.size = c(5.4, 4.465), pch=21, cex=0.5, col='black', scale.bar=FALSE, region.colors=FALSE) 
 {
     if (!save.plots) {
         quartz(width = dev.size[1], height = dev.size[1])
@@ -398,14 +398,19 @@ schematic.plot<-function (dataset, coordinate = NULL, title = TRUE, mm.grid = TR
                 polygon(c(right.corner[1], right.corner[1], right.corner[2], right.corner[2]),  c(0, 0-1000, 0-1000, 0), col='black' )
         }
                 numPaths <- EPSatlas$plates[[k]]@summary@numPaths
+                if(region.colors){
+                    style<-EPSatlas$plate.info[[k]]$style
+                }else{
+                    style<-rep(gray(0.95), numPaths)
+                }
                 lapply(1:numPaths, function(N) {
                   polygon(EPSatlas$plates[[k]][[N]]@paths$path@x - 
                     xmin, EPSatlas$plates[[k]][[N]]@paths$path@y, 
-                    col = gray(0.95), border = "black", lwd = 1, 
+                    col = style[N], border = "black", lwd = 1, 
                     lty = 3)
                   polygon(-(EPSatlas$plates[[k]][[N]]@paths$path@x - 
                     xmin - 97440/2) + 97440/2, EPSatlas$plates[[k]][[N]]@paths$path@y, 
-                    col = gray(0.95), border = "black", lwd = 1, 
+                    col = style[N], border = "black", lwd = 1, 
                     lty = 3)
                 })
                 if (coordinate < 1.3) {
@@ -551,14 +556,19 @@ schematic.plot<-function (dataset, coordinate = NULL, title = TRUE, mm.grid = TR
             polygon(c(right.corner[1], right.corner[1], right.corner[2], right.corner[2]),  c(0, 0-1000, 0-1000, 0), col='black' )
         }
         numPaths <- EPSatlas$plates[[k]]@summary@numPaths
+        if(region.colors){
+            style<-EPSatlas$plate.info[[k]]$style
+        }else{
+            style<-rep(gray(0.95), numPaths)
+        }
         lapply(1:numPaths, function(N) {
             polygon(EPSatlas$plates[[k]][[N]]@paths$path@x - 
                 xmin, EPSatlas$plates[[k]][[N]]@paths$path@y, 
-                col = gray(0.95), border = "black", lwd = 1, 
+                col = style[N], border = "black", lwd = 1, 
                 lty = 3)
             polygon(-(EPSatlas$plates[[k]][[N]]@paths$path@x - 
                 xmin - 97440/2) + 97440/2, EPSatlas$plates[[k]][[N]]@paths$path@y, 
-                col = gray(0.95), border = "black", lwd = 1, 
+                col = style[N], border = "black", lwd = 1, 
                 lty = 3)
         })
         if (coordinate < 1.3) {
