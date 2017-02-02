@@ -35,7 +35,7 @@ spatial.transcriptomics<-function(anatomy, cDNA, feature.filter, cell.body.featu
     print(paste('Cell nuclei found: ', length(cell.bodies$soma$x)))
     if(plot){
         par(yaxs='i', xaxs='i')
-        plot(round(features$soma$x*(1/(0.5))), round(features$soma$y*(1/(0.5)), -2), asp=1, ylim=c(32768*2, 0), xlim=c(0,2*29184), axes=F, xlab='', ylab='', bg=rgb(1,0,0,0.2), pch=21)
+        plot(round(features$soma$x*(1/(0.5))), round(features$soma$y*(1/(0.5)), -2), asp=1, ylim=c(32768*2,0), xlim=c(0,2*29184), axes=F, xlab='', ylab='', bg=rgb(1,0,0,0.2), pch=21)
         points(cell.bodies$soma$x*2, cell.bodies$soma$y*2, pch=16, cex=0.25)
     }
     
