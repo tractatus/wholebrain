@@ -48,6 +48,7 @@ segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, aco=TRUE, di
     resizeB<-filter$resize
     resizeP<-as.integer(filter$downsample*100)
     gaussBlur<-filter$blur
+    downsample<-filter$downsample
   }
 
   a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground, display, areaMin, areaMax, threshMin, threshMax, eccent, renderMin, renderMax, bThresh, resizeB, gaussBlur)
