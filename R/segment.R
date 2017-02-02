@@ -10,9 +10,6 @@
 #' segment(system.file('sample_tiles/rabiesEGFP.tif', package='wholebrain')) 
 
 segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, aco=TRUE, display=TRUE){
-  if(aco){
-    print('Ant Colony Optimization /aco currently disabled, waiting update. Contact Daniel Fürth (daniel.furth@ki.se')
-  }
   inputfile<-character()
   for(i in 1:length(input)){
     inputfile <- as.character(input[i])
