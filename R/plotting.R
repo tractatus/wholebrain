@@ -399,7 +399,7 @@ schematic.plot<-function (dataset, coordinate = NULL, title = TRUE, mm.grid = TR
         }
                 numPaths <- EPSatlas$plates[[k]]@summary@numPaths
                 if(region.colors){
-                    style<-EPSatlas$plate.info[[k]]$style
+                    style<-as.character(EPSatlas$plate.info[[k]]$style)
                 }else{
                     style<-rep(gray(0.95), numPaths)
                 }
@@ -557,7 +557,7 @@ schematic.plot<-function (dataset, coordinate = NULL, title = TRUE, mm.grid = TR
         }
         numPaths <- EPSatlas$plates[[k]]@summary@numPaths
         if(region.colors){
-            style<-EPSatlas$plate.info[[k]]$style
+            style<-as.character(EPSatlas$plate.info[[k]]$style)
         }else{
             style<-rep(gray(0.95), numPaths)
         }
