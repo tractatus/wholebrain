@@ -220,8 +220,6 @@ BEGIN_RCPP
    ventricles_selected.erase( unique( ventricles_selected.begin(), ventricles_selected.end() ), ventricles_selected.end() );
   }
 
-   
-
        printf("Ventricles: "); 
   for (it=ventricles_selected.begin() ; it < ventricles_selected.end(); it++,counter++ ){
     if(counter>0){
@@ -635,15 +633,75 @@ threshold(distantransT, distantransT, distansThresh, 1., CV_THRESH_BINARY);
 
     // Create a green mask with the sillhuete of the detected objects
     cv::Mat green_mask = cv::Mat::zeros(markersB.size(), CV_8UC3);
+    cv::Mat white_mask = cv::Mat::zeros(markersB.size(), CV_8UC3);
+
     for (int i = 0; i < markersB.rows; i++)
     {
         for (int j = 0; j < markersB.cols; j++)
         {
             // Draw the marker's silhuete (white) as green in the mask
-            if (markersB.at<unsigned char>(i,j) == 255)
+            if (markersB.at<unsigned char>(i,j) == 255){
                 green_mask.at<cv::Vec3b>(i,j) = cv::Vec3b(0, 255, 0);
+                white_mask.at<cv::Vec3b>(i,j) = cv::Vec3b(255, 255, 255);
+              }
         }
     }
+  imshow("whitemask", white_mask); // uncomment this if you want to see how the mark image looks like at that point
+
+    cv::dilate(white_mask, white_mask, cv::Mat());
+
+Mat nuclei = distantransT - white_mask;
+
+  imshow("nuclei", nuclei); // uncomment this if you want to see how the mark image looks like at that point
+
+
+
+  vector<vector<Point> > contours;
+  vector<Vec4i> hierarchy;
+  cv::cvtColor(nuclei, nuclei, CV_RGB2GRAY);
+
+  /// Find contours
+  findContours( nuclei, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+   std::vector<int> xPoint;
+   std::vector<int> yPoint;
+   std::vector<int> contourID;
+   int whichIsPerimeter;
+   int counter = 0;
+
+ for (int i = 0; i< contours.size(); ++i){
+   for (int j = 0; j < contours[i].size(); ++j){
+      // Do whatever you need to do with the points in the ith contour
+      xPoint.push_back(contours[i][j].x);
+      yPoint.push_back(contours[i][j].y);
+      contourID.push_back(counter);
+   }
+      xPoint.push_back(contours[i][0].x); //make sure polygon is closed
+      yPoint.push_back(contours[i][0].y);
+      contourID.push_back(counter);
+      counter++;
+  }
+
+  whichIsPerimeter = counter;
+minMaxLoc(dilation, &minVal, &maxVal);
+
+  dilation.convertTo(dilation, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+
+
+  findContours( dilation, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+  for (int i = 0; i< contours.size(); ++i){
+   for (int j = 0; j < contours[i].size(); ++j){
+      // Do whatever you need to do with the points in the ith contour
+      xPoint.push_back(contours[i][j].x);
+      yPoint.push_back(contours[i][j].y);
+      contourID.push_back(counter);
+   }
+      xPoint.push_back(contours[i][0].x); //make sure polygon is closed
+      yPoint.push_back(contours[i][0].y);
+      contourID.push_back(counter);
+      counter++;
+  }
+
+
 int numOfSegments2 = contoursDist.size();
   Mat wshed2 = createSegmentationDisplay(markers, numOfSegments, distantransT);//dist_CV_8UC3);
   imshow("output", wshed2); // uncomment this if you want to see how the mark image looks like at that point
@@ -654,6 +712,8 @@ int numOfSegments2 = contoursDist.size();
 
 minMaxLoc(border, &minVal, &maxVal);
   border.convertTo(border, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+
+
     cv::cvtColor(border, border, CV_GRAY2RGB);
 
     cv::Mat result = originalImag + green_mask + border;
@@ -694,18 +754,16 @@ connectedComponents(distantrans, labeledImage, 8, CV_32S);
   }
   }
   }
-  return R_NilValue;
-  /*
-  return List::create(
+  //return R_NilValue;
+
+   return List::create(
     _["x"] = xPoint,
     _["y"] = yPoint,
-    _["contour.ID"] = contourID
+    _["contour.ID"] = contourID,
+    _["perim"] = whichIsPerimeter
   );
-  /*
 
-   /*
-  END
-  */
+
 END_RCPP  
 }
 
