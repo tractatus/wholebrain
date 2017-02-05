@@ -119,7 +119,7 @@ BEGIN_RCPP
 
   }else{
     bitwise_not ( img, img );
-    img.convertTo(img, CV_16S);
+    //img.convertTo(img, CV_16S);
     imwrite(ffoutputfilename, img);
   }
 

@@ -759,23 +759,25 @@ footer<-sprintf('<div id=\"map\"></div>
     drawnItems.addLayer(layer);
 
      
-});
-    
+});', scale, bregmaX, bregmaY, tiled_imagefolder, tiled_imagefolder, outputfile)
 
-        var AllenOut = new L.geoJson(allenoutlines, {
-            coordsToLatLng: function (latlng) {
-                return (map.unproject([latlng[1], latlng[0]], map.getMaxZoom()));
-            },
-
-          style: function (feature) {
-            return feature.properties && feature.properties.style;
-          },
-
-        });/* .addTo(map); */
-
+  // registration=NULL, dataset=NULL
+    if(is.null(registration)&is.null(dataset)){
+    footer1<-sprintf('
         
+        var baseMaps = {
+            \"%s\": original,
+        };
+
+         var overlayMaps = {
+          \"Manually defined\": drawnItems
+        };
         
-        var geoJsonTest = new L.geoJson(neurons, {
+        ', fluorophore)
+    }else{
+      if(is.null(registration)){
+    footer1<-sprintf('
+      var geoJsonTest = new L.geoJson(neurons, {
             coordsToLatLng: function (latlng) {
                 return (map.unproject([latlng[1], latlng[0]], map.getMaxZoom()));
             },
@@ -791,7 +793,76 @@ footer<-sprintf('<div id=\"map\"></div>
             },
           
           onEachFeature: onEachFeature
-        });/*.addTo(map);*/
+        });
+        
+        var neurongroup = L.layerGroup([geoJsonTest]);
+        
+        var baseMaps = {
+            \"%s\": original,
+        };
+
+         var overlayMaps = {
+          \"Segmented cell bodies\": neurongroup,
+          \"Manually defined\": drawnItems
+        };
+        ', fluorophore)
+
+        }else{
+          if(is.null(dataset)){
+            footer1<-sprintf('var AllenOut = new L.geoJson(allenoutlines, {
+            coordsToLatLng: function (latlng) {
+                return (map.unproject([latlng[1], latlng[0]], map.getMaxZoom()));
+            },
+
+          style: function (feature) {
+            return feature.properties && feature.properties.style;
+          },
+
+        });
+
+      
+        
+        var neurongroup = L.layerGroup([geoJsonTest]);
+        
+        var baseMaps = {
+            \"%s\": original,
+        };
+
+         var overlayMaps = {
+          \"Region boundaries\": allengroup,
+          \"Manually defined\": drawnItems
+        };
+        
+        ', fluorophore)
+          }else{
+            footer1<-sprintf('var AllenOut = new L.geoJson(allenoutlines, {
+            coordsToLatLng: function (latlng) {
+                return (map.unproject([latlng[1], latlng[0]], map.getMaxZoom()));
+            },
+
+          style: function (feature) {
+            return feature.properties && feature.properties.style;
+          },
+
+        });
+
+      var geoJsonTest = new L.geoJson(neurons, {
+            coordsToLatLng: function (latlng) {
+                return (map.unproject([latlng[1], latlng[0]], map.getMaxZoom()));
+            },
+            pointToLayer: function (feature, latlng) {      
+                return L.circleMarker(latlng,  {
+              radius: 4,
+              fillColor: feature.hexcolor,
+              color: feature.linecolor,
+              weight: 1,
+              opacity: 1,
+              fillOpacity: 0.8
+            });
+            },
+          
+          onEachFeature: onEachFeature
+        });
         
         var neurongroup = L.layerGroup([geoJsonTest]);
         var allengroup = L.layerGroup([AllenOut]);
@@ -799,16 +870,20 @@ footer<-sprintf('<div id=\"map\"></div>
         var baseMaps = {
             \"%s\": original,
         };
-        ', scale, bregmaX, bregmaY, tiled_imagefolder, tiled_imagefolder, outputfile, fluorophore)
 
-
-    footer2<-'
-        var overlayMaps = {
-            \"Segmented cell bodies\": neurongroup,
+         var overlayMaps = {
+          \"Segmented cell bodies\": neurongroup,
           \"Region boundaries\": allengroup,
           \"Manually defined\": drawnItems
         };
         
+        ', fluorophore)
+          }
+
+        }
+    } 
+
+    footer2<-'
         L.control.layers(baseMaps, overlayMaps, {position: \'bottomright\'}).addTo(map);
 
         $(document).bind(\'keydown\', \'p\', function printoutputlog() {shapeJSON = drawnItems.toGeoJSON();console.log(JSON.stringify(shapeJSON));});

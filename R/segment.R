@@ -9,7 +9,7 @@
 #' #stitch images
 #' segment(system.file('sample_tiles/rabiesEGFP.tif', package='wholebrain')) 
 
-segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, aco=TRUE, display=TRUE){
+segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, post=NULL, pre=NULL, get.contour=FALSE, display=TRUE){
   inputfile<-character()
   for(i in 1:length(input)){
     inputfile <- as.character(input[i])
@@ -24,7 +24,7 @@ segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, aco=TRUE, di
   fileslider <- system.file('slider.png', package='wholebrain')
   filebackground <- system.file('GUI_background.png', package='wholebrain')
   resizeP = as.integer(downsample*100)
-
+  #check for filter
   if(is.null(filter)){
     areaMin<-(-999)
     areaMax<-(-999)
@@ -50,8 +50,29 @@ segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, aco=TRUE, di
     gaussBlur<-filter$blur
     downsample<-filter$downsample
   }
+  #check for 
+  if(is.null(pre)){
+    prefiltering<-FALSE
+    transformation<-0
+    iterations<-0   
+  }else{
+    prefiltering<-TRUE
+    transformation<-pre$trans
+    iterations<-pre$iter   
+  }
 
-  a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground, display, areaMin, areaMax, threshMin, threshMax, eccent, renderMin, renderMax, bThresh, resizeB, gaussBlur)
+  #check for post-filtering
+  if(is.null(post)){
+    postfiltering<-TRUE
+    transformation<-0
+    iterations<-0   
+  }else{
+    postfiltering<-TRUE
+    transformation<-pre$trans
+    iterations<-pre$iter   
+  }  
+
+  a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground, display, areaMin, areaMax, threshMin, threshMax, eccent, renderMin, renderMax, bThresh, resizeB, gaussBlur, as.integer(get.contour))
   a$x<-(1/ downsample)*a$x
   a$y<-(1/ downsample)*a$y
   a$soma.area <-(1/ downsample)*a$soma.area
