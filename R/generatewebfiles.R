@@ -809,7 +809,8 @@ footer<-sprintf('<div id=\"map\"></div>
 
         }else{
           if(is.null(dataset)){
-            footer1<-sprintf('var AllenOut = new L.geoJson(allenoutlines, {
+            footer1<-sprintf('
+          var AllenOut = new L.geoJson(allenoutlines, {
             coordsToLatLng: function (latlng) {
                 return (map.unproject([latlng[1], latlng[0]], map.getMaxZoom()));
             },
@@ -822,7 +823,7 @@ footer<-sprintf('<div id=\"map\"></div>
 
       
         
-        var neurongroup = L.layerGroup([geoJsonTest]);
+        var allengroup = L.layerGroup([AllenOut]);
         
         var baseMaps = {
             \"%s\": original,
@@ -1027,6 +1028,7 @@ window.open(url, \'_blank\');
     cat(headerP02)
     cat(JSONdata)
     cat(footer)
+    cat(footer1)
     cat(footer2)
     sink()
     sink(paste(outputfile,".js",sep=''), append=FALSE)
