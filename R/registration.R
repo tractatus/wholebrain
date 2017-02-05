@@ -806,6 +806,15 @@ get.cell.ids<-function(registration, segmentation, forward.warp=FALSE){
  dataset<-data.frame(animal=rep(NA, nrow(dataset)), AP=rep(registration$coordinate, nrow(dataset)), dataset)
   dataset$color<-as.character(dataset$color)
   return(dataset)
+}
+
+get.parts.of<-function(coordinate=0.5, acronym='Isocortex'){
+  k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
+  plate.info<-EPSatlas$plate.info[[k]]
+  unique.regions<-acronym.from.id(plate.info$structure_id)
+  roi<-get.sub.structure(acronym)
+  roi<-roi[which(roi%in%unique.regions)]  
+  return(roi) 
 }  
 
 get.region<-function(acronym, registration){
