@@ -88,6 +88,56 @@ return R_NilValue;
 END_RCPP  
 }
 
+
+RcppExport SEXP invertImg(SEXP input, SEXP writetoconsole, SEXP saveoutput) {
+BEGIN_RCPP
+  Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
+  //Rcpp::CharacterVector std::vector< std::string >
+  Rcpp::CharacterVector fname(input);
+  std::string ffname(fname[0]);
+
+
+  Rcpp::CharacterVector outputfilename(saveoutput);
+  std::string ffoutputfilename(outputfilename[0]);
+
+  bool verbose = Rcpp::as<bool>(writetoconsole);
+
+  if(verbose){Rcpp::Rcout << "Loading image:" << ffname << std::endl;}
+  Mat img = imread(ffname, -1);
+  if(verbose){Rcpp::Rcout << "====== LOADING DONE ======" << std::endl;}
+
+   
+  
+  if(img.type()==16){
+    cvtColor(img , img , CV_BGR2GRAY);
+      bitwise_not ( img, img );
+
+    img.convertTo(img, CV_16S);
+
+    //Rcpp::Rcout << "Image type: " <<  ImgTypes(img.type()) << "_" << img.type()  << std::endl;
+    imwrite(ffoutputfilename, img);
+
+  }else{
+    bitwise_not ( img, img );
+    img.convertTo(img, CV_16S);
+    imwrite(ffoutputfilename, img);
+  }
+
+  /*
+  return List::create(
+    _["x"] = xPoint,
+    _["y"] = yPoint,
+    _["contour.ID"] = contourID
+  );
+  */
+return R_NilValue;
+
+   /*
+  END
+  */
+END_RCPP  
+}
+
 RcppExport SEXP morphologyEx(SEXP input, SEXP morphElem, SEXP morphSize, SEXP morphOperator, SEXP saveuchar, SEXP writetoconsole, SEXP saveoutput) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>

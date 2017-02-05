@@ -217,6 +217,24 @@ rgb2gray<-function(input, verbose=TRUE, savefilename=TRUE, invert=TRUE){
     return(savefilename)
 }
 
+invert.img<-function(input, verbose=TRUE, savefilename=TRUE){
+    file <- as.character(input)
+    ## check for existence
+    if(!file.exists(file))
+      stop(file, ", file not found")
+    file <- path.expand(file)
+    
+     if(savefilename==TRUE){
+      pos <- regexpr("\\.([[:alnum:]]+)$", basename(file))	
+      filename<-ifelse(pos > -1L, substring(basename(file), 1, pos - 1L), "")
+      savefilename<-paste(getwd(),'/inverted_',filename,'.tif', sep='')
+     }
+
+    a<-.Call("invertImg", file, as.integer(verbose), savefilename)
+    
+    return(savefilename)
+}
+
 morph<-function(input, element = 0, size = 0, operator = 'tophat', save.as.8bit = TRUE, verbose = TRUE, savefilename=TRUE) {
 	file <- as.character(input)
     ## check for existence
