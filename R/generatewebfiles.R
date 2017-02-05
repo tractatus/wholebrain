@@ -761,7 +761,7 @@ footer<-sprintf('<div id=\"map\"></div>
      
 });', scale, bregmaX, bregmaY, tiled_imagefolder, tiled_imagefolder, outputfile)
 
-  // registration=NULL, dataset=NULL
+  #check if registration and dataset object exists
     if(is.null(registration)&is.null(dataset)){
     footer1<-sprintf('
         
