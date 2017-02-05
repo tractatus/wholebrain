@@ -1041,9 +1041,10 @@ if( (!is.null(dataset))&(!is.null(registration)) ){
 }else{
   if((is.null(dataset))&(!is.null(registration))){
       printJSONoutlines(registration)
+  }else{
+    cat('var neurons = {};')
+    cat('var allenoutlines = {};')
   }
-  cat('var neurons = {};')
-  cat('var allenoutlines = {};')
 }
     sink()
     setwd('../')
