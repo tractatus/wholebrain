@@ -92,7 +92,7 @@ get.pixel.intensity<-function(input, x, y, type='SNR', roi= 9,  background=40){
 	return(intensity)
 }
 
-get.range<-function(input,){
+get.range<-function(input){
 	file <- as.character(input)
     ## check for existence
     if(!file.exists(file)){
