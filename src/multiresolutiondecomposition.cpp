@@ -492,8 +492,8 @@ END_RCPP
 
 
 RcppExport SEXP getMaxMin(SEXP input) {
-BEGIN_RCPP
-Rcpp::RNGScope __rngScope; 
+  BEGIN_RCPP
+  Rcpp::RNGScope __rngScope; 
 
   Rcpp::CharacterVector fname(input);
   
@@ -509,5 +509,5 @@ Rcpp::RNGScope __rngScope;
     _["min"] = minVal
   );
   
-END_RCPP  
+  END_RCPP  
 }
