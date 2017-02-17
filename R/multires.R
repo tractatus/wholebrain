@@ -1,4 +1,4 @@
-mrd <- function(input, scales=6, family='db2', output='waveletoutput',  scale.of.interest = 3, energy.trace=0, coherency=0, orientation=0, max=0, min=0) {
+mrd <- function(input, scales=6, family='db2', output='waveletoutput',  scale.of.interest = 3, energy.trace=0, coherency=0, orientation=0, max=0, min=0, maskoriginal=FALSE, out.SOI.only=FALSE) {
     file <- as.character(input)[1]
     family <- as.character(family)[1]
     outputfile <- as.character(output)[1]
@@ -26,7 +26,8 @@ mrd <- function(input, scales=6, family='db2', output='waveletoutput',  scale.of
     #############################
     #           CALL            #
     #############################
-    a <- .Call("multiresolutiondecomposition", file, scales, family, outputfile, scale.of.interest, energy.trace, coherency, orientation, ceiling(max), floor(min))
+    maskoriginal<-as.integer(maskoriginal)
+    a <- .Call("multiresolutiondecomposition", file, scales, family, outputfile, scale.of.interest, energy.trace, coherency, orientation, ceiling(max), floor(min), maskoriginal)
     cat("IMAGE PROCESSED\n")
 
   }

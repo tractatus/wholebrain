@@ -941,6 +941,7 @@ END_RCPP
 }
 
 
+
 RcppExport SEXP getPixelIntensity(SEXP input, SEXP xPos, SEXP yPos, SEXP type, SEXP sideObject, SEXP sideBackground) {
   BEGIN_RCPP
   Rcpp::RNGScope __rngScope; 

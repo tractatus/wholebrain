@@ -69,7 +69,7 @@ template<> SEXP wrap(const cv::Mat &obj) {
 }
 */
 /* show a image */
-RcppExport SEXP multiresolutiondecomposition(SEXP input, SEXP scales, SEXP family, SEXP outputfile, SEXP cellBodies, SEXP computeenergy, SEXP computecoherency, SEXP computeorientation, SEXP maxV, SEXP minV) {
+RcppExport SEXP multiresolutiondecomposition(SEXP input, SEXP scales, SEXP family, SEXP outputfile, SEXP cellBodies, SEXP computeenergy, SEXP computecoherency, SEXP computeorientation, SEXP maxV, SEXP minV, SEXP maskorig) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
   //define wavelet scales
@@ -79,9 +79,11 @@ BEGIN_RCPP
 
   int maxNorm = Rcpp::as<int>(maxV);
   int minNorm = Rcpp::as<int>(minV);
+  int maskOrig = Rcpp::as<int>(maskorig);
   //fluorescence threshold to minimize false positives
   //int fluorThresh = Rcpp::as<int>(fluorescenceThreshold);
   //std::vector<int> fluorThresh  = Rcpp::as< std::vector<int> >(fluorescenceThreshold);
+    double maxVal, minVal;
 
   Mat tobefiltered; // no local
 Mat cellImg;
@@ -369,6 +371,21 @@ clock_t t0, t1;
     x2 = x1[j];
 
     input = "d" + String + "/" + "d" + String + "_" + off + ".tif";
+
+    if(maskOrig){
+      double minSrcImg;
+      double maxSrcImg;
+      minMaxLoc(tobefiltered, &minSrcImg, &maxSrcImg);
+      minMaxLoc(dest2, &minVal, &maxVal);
+      dest2.convertTo(dest2, CV_32F); //       dest2.convertTo(dest2, CV_32F, 1.00/(maxVal - minVal), -minVal * 1.00/(maxVal - minVal));
+      Mat temptobefiltered;
+      tobefiltered.convertTo(temptobefiltered, CV_32F);
+      dest2 = dest2.mul(temptobefiltered);
+      minMaxLoc(dest2, &minVal, &maxVal);
+      dest2.convertTo(dest2, CV_16U, maxSrcImg/(maxVal - minVal), -minVal * maxSrcImg/(maxVal - minVal));
+    
+    }
+
     try {
       imwrite(input, dest2);
       Rcpp::Rcout << input << " SAVED" << endl;
@@ -424,7 +441,6 @@ clock_t t0, t1;
     MatExpr eig2 = trace / 2 - second_term;
     //compute the tensors
     //Mat anisotropy = eig1 / eig2;
-    double maxVal, minVal;
 
 
 
@@ -438,8 +454,23 @@ clock_t t0, t1;
       minVal = (double)minNorm;
     }
 
-  energy.convertTo(energy, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+    //output mask with original image
+    if(maskOrig){
+      /*double minSrcImg;
+      double maxSrcImg;
+      minMaxLoc(tobefiltered, &minSrcImg, &maxSrcImg);
+      energy.convertTo(energy, CV_32F, 1.00/(maxVal - minVal), -minVal * 1.00/(maxVal - minVal));
+      Mat temptobefiltered;
+      tobefiltered.convertTo(temptobefiltered, CV_32F);
+      energy = energy.mul(temptobefiltered);
+      minMaxLoc(energy, &minVal, &maxVal);
+      energy.convertTo(energy, CV_16U, maxSrcImg/(maxVal - minVal), -minVal * maxSrcImg/(maxVal - minVal)); */
+      energy.convertTo(energy, CV_8U, 65535.0/(maxVal - minVal), -minVal * 65535.0/(maxVal - minVal));
 
+    }else{
+        energy.convertTo(energy, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+
+    }
     
     string cellBodyfilename = static_cast<ostringstream*>( &(ostringstream() << cellB) )->str();
     input = "trace/d" + cellBodyfilename + "_" + "Energy_" + off + ".tif";
@@ -455,5 +486,28 @@ clock_t t0, t1;
      /*
   END
   */
+END_RCPP  
+}
+
+
+
+RcppExport SEXP getMaxMin(SEXP input) {
+BEGIN_RCPP
+Rcpp::RNGScope __rngScope; 
+
+  Rcpp::CharacterVector fname(input);
+  
+  std::string ffname(fname[0]);
+  Rcpp::Rcout << "Loading image:" << ffname << std::endl;
+  Mat src = imread(ffname, -1); // -1 tag means "load as is"
+  double minVal;
+  double maxVal;
+  minMaxLoc(src, &minVal, &maxVal);
+
+  return List::create(
+    _["max"] = maxVal,
+    _["min"] = minVal
+  );
+  
 END_RCPP  
 }
