@@ -62,6 +62,26 @@ int nearest(std::vector<int> const& vec, int value) {
 }
 
 
+RcppExport SEXP getMaxMin(SEXP input) {
+  BEGIN_RCPP
+  Rcpp::RNGScope __rngScope; 
+
+  Rcpp::CharacterVector fname(input);
+  
+  std::string ffname(fname[0]);
+  Rcpp::Rcout << "Loading image:" << ffname << std::endl;
+  Mat src = imread(ffname, -1); // -1 tag means "load as is"
+  double minVal;
+  double maxVal;
+  minMaxLoc(src, &minVal, &maxVal);
+
+  return List::create(
+    _["max"] = maxVal,
+    _["min"] = minVal
+  );
+  
+  END_RCPP  
+}
 
 /*
 template<> SEXP wrap(const cv::Mat &obj) {
@@ -491,23 +511,3 @@ END_RCPP
 
 
 
-RcppExport SEXP getMaxMin(SEXP input) {
-  BEGIN_RCPP
-  Rcpp::RNGScope __rngScope; 
-
-  Rcpp::CharacterVector fname(input);
-  
-  std::string ffname(fname[0]);
-  Rcpp::Rcout << "Loading image:" << ffname << std::endl;
-  Mat src = imread(ffname, -1); // -1 tag means "load as is"
-  double minVal;
-  double maxVal;
-  minMaxLoc(src, &minVal, &maxVal);
-
-  return List::create(
-    _["max"] = maxVal,
-    _["min"] = minVal
-  );
-  
-  END_RCPP  
-}
