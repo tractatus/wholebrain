@@ -35,7 +35,7 @@ export(data.summary)
 export(add.group)
 export(spatial.transcriptomics)
 export(invert.img)
-
+export(get.range)
 
 export(file_ext)
 export(get.images)

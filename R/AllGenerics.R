@@ -92,6 +92,21 @@ get.pixel.intensity<-function(input, x, y, type='SNR', roi= 9,  background=40){
 	return(intensity)
 }
 
+get.range<-function(input,){
+	file <- as.character(input)
+    ## check for existence
+    if(!file.exists(file)){
+      stop(file, ", file not found")
+      return(NULL)
+  	}
+    file <- path.expand(file)
+ 
+	maxmin<-.Call("getMaxMin", file)
+	return(maxmin)
+}
+
+
+
 #' Flip cells to the ipsilateral side
 #'
 #' Flips the cells to the right hemisphere.
