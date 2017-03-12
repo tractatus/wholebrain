@@ -1,1 +1,1 @@
-export PKG_CONFIG_PATH=/usr/local/opt/opencv3/lib/pkgconfig
+Rscript -e 'Sys.setenv(PKG_CONFIG_PATH="/usr/local/opt/opencv3/lib/pkgconfig")'
