@@ -187,6 +187,7 @@ public:
         vector<Vec4i> brainHierarchy;
         int largest_contour_index=0;
       if(dosegmentation){
+          Rcpp::Rcout << "PROCESSING CONTOURS" << std::endl;
 
         //do contour
         if(matchingResize!=0){
@@ -210,8 +211,9 @@ public:
 
         /// Get the moments
         vector<Moments> muBrain(brainContours.size() );
-      for( int i = 0; i < brainContours.size(); i++ )
-          { muBrain[i] = moments( brainContours[i], false ); }
+      for( int i = 0; i < brainContours.size(); i++ ){ 
+        muBrain[i] = moments( brainContours[i], false );
+      }
 
       ///  Get the mass centers:
       vector<Point2f> mcBrain( brainContours.size() );
@@ -236,6 +238,8 @@ public:
             bounding_rect=boundingRect(brainContours[i]); // Find the bounding rectangle for biggest contour
           }
         }
+  
+
       largest_centroid = mcBrain[largest_contour_index];
 
       std::vector<int> ventricles_indexes; 
@@ -250,8 +254,11 @@ public:
       }
 
 
+
    std::vector<int> ventricles_selected; 
    ventricles_selected.push_back(largest_contour_index);
+
+  if(ventricles_indexes.size()>1){//make sure ventricles is more than one
 
    std::partial_sort(ventricles_size.begin(), ventricles_size.begin()+2,ventricles_size.end(), std::greater<int>());
 
@@ -262,11 +269,15 @@ public:
         }
       }
     }
+
    std::sort( ventricles_selected.begin(), ventricles_selected.end() );
    ventricles_selected.erase( unique( ventricles_selected.begin(), ventricles_selected.end() ), ventricles_selected.end() );
 
+  }//end condition ventricles must be more than one
+
   }
       //END OF BRAIN CONTOUR
+          Rcpp::Rcout << "Contours processed" << std::endl;
 
 
       for (unsigned int j=0; j<numThresholds; j++){
@@ -283,7 +294,11 @@ public:
         }
         threshold(src, tmp, thresh, imgdepth, CV_THRESH_BINARY );
         tmp.convertTo(tmp, CV_8UC1);
+
         findContours(tmp, contours, hierarchy, RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
+        if(contours.size()>100000) //warning to user that alot of contours were found.
+          Rcpp::Rcout << "WARNING: Contours found: " << contours.size() << " this may take some time... try adjusting your thresholds." << std::endl;
+
         Mat mask = Mat::zeros(src.size(),CV_8UC1);
         for (size_t k = 0; k < contours.size(); ++k)
         {
