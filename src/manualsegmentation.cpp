@@ -187,7 +187,6 @@ public:
         vector<Vec4i> brainHierarchy;
         int largest_contour_index=0;
       if(dosegmentation){
-          Rcpp::Rcout << "PROCESSING CONTOURS" << std::endl;
 
         //do contour
         if(matchingResize!=0){
@@ -277,7 +276,6 @@ public:
 
   }
       //END OF BRAIN CONTOUR
-          Rcpp::Rcout << "Contours processed" << std::endl;
 
 
       for (unsigned int j=0; j<numThresholds; j++){
@@ -297,7 +295,7 @@ public:
 
         findContours(tmp, contours, hierarchy, RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
         if(contours.size()>100000) //warning to user that alot of contours were found.
-          Rcpp::Rcout << "WARNING: Contours found: " << contours.size() << " this may take some time... try adjusting your thresholds." << std::endl;
+          Rcpp::Rcout << "WARNING: Contours found: " << contours.size() << " this may take some time... try adjusting your thresholds and rerun." << std::endl;
 
         Mat mask = Mat::zeros(src.size(),CV_8UC1);
         for (size_t k = 0; k < contours.size(); ++k)
