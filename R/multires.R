@@ -11,8 +11,11 @@ mrd <- function(input, scales=6, family='db2', output='waveletoutput',  scale.of
     create.output.directory('approximations_coefficents')
     lapply(1:scales-1, function(x){create.output.directory( paste('d',x, sep='') ) } )
     create.output.directory('output')
-    if(energy.trace){
+    if(energy.trace>0){
         create.output.directory('trace')
+        if(energy.trace==TRUE){
+            energy.trace<-10
+        }
     }
     if(coherency){
         create.output.directory('coherency')
@@ -27,7 +30,7 @@ mrd <- function(input, scales=6, family='db2', output='waveletoutput',  scale.of
     #           CALL            #
     #############################
     maskoriginal<-as.integer(maskoriginal)
-    a <- .Call("multiresolutiondecomposition", file, scales, family, outputfile, scale.of.interest, energy.trace, coherency, orientation, ceiling(max), floor(min), maskoriginal)
+    a <- .Call("multiresolutiondecomposition", file, scales, family, outputfile, scale.of.interest, energy.trace, coherency, orientation, ceiling(max), floor(min), maskoriginal, out.SOI.only)
     cat("IMAGE PROCESSED\n")
 
   }

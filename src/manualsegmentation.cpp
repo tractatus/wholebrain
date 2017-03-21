@@ -953,7 +953,46 @@ RcppExport SEXP imageshow(SEXP input, SEXP autoRange, SEXP  lq, SEXP uq, SEXP re
 END_RCPP 
 }
 
+RcppExport SEXP getVectorIntensity(SEXP input, SEXP xPos, SEXP yPos){
+  BEGIN_RCPP
+  Rcpp::RNGScope __rngScope; 
 
+  Rcpp::IntegerVector x(xPos);
+  Rcpp::IntegerVector y(yPos);
+
+  Rcpp::CharacterVector fname(input);
+  vector<double> intensity;
+   std::string ffname(fname[0]);
+  Rcpp::Rcout << "Loading image:" << ffname << std::endl;
+  Mat src = imread(ffname, -1); // -1 tag means "load as is"
+  Rcpp::Rcout << "Image type: " <<  getImgTypes(src.type()) << "_" << src.type()  << std::endl;
+
+  // grabs pixels along the line (pt1, pt2)
+ LineIterator it(src, Point(x[0],y[0]), Point(x[1],y[1]), 8);
+
+
+  vector<ushort> buf;
+  vector<cv::Point> points(it.count);
+  vector<int> xposition(it.count);
+  vector<int> yposition(it.count);
+
+  for(int i = 0; i < it.count; i++, ++it)
+  {
+    buf.push_back(src.at<ushort>(it.pos()));
+    points[i] = it.pos();
+    xposition[i] = points[i].x;
+    yposition[i] = points[i].y;
+  }
+
+   return List::create(
+    _["intensity"] = buf,
+    _["x"] = xposition,
+    _["y"] = yposition
+  );
+
+  END_RCPP
+
+}
 
 RcppExport SEXP getPixelIntensity(SEXP input, SEXP xPos, SEXP yPos, SEXP type, SEXP sideObject, SEXP sideBackground) {
   BEGIN_RCPP
@@ -983,6 +1022,8 @@ RcppExport SEXP getPixelIntensity(SEXP input, SEXP xPos, SEXP yPos, SEXP type, S
       temp = (double)src.at<ushort>(y[i],x[i]);
     }
     if(typeInt==2){
+      //if(side1)
+
       roiMat = src(cv::Rect(x[i]-side1/2,y[i]-side1/2,side1,side1));
       mean =  cv::mean(roiMat);
       temp = (double)mean[0];
@@ -998,7 +1039,7 @@ RcppExport SEXP getPixelIntensity(SEXP input, SEXP xPos, SEXP yPos, SEXP type, S
     _["intensity"] = intensity
   );
 
-END_RCPP
+  END_RCPP
 }
 
 RcppExport SEXP GUI(SEXP input, SEXP numthresh, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename, SEXP shouldDisplay, 

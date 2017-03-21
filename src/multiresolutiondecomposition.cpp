@@ -89,21 +89,23 @@ template<> SEXP wrap(const cv::Mat &obj) {
 }
 */
 /* show a image */
-RcppExport SEXP multiresolutiondecomposition(SEXP input, SEXP scales, SEXP family, SEXP outputfile, SEXP cellBodies, SEXP computeenergy, SEXP computecoherency, SEXP computeorientation, SEXP maxV, SEXP minV, SEXP maskorig) {
+RcppExport SEXP multiresolutiondecomposition(SEXP input, SEXP scales, SEXP family, SEXP outputfile, SEXP cellBodies, SEXP computeenergy, SEXP computecoherency, SEXP computeorientation, SEXP maxV, SEXP minV, SEXP maskorig, SEXP roiOnly) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
   //define wavelet scales
   int J = Rcpp::as<int>(scales);
-  bool compEnergy = Rcpp::as<int>(computeenergy);
+  int compEnergy = Rcpp::as<int>(computeenergy); //used as Sigma, 10 is recommended
   int cellB = Rcpp::as<int>(cellBodies);
 
   int maxNorm = Rcpp::as<int>(maxV);
   int minNorm = Rcpp::as<int>(minV);
   int maskOrig = Rcpp::as<int>(maskorig);
+  bool saveroiOnly = Rcpp::as<bool>(roiOnly);
+
   //fluorescence threshold to minimize false positives
   //int fluorThresh = Rcpp::as<int>(fluorescenceThreshold);
   //std::vector<int> fluorThresh  = Rcpp::as< std::vector<int> >(fluorescenceThreshold);
-    double maxVal, minVal;
+  double maxVal, minVal;
 
   Mat tobefiltered; // no local
 Mat cellImg;
@@ -122,7 +124,6 @@ clock_t t0, t1;
   t1 = clock();
   double time_elapsed = (double)((t1 - t0) / CLOCKS_PER_SEC);
   Rcpp::Rcout << "LOADED." << " loading took " <<  time_elapsed << " seconds." << std::endl;
-
 
   //get width and height of original image.
   int rowsWzero = tobefiltered.rows;
@@ -251,8 +252,10 @@ clock_t t0, t1;
   string input;
   input = "approximations_coefficents/a_" + off + ".tif";
   try {
-    imwrite(input, cvImg);
-    Rcpp::Rcout << input << " SAVED" << endl;
+    if(!saveroiOnly){
+      imwrite(input, cvImg);
+      Rcpp::Rcout << input << " SAVED" << endl;
+    }
 
   }
   catch (runtime_error& ex) {
@@ -407,8 +410,15 @@ clock_t t0, t1;
     }
 
     try {
-      imwrite(input, dest2);
-      Rcpp::Rcout << input << " SAVED" << endl;
+      if(!saveroiOnly){
+        imwrite(input, dest2);
+        Rcpp::Rcout << input << " SAVED" << endl;
+      }else{
+        if(j==cellB){
+          imwrite(input, dest2);
+          Rcpp::Rcout << input << " SAVED" << endl;
+        }
+      }
 
     }
     catch (runtime_error& ex) {
@@ -418,7 +428,7 @@ clock_t t0, t1;
 
   }
 
-  if(compEnergy){
+  if(compEnergy>0){
     //compute optional tensor energy
     Mat gx, gy;
     Scharr(cellImg, gx, CV_32F, 1, 0); //CV_32F
@@ -448,11 +458,11 @@ clock_t t0, t1;
   
 
     // Compute the structure tensor, and from it, anisotropy
-    int Sigma = 10;
+    //int Sigma = 10;
     Mat gx2, gxy, gy2;
-    GaussianBlur(gx.mul(gx), gx2, Size(0, 0), Sigma); 
-    GaussianBlur(gx.mul(gy), gxy, Size(0, 0), Sigma);
-    GaussianBlur(gy.mul(gy), gy2, Size(0, 0), Sigma);
+    GaussianBlur(gx.mul(gx), gx2, Size(0, 0), compEnergy); 
+    GaussianBlur(gx.mul(gy), gxy, Size(0, 0), compEnergy);
+    GaussianBlur(gy.mul(gy), gy2, Size(0, 0), compEnergy);
     MatExpr trace = gx2 + gy2;
     MatExpr det = gx2.mul(gy2) - gxy.mul(gxy);
     Mat second_term;
@@ -462,11 +472,9 @@ clock_t t0, t1;
     //compute the tensors
     //Mat anisotropy = eig1 / eig2;
 
-
-
     Mat energy = trace;
   minMaxLoc(energy, &minVal, &maxVal);
-  Rcpp::Rcout << minVal << " MAXVALUE" << endl;
+  Rcpp::Rcout << minVal << " MinVALUE" << endl;
     Rcpp::Rcout << maxVal << " MAXVALUE" << endl;
 
     if(maxNorm!=0){

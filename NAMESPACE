@@ -56,6 +56,7 @@ export(printJSONneuron)
 export(printJSONoutlines)
 export(imshow)
 export(get.pixel.intensity)
+export(get.vector.intensity)
 
 export(getWholeSection)
 export(automatic.correspondences)
