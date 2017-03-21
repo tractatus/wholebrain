@@ -20,25 +20,34 @@ showImage <- function(file) {
 }
 
 map.to.atlas<-function(image.number=c(24,32,45,65), coordinate=c(1.1,0.1,-0.9,-2.75), sampling.period=0.1, folder=NULL, number.of.sections=NULL){
-  coord<-seq(image.number[1]*sampling.period+coordinate[1], coordinate[1], length.out=image.number[1])
-  for(i in 2:length(image.number)){
-    coord.add<-seq(coord[length(coord)]-sampling.period, coordinate[i], length.out= image.number[i]-image.number[i-1])
-    coord<-append(coord, coord.add)
-  }
-  if(!is.null(folder)){
-    images<-get.images(folder)
-    if(length(images)>length(coord)){
-      coord<-append(coord, seq(coordinate[length(coordinate)]+sampling.period, coordinate[length(coordinate)]+(length(images)-length(coord) )*sampling.period, length.out=(length(images)-length(coord) ) ))
+    coord <- seq(image.number[1] * sampling.period + coordinate[1], 
+        coordinate[1], length.out = image.number[1])
+    for (i in 2:length(image.number)) {
+        coord.add <- seq(coord[length(coord)] - sampling.period, 
+            coordinate[i], length.out = image.number[i] - image.number[i - 
+                1])
+        coord <- append(coord, coord.add)
     }
-  }
-  if(!is.null(number.of.sections)){
-      if(number.of.sections>length(coord)){
-          coord<-append(coord, seq(coordinate[length(coordinate)]+sampling.period, coordinate[length(coordinate)]+(number.of.sections-length(coord) )*sampling.period, length.out=(number.of.sections-length(coord) ) ))
-      }
-  
-  }
-
-  return(coord)
+    if (!is.null(folder)) {
+        images <- get.images(folder)
+        if (length(images) > length(coord)) {
+            sign.direction<-sign(sum(diff(coord)))
+            coord <- append(coord, seq(coordinate[length(coordinate)] + 
+                sign.direction*sampling.period, coordinate[length(coordinate)] - 
+                (length(images) - length(coord)) * sampling.period, 
+                length.out = (length(images) - length(coord))))
+        }
+    }
+    if (!is.null(number.of.sections)) {
+        if (number.of.sections > length(coord)) {
+            sign.direction<-sign(sum(diff(coord)))
+            coord <- append(coord, seq(coordinate[length(coordinate)] + 
+                sign.direction*sampling.period, coordinate[length(coordinate)] - 
+                (number.of.sections - length(coord)) * sampling.period, 
+                length.out = (number.of.sections - length(coord))))
+        }
+    }
+    return(coord)
 }
 
 liftingscheme <- function(file) {
