@@ -788,6 +788,8 @@ get.cell.ids<-function(registration, segmentation, forward.warp=FALSE){
       registration<-get.forward.warpRCPP(registration)
     }
     index<-round(scale.factor*cbind(dataset$y, dataset$x))
+    #ensure that 0 indexes are 1
+    index[index==0]<-1
     somaX<-registration$transformationgrid$mxF[index]/scale.factor
     somaY<-registration$transformationgrid$myF[index]/scale.factor
     tomecoord<-stereotactic.coordinates(somaX,somaY,registration, inverse=FALSE)
