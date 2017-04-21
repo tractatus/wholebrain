@@ -117,6 +117,18 @@ get.range<-function(input){
 	return(maxmin)
 }
 
+imstats<-function(input){
+	file <- as.character(input)
+    ## check for existence
+    if(!file.exists(file)){
+      stop(file, ", file not found")
+      return(NULL)
+  	}
+    file <- path.expand(file)
+ 
+	maxmin<-.Call("getImgStats", file)
+	return(maxmin)
+}
 
 
 #' Flip cells to the ipsilateral side

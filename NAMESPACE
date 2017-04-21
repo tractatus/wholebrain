@@ -57,6 +57,7 @@ export(printJSONoutlines)
 export(imshow)
 export(get.pixel.intensity)
 export(get.vector.intensity)
+export(imstats)
 
 export(getWholeSection)
 export(automatic.correspondences)

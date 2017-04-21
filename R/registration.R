@@ -395,6 +395,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
     }
 
     }else{
+      correspondance$correspondance<-na.omit(correspondance$correspondance)
       targetP.x<-correspondance$correspondance[,1]
       targetP.y<-correspondance$correspondance[,2]
       referenceP.x<-correspondance$correspondance[,3]
@@ -403,8 +404,6 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
       centroidNorm<-correspondance$centroidNorm
       centroidAtlas<-correspondance$centroidAtlas
     }
-
-
 
     resizeP<-resize*4
     #resizeP<-resize*4
