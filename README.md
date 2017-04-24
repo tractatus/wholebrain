@@ -14,7 +14,7 @@ WholeBrain is conceived and created by Daniel Fürth, a PhD student in Konstanti
 library(wholebrain)
 
 #set folder with 16-bit raw single-channel TIFF images
-folder<-’~/Users/Documents/myexperiment/’
+folder<-"~/Users/Documents/myexperiment/"
 
 #get images
 images<-get.images(folder)
