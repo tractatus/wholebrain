@@ -72,4 +72,6 @@ flat.field.correction<- function(input, output.folder='../', output.prefix='FFC'
   }
 
   .Call("posteriorFFC", files, output.folder, outname, kernel, show.image, gain.image.name, as.integer(verbose))
+
+  return(output.folder)
 } 
