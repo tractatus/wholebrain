@@ -150,5 +150,5 @@ overlappixels<-round(overlappixels)
                     as.integer(feature.matching),
                     (-as.numeric(rotate)),
                     stitched.image.name)
-return(stitched.image.name)
+return(paste(parentpath,outputfolder,stitched.image.name, sep='/'))
 }
