@@ -9,7 +9,7 @@ WholeBrain is conceived and created by Daniel Fürth, a PhD student in Konstanti
 
 ### Example processing a single section
 
-```
+```R
 #load package
 library(wholebrain)
 
@@ -32,7 +32,13 @@ pixel.resolution<-0.64
 #name of channel imaged
 protein <- "EGFP"
 #make a web map output of your result
-makewebmap(images[1], seg$filter, registration = regi, dataset = dataset, scale = pixel.resolution, fluorophore = protein)
+makewebmap(images[1], 
+			seg$filter, 
+			registration = regi, 
+			dataset = dataset, 
+			scale = pixel.resolution, 
+			fluorophore = protein
+		)
 ```
 
 ### For developers
