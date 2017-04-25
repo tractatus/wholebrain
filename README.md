@@ -12,33 +12,48 @@ WholeBrain is conceived and created by Daniel Fürth, a PhD student in Konstanti
 ```R
 #load package
 library(wholebrain)
-
+	)
+```
+Get the image(s) you want to process.
+```R
 #set folder with 16-bit raw single-channel TIFF images
 folder<-"~/Users/Documents/myexperiment/"
 
 #get images
 images<-get.images(folder)
-
+```
+Segment out neurons and the brain outline from autofluorescence.
+```R
 #segment neurons and brain outline
 seg<-segment(images[1])
+# to access parameters programmatically tryout edit(seg$filter) on the output
+```
+Register to coordinate 0.38 mm anterior-posterior from bregma.
+```R
 #register to atlas coordinate 0.38 mm from bregma anterior-posterior
 regi<-registration(images[1], coordinate= 0.38, filter=seg$filter)
+```
 
+Get cell counts as well as stereotactic coordinates of each cell and display the results.
+```R
 #get cell counts in regions as well as stereotactic coordinates while inspecting registration results
 dataset<-inspect.registration(regi, seg, forward.warps = TRUE)
-
+# try get.cell.ids() to just get the cell dataset object without plotting registration results.
+```
+Write web-based interactive map of your tissue section.
+```R
 #set pixel resolution in microns 
 pixel.resolution<-0.64
 #name of channel imaged
 protein <- "EGFP"
 #make a web map output of your result
 makewebmap(images[1], 
-			seg$filter, 
-			registration = regi, 
-			dataset = dataset, 
-			scale = pixel.resolution, 
-			fluorophore = protein
-		)
+		seg$filter, 
+		registration = regi, 
+		dataset = dataset, 
+		scale = pixel.resolution, 
+		fluorophore = protein
+	)
 ```
 
 ### For developers
