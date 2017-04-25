@@ -655,9 +655,12 @@ glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col=
 
 
 
-
-
 bargraph <- function(dataset, device=TRUE, region.lab='Input region:') {
+    print("bargraph() is deprecated! Use dot.plot() instead.")
+    dot.plot(dataset, device=TRUE, region.lab='Input region:')
+}
+
+dot.plot <- function(dataset, device=TRUE, region.lab='Input region:') {
   
   
   with(dataset, {

@@ -61,7 +61,7 @@ schematic.plot(dataset, title=FALSE, scale.bar=TRUE, mm.grid=FALSE, pch=21, col=
 ```
 Examine cell counts in a single section:
 ```R
-bargraph(dataset, region.lab='FoxP2 positive regions:')
+dot.plot(dataset, region.lab='FoxP2 positive regions:')
 ```
 
 ### For developers
