@@ -1,11 +1,10 @@
 /*----------------------------------------
-  ropencv Package initialization 
-  Copyright (c) 2009 Jitao David Zhang
+  wholebrain Package initialization 
+  Copyright (c) 2016 Daniel Fürth
   See ../LICENSE for LPGL License Text
   ----------------------------------------*/
 
-// package specific
-// #include "display.h"
+
 
 // R
 #include <Rcpp.h>
