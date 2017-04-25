@@ -280,6 +280,9 @@ schematic.plot<-function (dataset, coordinate = NULL, title = TRUE, mm.grid = TR
     if (!save.plots) {
         quartz(width = dev.size[1], height = dev.size[1])
     }
+    #assign temporary animal label if this is not defined
+    dataset$animal[is.na(dataset$animal)]<-'noname'
+
     if (is.null(coordinate)) {
         if (length(which(dataset$color == "#000000")) > 0) {
             dataset <- dataset[-which(dataset$color == "#000000"), 
