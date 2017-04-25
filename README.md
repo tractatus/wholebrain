@@ -54,6 +54,15 @@ makewebmap(images[1],
 		fluorophore = protein
 	)
 ```
+### Some plotting
+Plot schematic with cells and their position:
+```R
+schematic.plot(dataset, title=FALSE, scale.bar=TRUE, mm.grid=FALSE, pch=21, col=gray(0.1), dev.size=c(13.54595, 10.65946))
+```
+Examine cell counts in a single section:
+```R
+bargraph(dataset, region.lab='FoxP2 positive regions:')
+```
 
 ### For developers
 

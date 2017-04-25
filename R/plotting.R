@@ -657,7 +657,7 @@ glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col=
 
 
 
-bargraph <- function(dataset, device=TRUE) {
+bargraph <- function(dataset, device=TRUE, region.lab='Input region:') {
   
   
   with(dataset, {
@@ -673,7 +673,7 @@ bargraph <- function(dataset, device=TRUE) {
     plot(rep(2.5, nrow(counts) ),nrow(counts):1, col=0, axes=F, ylim=c(0.5,nrow(counts)+0.5), ylab='', xlab='', xlim=c(1,5))
    
    #regionnames
-   mtext('Input region:',3, cex=0.9)
+   mtext(region.lab,3, cex=0.9)
    for(i in 1:nrow(counts)){
     regioncolor<-color.from.acronym(row.names(counts)[i])
     regioncolor<-adjustcolor( regioncolor, alpha.f = 0.1)
