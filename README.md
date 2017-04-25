@@ -12,7 +12,6 @@ WholeBrain is conceived and created by Daniel Fürth, a PhD student in Konstanti
 ```R
 #load package
 library(wholebrain)
-	)
 ```
 Get the image(s) you want to process.
 ```R
