@@ -32,7 +32,7 @@ Register to coordinate 0.38 mm anterior-posterior from bregma.
 #register to atlas coordinate 0.38 mm from bregma anterior-posterior
 regi<-registration(images[1], coordinate= 0.38, filter=seg$filter)
 ```
-<img src="http://www.wholebrainsoftware.org/examples/images/correspondance_points.png" width="300px" align="left">
+<img src="http://www.wholebrainsoftware.org/examples/images/correspondance_points.png" width="100px" align="left">
 
 Get cell counts as well as stereotactic coordinates of each cell and display the results.
 ```R
