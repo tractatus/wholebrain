@@ -468,3 +468,11 @@ spreadsheet.animal<-function(folder, file, sep=','){
 	write.table(data, file=file, sep=sep, row.names=FALSE)
 	return(data)
 }
+
+get.cortex.layer<-function(dataset=dataset, layer=c(1,2,3)){
+	layer[(layer==2)|(layer==3))]<-23
+	remove.non.numbers<-abs(as.numeric(gsub("[A-z]|/","", dataset$acronym))
+	index<-which(remove.non.numbers%in%layer)
+	index<-data.frame(layer= remove.non.numbers[index], index= index)
+	return(index)
+}
