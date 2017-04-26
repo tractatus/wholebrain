@@ -7,6 +7,30 @@ The purpose of WholeBrain is to provide a user-friendly and efficient way for sc
 
 WholeBrain is conceived and created by Daniel Fürth, a PhD student in Konstantinos Meletis lab, at Department of Neuroscience, Karolinska Institutet.
 
+
+### Table of Contents  
+[For developers](#developers)  
+[Installation instructions](#installation)  
+[How to get started](#getstarted)    
+[Example processing a single section](#example)    
+
+<a name="developers"/>
+### For developers
+
+Sorry for the poor documentation. I’m working on it. DM me if interested in contributing or specific dev questions.
+<a name="installation"/>
+### Installation instructions
+
+http://www.wholebrainsoftware.org/cms/install/
+<a name="getstarted"/>
+### How to get started
+
+http://www.wholebrainsoftware.org/cms/tutorials/
+
+#### Author(s)
+
+Daniel Fürth - [@wholebrainsuite](https://twitter.com/wholebrainsuite) - <daniel.furth@ki.se>
+<a name="example"/>
 ### Example processing a single section
 
 ```R
@@ -61,7 +85,7 @@ makewebmap(images[1],
 	)
 ```
 ![makewebmap()](http://www.wholebrainsoftware.org/examples/images/makewebmap.png)
-**Figure 2.** *Webmap. Clicking on a single segmented neuron shows more info. The Neuron ID number corresponds to the row in dataset where the neuron can be found.*
+**Figure 3.** *Webmap. Clicking on a single segmented neuron shows more info. The Neuron ID number corresponds to the row in dataset where the neuron can be found.*
 
 
 ### Some plotting
@@ -70,28 +94,16 @@ Plot schematic with cells and their position:
 schematic.plot(dataset, title=FALSE, scale.bar=TRUE, mm.grid=FALSE, pch=21, col=gray(0.1), dev.size=c(13.54595, 10.65946))
 ```
 ![schematic.plot()](http://www.wholebrainsoftware.org/examples/images/schematic_plot.png)
-**Figure 2.** *Schematic plot of neurons.*
+**Figure 4.** *Schematic plot of neurons.*
 
 Examine cell counts in a single section:
 ```R
 dot.plot(dataset, region.lab='FoxP2 positive regions:')
 ```
+![schematic.plot()](http://www.wholebrainsoftware.org/examples/images/dot_plot.png)
+**Figure 5.** *Dot plot of cell counts per region as afunction of hemisphere.*
 
-### For developers
 
-Sorry for the poor documentation. I’m working on it. DM me if interested in contributing or specific dev questions.
-
-### Installation instructions
-
-http://www.wholebrainsoftware.org/cms/install/
-
-### How to get started
-
-http://www.wholebrainsoftware.org/cms/tutorials/
-
-#### Author(s)
-
-Daniel Fürth - [@wholebrainsuite](https://twitter.com/wholebrainsuite) - <daniel.furth@ki.se>
 
 
 
