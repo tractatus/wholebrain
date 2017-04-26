@@ -9,11 +9,13 @@ WholeBrain is conceived and created by Daniel Fürth, a PhD student in Konstanti
 
 
 ### Table of Contents  
-[For developers](#developers)  
-[Installation instructions](#installation)  
-[How to get started](#getstarted)    
-[Example processing a single section](#example)    
 
+| section  | description | 
+| ------------- | ------------- | 
+| [For developers](#developers)    | instructions for dev.  |
+| [Installation instructions](#installation)   | How to install on macOS, Windows and Linux.  |
+| [How to get started](#getstarted)   | Link to tutorial page with Youtube videos and code  |
+| [Example processing a single section](#example)  | To get you started directly  |
 
 <a name="developers"/>
 ### For developers
@@ -24,7 +26,7 @@ Sorry for the poor documentation. I’m working on it. DM me if interested in co
 
 http://www.wholebrainsoftware.org/cms/install/
 <a name="getstarted"/>
-### How to get started
+### Tutorials
 
 http://www.wholebrainsoftware.org/cms/tutorials/
 
