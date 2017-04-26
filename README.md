@@ -17,10 +17,13 @@ WholeBrain is conceived and created by Daniel Fürth, a PhD student in Konstanti
 | [How to get started](#getstarted)   | Link to tutorial page with Youtube videos and code  |
 | [Example processing a single section](#example)  | To get you started directly  |
 
+
 <a name="developers"/>
+
 ### For developers
 
 Sorry for the poor documentation. I’m working on it. DM me if interested in contributing or specific dev questions.
+
 <a name="installation"/>
 ### Installation instructions
 
