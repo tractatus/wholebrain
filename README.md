@@ -34,6 +34,7 @@ regi<-registration(images[1], coordinate= 0.38, filter=seg$filter)
 ```
 
 ![corr.points](http://www.wholebrainsoftware.org/examples/images/correspondance_points.png)
+*Figure 1.* Correspondance points. Edit them with change.corrpoints(), add more points with add.corrpoints(), remove them with remove.corrpoints().
 
 Get cell counts as well as stereotactic coordinates of each cell and display the results.
 ```R
