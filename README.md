@@ -14,6 +14,7 @@ WholeBrain is conceived and created by Daniel Fürth, a PhD student in Konstanti
 [How to get started](#getstarted)    
 [Example processing a single section](#example)    
 
+
 <a name="developers"/>
 ### For developers
 
