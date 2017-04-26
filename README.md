@@ -33,8 +33,7 @@ Register to coordinate 0.38 mm anterior-posterior from bregma.
 regi<-registration(images[1], coordinate= 0.38, filter=seg$filter)
 ```
 
-<a href="url"><img src="http://www.wholebrainsoftware.org/examples/images/correspondance_points.png"  height="548" ></a>
-
+![corr.points](http://www.wholebrainsoftware.org/examples/images/correspondance_points.png)
 
 Get cell counts as well as stereotactic coordinates of each cell and display the results.
 ```R
@@ -42,7 +41,7 @@ Get cell counts as well as stereotactic coordinates of each cell and display the
 dataset<-inspect.registration(regi, seg, forward.warps = TRUE)
 # try get.cell.ids() to just get the cell dataset object without plotting registration results.
 ```
-<a href="url"><img src="http://www.wholebrainsoftware.org/examples/images/registration.png" height="548" ></a>
+![inspect.registration()](http://www.wholebrainsoftware.org/examples/images/registration.png)
 
 
 Write web-based interactive map of your tissue section.
