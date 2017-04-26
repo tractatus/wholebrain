@@ -34,7 +34,7 @@ regi<-registration(images[1], coordinate= 0.38, filter=seg$filter)
 ```
 
 <a href="url"><img src="http://www.wholebrainsoftware.org/examples/images/correspondance_points.png" align="left" height="548" ></a>
-
+<br>
 
 Get cell counts as well as stereotactic coordinates of each cell and display the results.
 ```R
@@ -43,7 +43,7 @@ dataset<-inspect.registration(regi, seg, forward.warps = TRUE)
 # try get.cell.ids() to just get the cell dataset object without plotting registration results.
 ```
 <a href="url"><img src="http://www.wholebrainsoftware.org/examples/images/registration.png" align="left" height="548" ></a>
-
+<br>
 
 Write web-based interactive map of your tissue section.
 ```R
@@ -61,7 +61,7 @@ makewebmap(images[1],
 	)
 ```
 <a href="url"><img src="http://www.wholebrainsoftware.org/examples/images/makewebmap.png" align="left" height="548" ></a>
-
+<br>
 
 ### Some plotting
 Plot schematic with cells and their position:
@@ -69,7 +69,7 @@ Plot schematic with cells and their position:
 schematic.plot(dataset, title=FALSE, scale.bar=TRUE, mm.grid=FALSE, pch=21, col=gray(0.1), dev.size=c(13.54595, 10.65946))
 ```
 <a href="url"><img src="http://www.wholebrainsoftware.org/examples/images/schematic_plot.png" align="left" height="548" ></a>
-
+<br>
 Examine cell counts in a single section:
 ```R
 dot.plot(dataset, region.lab='FoxP2 positive regions:')
