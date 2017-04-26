@@ -92,7 +92,14 @@ makewebmap(images[1],
 ### Some plotting
 Plot schematic with cells and their position:
 ```R
-schematic.plot(dataset, title=FALSE, scale.bar=TRUE, mm.grid=FALSE, pch=21, col=gray(0.1), dev.size=c(13.54595, 10.65946))
+schematic.plot(dataset, 
+				title=FALSE, 
+				scale.bar=TRUE, 
+				mm.grid=FALSE, 
+				pch=21, 
+				col=gray(0.1), 
+				dev.size=c(13.54595, 10.65946)
+			)
 ```
 ![schematic.plot()](http://www.wholebrainsoftware.org/examples/images/schematic_plot.png)
 **Figure 4.** *Schematic plot of neurons.*
