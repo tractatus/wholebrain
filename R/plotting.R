@@ -307,7 +307,7 @@ schematic.plot<-function (dataset, coordinate = NULL, title = TRUE, mm.grid = TR
                   atlasIndex$mm.from.bregma) == min(abs(coordinate - 
                   atlasIndex$mm.from.bregma)))]
                 scale = 0.9579832
-                if(exists(dataset$image)){
+                if(length(dataset$image)>0){
                         bregmaX = 5640
                         bregmaY = 0
                     }else{
