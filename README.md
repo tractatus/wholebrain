@@ -59,7 +59,7 @@ makewebmap(images[1],
 		fluorophore = protein
 	)
 ```
-<a href="url"><img src="http://www.wholebrainsoftware.org/examples/images/makewebmap.png"  height="548" ></a>
+![makewebmap()](http://www.wholebrainsoftware.org/examples/images/makewebmap.png)
 
 
 ### Some plotting
@@ -67,7 +67,7 @@ Plot schematic with cells and their position:
 ```R
 schematic.plot(dataset, title=FALSE, scale.bar=TRUE, mm.grid=FALSE, pch=21, col=gray(0.1), dev.size=c(13.54595, 10.65946))
 ```
-<a href="url"><img src="http://www.wholebrainsoftware.org/examples/images/schematic_plot.png"  height="548" ></a>
+![schematic.plot()](http://www.wholebrainsoftware.org/examples/images/schematic_plot.png)
 
 Examine cell counts in a single section:
 ```R
