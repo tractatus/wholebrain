@@ -137,8 +137,6 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
   	Rcpp::CharacterVector of(outputfile);
     std::string off(of[0]);
 
-    //imshow("original",img);
-
 
 
 	// generate some generic points
@@ -153,13 +151,8 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
 
 	// push some points into the vector for the source image
 	for (unsigned i=0; i < srX.size(); i++) {
-	iP.push_back(cv::Point(srX[i],srY[i]));
-	iiP.push_back(cv::Point(dtX[i],dtY[i]));
-	//iP.push_back(cv::Point(400,50));
-	//iP.push_back(cv::Point(50,400));
-	//iP.push_back(cv::Point(400,400));
-	//iP.push_back(cv::Point(256,256));
-	//iP.push_back(cv::Point(150,256));
+	   iP.push_back(cv::Point(srX[i],srY[i]));
+	   iiP.push_back(cv::Point(dtX[i],dtY[i]));
 	}
 	iP.push_back(cv::Point(img.cols,img.rows));
 	iP.push_back(cv::Point(0,0));
@@ -170,16 +163,7 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
 	iiP.push_back(cv::Point(0,0));
 	iiP.push_back(cv::Point(0,img.rows));
 	iiP.push_back(cv::Point(img.cols,0));
-	// push some point into the vector for the dst image
-	/*iiP.push_back(cv::Point(70,70));
-	iiP.push_back(cv::Point(430,60));
-	iiP.push_back(cv::Point(60,410));
-	iiP.push_back(cv::Point(430,420));
-	iiP.push_back(cv::Point(220,280));
-	iiP.push_back(cv::Point(180,240));
-	*/
 
-	// create thin plate spline object and put the vectors into the constructor
 	CThinPlateSpline tps(iP,iiP);
 	
 	// warp the image to dst
@@ -217,8 +201,7 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
 	NumericMatrix Mx(mx.rows, mx.cols, X.begin() );
 	NumericMatrix My(my.rows, my.cols, Y.begin() );
 
-	// show images
-	//cv::imshow("distorted",dst);
+
 	Mat displayoutput;
 	Mat img8bit;
 	Mat displayoutputDST;
