@@ -414,9 +414,11 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
 
   transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
 
+
+  #transform outlines
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
   xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
-  #for loop here
+
   numPaths<-EPSatlas$plates[[k]]@summary@numPaths
   scale.factor<-456/97440
   style<-EPSatlas$plate.info[[k]]$style
@@ -471,11 +473,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
     outlines[[i]]<-list(xr  = xr, yr = yr, xl = xl, yl = yl, xrT = xrT, yrT= yrT, xlT = xlT, ylT = ylT)
   }
 
-  #transformationgrid$mxF
-  #transformationgrid$mxf<-transformationgrid$mxf-transformationgrid$mxf[dim(transformationgrid$mxf)[1],dim(transformationgrid$mxf)[2]]
-  #transformationgrid$myf<-transformationgrid$myf-transformationgrid$myf[dim(transformationgrid$mxf)[1],dim(transformationgrid$mxf)[2]]
-  #transformationgrid$mxf<-transformationgrid$mxf*(dim(transformationgrid$mxf)[2]/transformationgrid$mxf[1, 1])
-  #transformationgrid$myf<-transformationgrid$myf*(dim(transformationgrid$mxf)[1]/transformationgrid$myf[1, 1])
+
 
     if(display){
     par(yaxs='i', xaxs='i')
@@ -518,7 +516,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
         #legend('topright', c('Target section', 'Reference atlas', 'Overlap'), pch=c(21,23,22), col='black', bg='white', horiz=TRUE,pt.bg=c(rgb(0.1,1,1,0.3), rgb(1,1,0.1,0.3), rgb(0.72,1,0.8)))
     }
 
-    returnlist<-list(atlas=list(outlines=outlines, numRegions=numPaths, col=style), transformationgrid=transformationgrid, correspondance=data.frame(targetP.x, targetP.y, referenceP.x, referenceP.y, shape), centroidAtlas=centroidAtlas, centroidNorm = centroidNorm, coordinate=coordinate, outputfile=outputfile )
+    returnlist<-list(atlas=list(outlines=outlines, numRegions=numPaths, col=style), transformationgrid=transformationgrid, correspondance=data.frame(targetP.x, targetP.y, referenceP.x, referenceP.y, shape), centroidAtlas=centroidAtlas, centroidNorm = centroidNorm, coordinate=coordinate, resize= resize, outputfile=outputfile )
   if(forward.warp){
   returnlist<-get.forward.warp(returnlist)
   }
@@ -606,7 +604,7 @@ stereotactic.coordinates <-function(x,y,registration,inverse=FALSE){
   }
 }
 
-plot.registration<-function(registration, main=NULL, border=rgb(154,73,109,maxColorValue=255), draw.trans.grid=FALSE){
+plot.registration<-function(registration, main=NULL, border=rgb(154,73,109,maxColorValue=255), draw.trans.grid=FALSE, batch.mode=FALSE){
 
   scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration$transformationgrid$height,registration$transformationgrid$width) )
   
@@ -790,6 +788,14 @@ get.cell.ids<-function(registration, segmentation, forward.warp=FALSE){
     index<-round(scale.factor*cbind(dataset$y, dataset$x))
     #ensure that 0 indexes are 1
     index[index==0]<-1
+    #check if point is outside image
+    if( length( which(index[,1]>dim(registration$transformationgrid$mxF)[1]) ) ){
+        index[which(index[,1]>dim(registration$transformationgrid$mxF)[1]) ,1]<-dim(registration$transformationgrid$mxF)[1]
+    }
+    if( length( which(index[,2]>dim(registration$transformationgrid$mxF)[2]) ) ){
+      index[which(index[,2]>dim(registration$transformationgrid$mxF)[2]),2]<-dim(registration$transformationgrid$mxF)[2]
+    }
+
     somaX<-registration$transformationgrid$mxF[index]/scale.factor
     somaY<-registration$transformationgrid$myF[index]/scale.factor
     tomecoord<-stereotactic.coordinates(somaX,somaY,registration, inverse=FALSE)
@@ -862,6 +868,63 @@ get.region<-function(acronym, registration){
   
   return(region)
 }
+
+update.regi<-function(regi, manual.output, filter=NULL, display=FALSE){
+  if(!is.list(manual.output)){
+    ee <- new.env()
+    sys.source(manual.output, ee)
+    manual.output<-ee$manual.output
+  }
+
+  #read in manual.output markers
+  coords<-data.frame(x=numeric(),y=numeric())
+  for(i in seq_along(manual.output)){
+    if(manual.output[[i]]$type=='Marker'){
+      coords<-rbind(coords, manual.output[[i]]$coords)
+      names(coords)<-c('x', 'y')
+    }
+  }
+
+  #indexed on odd versus even
+  odd<-seq(1, nrow(coords), by=2)
+  even<-seq(2, nrow(coords), by=2)
+  
+  #scale fatcor becuase we often downsample and resize the original image for spped and to meet the atlas.
+  scale.factor<-dim(regi$transformationgrid$mx)[2]/regi$transformationgrid$width
+
+  #target is the image that the atlas should transform to
+  targetP.x<-scale.factor*coords$x[odd]
+  targetP.y<-scale.factor*coords$y[odd]
+  #reference is what you want it to transform to
+  referenceP.x<-scale.factor*coords$x[even]
+  referenceP.y<-scale.factor*coords$y[even]  
+  
+  if(is.null(regi$transformationgrid$myF)){
+
+  cat(paste('Forward warps has not been not computed, have to compute that first!', sep='') )
+    cat('\nCOMPUTING FORWARD WARPS... this might take some time')
+    regi <-get.forward.warpRCPP(regi)
+    
+  }
+  
+  referenceP.y <-regi$transformationgrid$myF[round(cbind(referenceP.y, referenceP.x))]  
+  referenceP.x <-regi$transformationgrid$mxF[round(cbind(referenceP.y, referenceP.x))]  
+  
+  new.corrpoints<-data.frame(cbind(targetP.x, targetP.y, referenceP.x, referenceP.y))
+  new.corrpoints$shape<-1
+  
+  regi$correspondance <-rbind(regi$correspondance , new.corrpoints )
+  
+  
+#get tiff filename from registration file
+  file <- paste0(gsub("Registration_", "", gsub(c("output_"), "", regi$outputfile)), '.tif')
+  cat("Computing registration with updated corrpoints...")
+  regi<-registration(file, coordinate= regi$coordinate, filter= filter, correspondance=regi, display=display)
+  
+  return(regi)
+
+
+} 
 
 
 get.cellcounts<-function(formula = acronym ~ right.hemisphere + animal, roi=NULL, dataset, exclude=TRUE){
