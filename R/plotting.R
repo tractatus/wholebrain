@@ -604,7 +604,9 @@ paxTOallen<-function(paxinos){
 }
 
 glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col='region', cex=0.5, hemisphere='right', spheres=FALSE){
-	dataset<-dataset[-which(dataset$color=='#000000'),]
+    if(sum(dataset$color=='#000000')>0){
+	   dataset<-dataset[-which(dataset$color=='#000000'),]
+    }
 	if(device){
 		open3d(windowRect = c(0,  0, 1280, 720))
 	}
