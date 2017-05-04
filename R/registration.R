@@ -953,9 +953,42 @@ get.cellcounts<-function(formula = acronym ~ right.hemisphere + animal, roi=NULL
       
     
      return( table(mf) )
- }   
+ }
 
 
+
+get.XML.info<-function(XML.info.file){
+data <- xmlParse(XML.info.file) 
+
+plateinfo <-c(id=numeric(),parent_id=numeric() , order=numeric()  , structure_id=numeric(), style=character())
+
+root <- xmlRoot(data)
+
+objects<-xmlChildren(xmlChildren(root)[[1]])
+
+
+paths<-xmlChildren( objects[[1]] )
+for(i in 1:length(paths)){
+plateinfo<-rbind(plateinfo, xmlAttrs( paths[[i]] ))
+}
+
+plateinfo <-cbind(plateinfo[,c(1,3,4)], substr(plateinfo[,6], nchar(plateinfo[1,6])-6, nchar(plateinfo[1,6]) ) )
+plateinfo <-data.frame(plateinfo)
+names(plateinfo)<-c('id', 'order', 'structure_id', 'style')
+return(plateinfo)
+}
+
+
+create.registration.plate<-function(eps.file="test.eps", svg.file="test.svg"){
+eps<-PostScriptTrace(eps.file) # 100960324_2.eps
+mainAtlas <- readPicture(paste0(eps.file , '.xml'))
+
+
+plateInfo<-get.XML.info(svg.file)
+
+return(list(plates=mainAtlas, plate.info= plateInfo))
+
+}
 
 
 testregistration<-function(input, brain.threshold = 200, verbose=TRUE){
