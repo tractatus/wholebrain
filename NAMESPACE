@@ -70,6 +70,7 @@ export(nuclear.segment)
 export(change.corrpoints)
 export(add.corrpoints)
 export(remove.corrpoints)
+export(shift.corrpoints)
 
 export(get.cell.ids)
 export(acronym.from.id)

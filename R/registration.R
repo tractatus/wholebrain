@@ -1,4 +1,6 @@
 data(EPSatlas, envir=environment())
+data(SAGITTALatlas, envir=environment())
+
 data(atlasIndex, envir=environment())
 #data(atlasOntology, envir=environment())
 data(ontology, envir=environment())
@@ -18,13 +20,21 @@ data(ontology, envir=environment())
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
 
-get.atlas.image<-function(coordinate, directory='TEMPORARY', width=456, plate=FALSE, right.hemisphere=NULL, close.image=TRUE, save.image=TRUE){
+get.atlas.image<-function(coordinate, directory='TEMPORARY', width=456, plane='coronal', plate=FALSE, right.hemisphere=NULL, close.image=TRUE, save.image=TRUE){
+plate.width<-1
+#get cutting plane
+if(plane=="sagittal"){
+ EPSatlas<-SAGITTALatlas
+ atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
+ plate.width<-1.159292
+}
 
+#get closest coordinate in millimeters
 if(plate){
   k<-coordinate
 }else{
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
-plate<-atlasIndex$plate.id[which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))]
+  plate<-atlasIndex$plate.id[which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))]
 }
   
 
@@ -37,39 +47,50 @@ if(atlasIndex$plate.id[k] %in%c(100960309, 100960312, 100960316, 100960320)){
 }
 
 
-xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
+xmin<-(plane!='sagittal')*(min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2)
 
-quartz(width= 11.300 , height= 7.900)
+quartz(width= plate.width*11.300 , height= 7.900)
 par(mar=c(0,0,0,0), bg='black', xaxs='i', yaxs='i')
-plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, col=0, xlim=c(0,97440), ylim=c(0, 68234.56), axes=F)
-if(is.null(right.hemisphere)){
+plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, col=0, xlim=c(0, plate.width*97440), ylim=c(0, 68234.56), axes=F)
+if(is.null(right.hemisphere)&(plane!='sagittal') ){
   polygon(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white' )
-  polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - 97440/2)+97440/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white')
+  polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - (plate.width*97440)/2)+(plate.width*97440)/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white')
 }else{
   #check if right or left hemisphere
-  if(right.hemisphere==TRUE){
+  if( ( (plane!='sagittal')&(right.hemisphere==TRUE) ) | ( (plane=='sagittal')&(right.hemisphere==FALSE) ) ){
       polygon(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin, EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white' )
     }else{
-      polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - 97440/2)+97440/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white')
+      polygon(-(EPSatlas$plates[[k]][[1]]@paths$path@x-xmin - (plate.width*97440)/2)+(plate.width*97440)/2 , EPSatlas$plates[[k]][[1]]@paths$path@y, col='white', border='white')
     }
 }
-if(coordinate <1.3){
+
+if(plane!='sagittal'){
+
+if( coordinate <1.3 ){
 for(i in ventricles){
   polygon(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
-  polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- 97440/2)+97440/2, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
+  polygon(-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin- (plate.width*97440)/2)+(plate.width*97440)/2, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
+}
+}else{
+  for(i in ventricles){
+    polygon(EPSatlas$plates[[k]][[i]]@paths$path@x, EPSatlas$plates[[k]][[i]]@paths$path@y, col='black', border='black', lwd=4)
+  }
 }
 }
+
 if(directory == 'TEMPORARY'){
   full.filename<-paste(tempdir(),'/',plate,'.tif', sep='')
 }else{
   full.filename<-paste(directory,'/',plate,'.tif', sep='')
 } 
+
 cat(paste('Plate',k,'out of',132,'\n') )
 if(save.image){
-dev.copy(tiff, full.filename, width = width, height = 7900*(width/11300), units = "px", res = 150)
+dev.copy(tiff, full.filename, width = plate.width*width, height = 7900*(width/11300), units = "px", res = 150)
 dev.off()
 cat(paste('Saved as:', full.filename,'\n') )
 }
+
 if(close.image){dev.off()}
 return(full.filename)
 }
@@ -316,9 +337,15 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
     outputfile<-paste(parentpath, outfolder,paste('Registration', outputfile, sep='_'), sep='/')
 
 
-    if(plane!='coronal'){
-      stop(plane, " plane is not supported yet.")
-    }
+    plate.width<-1
+    SAGITTAL<-right.hemisphere
+  #get cutting plane
+  if(plane=="sagittal"){
+    EPSatlas<-SAGITTALatlas
+     atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
+    plate.width<-1.159292
+    SAGITTAL<-!SAGITTAL
+  }
 
     if(plateimage!=FALSE){
       plateimage <- as.character(plateimage)
@@ -352,7 +379,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
     contoursI<-as.numeric(names(sort(tapply(contourInput$x,contourInput$contour.ID, min))))
 
     #get correspondance points for atlas
-    filename<-get.atlas.image(coordinate, right.hemisphere=right.hemisphere)
+    filename<-get.atlas.image(coordinate, right.hemisphere=right.hemisphere, plane=plane)
     contourAtlas<-get.contour(filename, resize=1, blur=blurring[2], num.nested.objects=num.nested.objects, display=FALSE)
 
     contours<-as.numeric(names(sort(tapply(contourAtlas$x,contourAtlas$contour.ID, min))))
@@ -417,7 +444,8 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
 
   #transform outlines
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
-  xmin<-min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2
+  xmin<-(plane!='sagittal')*(min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2)
+
 
   numPaths<-EPSatlas$plates[[k]]@summary@numPaths
   scale.factor<-456/97440
@@ -428,7 +456,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
     if(is.null(right.hemisphere)){
       xr<-4*((EPSatlas$plates[[k]][[i]]@paths$path@x-xmin)*scale.factor-centroidNorm[1])
       yr<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
-      xl<-4*((-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin - 97440/2)+97440/2)*scale.factor-centroidNorm[1])
+      xl<-4*((-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin - (plate.width*97440)/2)+(plate.width*97440)/2)*scale.factor-centroidNorm[1])
       yl<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
 
 
@@ -440,7 +468,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
       xlT<-(xl+(transformationgrid$mx[index]-xl) )
       ylT<-(yl+(transformationgrid$my[index]-yl) )
     }else{
-      if(right.hemisphere){
+      if(right.hemisphere==SAGITTAL){
         xr<-4*((EPSatlas$plates[[k]][[i]]@paths$path@x-xmin)*scale.factor-centroidNorm[1])
         yr<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
         xl<-NA
@@ -458,7 +486,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
       }else{
         xr<-NA
         yr<-NA
-        xl<-4*((-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin - 97440/2)+97440/2)*scale.factor-centroidNorm[1])
+        xl<-4*((-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin - (plate.width*97440)/2)+(plate.width*97440)/2)*scale.factor-centroidNorm[1])
         yl<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
 
         xrT<-NA
@@ -500,7 +528,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
           lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xrT,outlines[[x]]$yrT, border='purple' )})
           lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xlT,outlines[[x]]$ylT, border='purple' )})
         }else{
-          if(right.hemisphere){
+          if(right.hemisphere==SAGITTAL){
               lapply(1:numPaths, function(x){polygon(outlines[[x]]$xr,outlines[[x]]$yr, border='orange' )})
               lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xrT,outlines[[x]]$yrT, border='purple' )})
             }else{
@@ -569,6 +597,12 @@ change.corrpoints<-function(registration, n.points, target.only=TRUE){
     registration$correspondance[n.points,]<-new.corr
   }
   
+  return(registration)
+}
+
+shift.corrpoints<-function(registration, steps=1, clockwise=TRUE){
+  clockwise<-1:2+(!clockwise)*2
+  registration$correspondance[,clockwise]<-registration$correspondance[c((2+steps):nrow(regi$correspondance),1:(1+steps) ), clockwise]
   return(registration)
 }
 
