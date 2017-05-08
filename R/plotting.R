@@ -272,6 +272,113 @@ lapply(1:nrow(counts), function(x) {
 }
 
 
+schematic.plot.sagittal<-function(regi, dataset){
+          EPSatlas<-SAGITTALatlas
+      atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
+coordinate<-regi$coordinate
+
+  k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
+
+  scale.factor<-mean(c(dim(regi$transformationgrid$mx)[1]/regi$transformationgrid$height,    dim(regi$transformationgrid$mx)[2]/regi$transformationgrid$width) )
+regi<-get.forward.warpRCPP(regi)
+
+index<-round(scale.factor*cbind(dataset$y, dataset$x))
+    #ensure that 0 indexes are 1
+    index[index==0]<-1
+    #check if point is outside image
+    if( length( which(index[,1]>dim(regi$transformationgrid$mxF)[1]) ) ){
+        index[which(index[,1]>dim(regi$transformationgrid$mxF)[1]) ,1]<-dim(regi$transformationgrid$mxF)[1]
+    }
+    if( length( which(index[,2]>dim(regi$transformationgrid$mxF)[2]) ) ){
+      index[which(index[,2]>dim(regi$transformationgrid$mxF)[2]),2]<-dim(regi$transformationgrid$mxF)[2]
+    }
+
+    somaX<-regi$transformationgrid$mxF[index]/scale.factor
+    somaY<-regi$transformationgrid$myF[index]/scale.factor
+    
+    atlas.fit.scale<-diff(range(regi$atlas$outlines[[1]]$yl/scale.factor))
+    atlas.y.range<-range(EPSatlas$plates[[k]][[1]]@paths$path@y)
+    atlas.scale<-diff(atlas.y.range)
+    
+    distance.to.atlas.center<-(atlas.y.range-68234.56/2)
+    
+    ypos<- -(range(regi$atlas$outlines[[1]]$yl/scale.factor) - (atlas.fit.scale/atlas.scale)*distance.to.atlas.center )[1]
+    ypos<-scale.factor*ypos/4
+    
+    xpos<-min(-(EPSatlas$plates[[k]][[1]]@paths$path@x- (plate.width*97440)/2)+(plate.width*97440)/2)/(plate.width*97440)* plate.width*456 - scale.factor*min(regi$atlas$outlines[[1]]$xl/scale.factor)/4
+    #xpos<-scale.factor*(xmin*(atlas.fit.scale/atlas.scale) )
+    
+    #somaY<-somaY-ypos
+    
+    x<-scale.factor*(somaX)/4
+    y<-scale.factor*(somaY)/4
+    y<-y+ypos
+    x<-x+xpos
+    x<-(x-(width)/2)*25/1000
+    y<-(-y/1000*25)
+           
+    plot(x,y, col=0, xlim=c(-10,7), ylim=c(-4.5,4), axes=FALSE, ylab='', xlab='', asp = 1)
+    
+        
+    style<-rep(gray(0.95), regi$atlas$numRegions)
+                
+                lapply(1:regi$atlas$numRegions, function(N) {
+                    yPoly<- scale.factor*(regi$atlas$outlines[[N]]$yl/scale.factor)/4
+    yPoly <-yPoly +ypos
+    yPoly <-(-yPoly/1000*25)
+
+    xPoly<- scale.factor*(regi$atlas$outlines[[N]]$xl/scale.factor)/4
+    xPoly <-xPoly +xpos
+
+    xPoly <-(xPoly-(width)/2)*25/1000
+
+                    
+                  polygon(xPoly, yPoly, 
+                    col = style[N], border = "black", lwd = 1, 
+                    lty = 3)
+                                    })
+                                    
+                                    
+  ventricles <- c(which(EPSatlas$plate.info[[k]]$style == 
+                  "#aaaaaa")) 
+   
+   for (i in ventricles) {
+                    yPoly<- scale.factor*(regi$atlas$outlines[[i]]$yl/scale.factor)/4
+    yPoly <-yPoly +ypos
+    yPoly <-(-yPoly/1000*25)
+
+    xPoly<- scale.factor*(regi$atlas$outlines[[i]]$xl/scale.factor)/4
+    xPoly <-xPoly +xpos
+
+    xPoly <-(xPoly-(width)/2)*25/1000
+
+                    
+                  polygon(xPoly, yPoly, 
+                      col = "black", border = "black", lwd = 4)
+
+                  }
+                
+                fibertracts <- c(which(EPSatlas$plate.info[[k]]$style == 
+                  "#cccccc"))
+                for (i in fibertracts) {
+                    yPoly<- scale.factor*(regi$atlas$outlines[[i]]$yl/scale.factor)/4
+    yPoly <-yPoly +ypos
+    yPoly <-(-yPoly/1000*25)
+
+    xPoly<- scale.factor*(regi$atlas$outlines[[i]]$xl/scale.factor)/4
+    xPoly <-xPoly +xpos
+
+    xPoly <-(xPoly-(width)/2)*25/1000
+
+                    
+                  polygon(xPoly, yPoly, , 
+                    col = gray(0.85), border = "black", lwd = 1)
+                }                                 
+
+polygon(c(5,6,6,5),  c(-4.2, -4.2, -4.1, -4.1), col='black' )
+
+points(x,y, pch=21, cex=0.5, col=gray(0.1), bg=dataset$color) }
+
 
 
 schematic.plot<-function (dataset, coordinate = NULL, plane='coronal', title = TRUE, mm.grid = TRUE, 
@@ -280,8 +387,8 @@ schematic.plot<-function (dataset, coordinate = NULL, plane='coronal', title = T
 
 
 if(plane=="sagittal"){
-      EPSatlas<-SAGITTALatlas
-      atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
+
+      schematic.plot.sagittal(regi, dataset) #really really ugly hack
 }
 
     if (!save.plots) {
