@@ -274,9 +274,16 @@ lapply(1:nrow(counts), function(x) {
 
 
 
-schematic.plot<-function (dataset, coordinate = NULL, title = TRUE, mm.grid = TRUE, 
+schematic.plot<-function (dataset, coordinate = NULL, plane='coronal', title = TRUE, mm.grid = TRUE, 
     save.plots = FALSE, dev.size = c(5.4, 4.465), pch=21, cex=0.5, col='black', scale.bar=FALSE, region.colors=FALSE) 
 {
+
+
+if(plane=="sagittal"){
+      EPSatlas<-SAGITTALatlas
+      atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
+}
+
     if (!save.plots) {
         quartz(width = dev.size[1], height = dev.size[1])
     }
@@ -603,7 +610,7 @@ paxTOallen<-function(paxinos){
  	round(214+(20-(paxinos*1000))/25)
 }
 
-glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col='region', cex=0.5, hemisphere='right', spheres=FALSE, alpha=1){
+glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col='region', cex=0.5, hemisphere='right', spheres=FALSE, alpha=1, laterality=TRUE, plane='coronal'){
     if(sum(dataset$color=='#000000')>0){
 	   dataset<-dataset[-which(dataset$color=='#000000'),]
     }
@@ -628,6 +635,15 @@ glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col=
 		hemisphere<-1
 	}
 
+    if(plane=='coronal'){
+        smp.AP<- rnorm(length(dataset$AP), 0,(320/9.75)*0.2 )
+            smp.ML<-0
+        }else{
+            smp.ML<- rnorm(length(dataset$AP), 0,(320/9.75)*0.2 )
+            smp.AP<-0
+        }
+
+    if(laterality){
 	if(length(unique(dataset$AP))>1){
 		laterality<-table(dataset$AP, dataset$right.hemisphere)
 		for(i in 1:nrow(laterality)){
@@ -643,12 +659,13 @@ glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col=
 			
 		}
 	}
+    }
 
     if(spheres){
-    spheres3d(paxTOallen(dataset$AP)-530/2+rnorm(length(dataset$AP), 0,(320/9.75)*0.2 ), -dataset$DV*1000/25-320/2, dataset$ML*1000/25, col=color, radius=cex, alpha=alpha )
+    spheres3d(paxTOallen(dataset$AP)-530/2+smp.AP, -dataset$DV*1000/25-320/2, dataset$ML*1000/25+smp.ML, col=color, radius=cex, alpha=alpha )
 
         }else{
-                points3d(paxTOallen(dataset$AP)-530/2+rnorm(length(dataset$AP), 0,(320/9.75)*0.2 ), (-dataset$DV*1000/25*0.95)-320/2, dataset$ML*1000/25, col=color, size=cex, alpha=alpha )
+                points3d(paxTOallen(dataset$AP)-530/2+smp.AP, (-dataset$DV*1000/25*0.95)-320/2, dataset$ML*1000/25+smp.ML, col=color, size=cex, alpha=alpha )
 
         }
 

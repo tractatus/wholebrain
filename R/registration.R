@@ -544,7 +544,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
         #legend('topright', c('Target section', 'Reference atlas', 'Overlap'), pch=c(21,23,22), col='black', bg='white', horiz=TRUE,pt.bg=c(rgb(0.1,1,1,0.3), rgb(1,1,0.1,0.3), rgb(0.72,1,0.8)))
     }
 
-    returnlist<-list(atlas=list(outlines=outlines, numRegions=numPaths, col=style), transformationgrid=transformationgrid, correspondance=data.frame(targetP.x, targetP.y, referenceP.x, referenceP.y, shape), centroidAtlas=centroidAtlas, centroidNorm = centroidNorm, coordinate=coordinate, resize= resize, outputfile=outputfile )
+    returnlist<-list(atlas=list(outlines=outlines, numRegions=numPaths, col=style), transformationgrid=transformationgrid, correspondance=data.frame(targetP.x, targetP.y, referenceP.x, referenceP.y, shape), centroidAtlas=centroidAtlas, centroidNorm = centroidNorm, coordinate=coordinate, resize= resize, outputfile=outputfile, plane=plane )
   if(forward.warp){
   returnlist<-get.forward.warp(returnlist)
   }
@@ -600,42 +600,71 @@ change.corrpoints<-function(registration, n.points, target.only=TRUE){
   return(registration)
 }
 
-shift.corrpoints<-function(registration, steps=1, clockwise=TRUE){
+shift.corrpoints<-function(registration, steps=1, clockwise=TRUE, num.points=32){
   clockwise<-1:2+(!clockwise)*2
-  registration$correspondance[,clockwise]<-registration$correspondance[c((2+steps):nrow(regi$correspondance),1:(1+steps) ), clockwise]
+  registration$correspondance[1:num.points,clockwise]<-registration$correspondance[c((2+steps):num.points,1:(1+steps) ), clockwise]
   return(registration)
 }
 
 
 stereotactic.coordinates <-function(x,y,registration,inverse=FALSE){
-  scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration $transformationgrid$height, registration$transformationgrid$width) )
-  
+  scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration$transformationgrid$height, registration$transformationgrid$width) )
+   #get cutting plane
+  if('plane'%in%names(registration)){
+    if(registration$plane=="sagittal"){
+      EPSatlas<-SAGITTALatlas
+      atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
+      plate.width<-1.159292
+      #get plate in atlas
+      coordinate<-registration$coordinate
+      k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
 
-  
-  if(inverse){
-    x<-x*1000/25+456/2
-    y<-(-y*1000/25)
+
+      width<-(528-214)*2 #this will create abug because of hemisphere.
+
+      atlas.fit.scale<-diff(range(registration$atlas$outlines[[1]]$yl/scale.factor))
+      atlas.y.range<-range(EPSatlas$plates[[k]][[1]]@paths$path@y)
+      atlas.scale<-diff(atlas.y.range)
     
-    x<-4*(x-registration$centroidNorm[1])/scale.factor
-    y<-4*(y-registration$centroidNorm[2])/scale.factor
-    return(list(x=x, y=y))
-    
-    
-  }else{
-    x<-scale.factor*(x)/4
-    y<-scale.factor*(y)/4
-    x<-x+registration$centroidNorm[1]
-    y<-y+registration$centroidNorm[2]
-    x<-(x-456/2)*25/1000
-    y<-(-y/1000*25)
-    #xref<-(4*(456/2-registration$centroidNorm[1]))/scale.factor
-    #yref<-(4*(320/2-registration$centroidNorm[2]))/scale.factor
-  
-    #xref<-(registration$centroidAtlas[1]/xref)
-    #yref<-(registration$centroidAtlas[2]/yref)
-    return(list(x=x, y=y))
-    #return(list(x=(x*xref-456/2)*25/1000, y=-((y*yref)*25)/1000))
+      distance.to.atlas.center<-(atlas.y.range-68234.56/2)
+
+      xpos<-min(-(EPSatlas$plates[[k]][[1]]@paths$path@x- (plate.width*97440)/2)+(plate.width*97440)/2)/(plate.width*97440)* plate.width*456 - scale.factor*min(registration$atlas$outlines[[1]]$xl/scale.factor)/4
+
+      ypos<- -(range(registration$atlas$outlines[[1]]$yl/scale.factor) - (atlas.fit.scale/atlas.scale)*distance.to.atlas.center )[1]
+      ypos<-scale.factor*ypos/4
+
+    }else{
+      #coronal
+      width<-456
+      xpos<-registration$centroidNorm[1]
+      ypos<-registration$centroidNorm[2]
+    }
   }
+
+   if(inverse){
+        x<-x*1000/25+width/2
+        y<-(-y*1000/25)
+    
+        x<-4*(x-xpos)/scale.factor
+        y<-4*(y-ypos)/scale.factor
+        return(list(x=x, y=y))
+      
+      }else{
+        x<-scale.factor*(x)/4
+        y<-scale.factor*(y)/4
+        x<-x+xpos
+        y<-y+ypos
+        x<-(x-width/2)*25/1000
+        y<-(-y/1000*25)
+        #xref<-(4*(456/2-registration$centroidNorm[1]))/scale.factor
+        #yref<-(4*(320/2-registration$centroidNorm[2]))/scale.factor
+  
+        #xref<-(registration$centroidAtlas[1]/xref)
+        #yref<-(registration$centroidAtlas[2]/yref)
+        return(list(x=x, y=y))
+        #return(list(x=(x*xref-456/2)*25/1000, y=-((y*yref)*25)/1000))
+     }
+
 }
 
 plot.registration<-function(registration, main=NULL, border=rgb(154,73,109,maxColorValue=255), draw.trans.grid=FALSE, batch.mode=FALSE){
@@ -781,6 +810,13 @@ return(dataset)
 }
 
 get.cell.ids<-function(registration, segmentation, forward.warp=FALSE){
+  if('plane'%in%names(registration)){
+    if(registration$plane=="sagittal"){
+      EPSatlas<-SAGITTALatlas
+      atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
+    }
+  }
+
   coordinate<-registration$coordinate
 
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
