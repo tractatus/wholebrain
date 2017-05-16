@@ -280,6 +280,12 @@ get.forward.warpRCPP<-function(registration){
   return(registration)
 }
 
+
+custom.registration<-function(input, atlas){
+
+  transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
+}
+
 #' Register
 #'
 #' An image sensor of a camera is composed of a two dimensional array of light sensitive detectors or pixels. The sesnor array is #'mechanically quite stable with the pixels retaining a rigidly fixed geometric relationship. Each pixel within the array, however, #'has its own unique light sensitivity characteristics. As these characteristics affect camera performance, they must be removed #'through calibration. The process by which a camera is calibrated is known as "Flat Fielding" or "Shading Correction".
@@ -693,8 +699,8 @@ if(is.null(main)){
         rasterImage(img,0,0, registration$transformationgrid$width, registration$transformationgrid$height)
 
 
-  lapply(1:numPaths, function(x){polygon(outlines[[x]]$xrT/scale.factor,outlines[[x]]$yrT/scale.factor, border=border ) })
-        lapply(1:numPaths, function(x){polygon(outlines[[x]]$xlT/scale.factor,outlines[[x]]$ylT/scale.factor, border=border )})
+  lapply(1:registration$atlas$numRegions, function(x){polygon(registration$atlas$outlines[[x]]$xrT/scale.factor, registration$atlas$outlines[[x]]$yrT/scale.factor, border=border ) })
+        lapply(1:numPaths, function(x){polygon(registration$atlas$outlines[[x]]$xlT/scale.factor, registration$atlas$outlines[[x]]$ylT/scale.factor, border=border )})
         
 if(draw.trans.grid){
 lapply(seq(1,hei,by=100), function(x){lines(registration$transformationgrid$mx[x,]/scale.factor,registration$transformationgrid$my[x,]/scale.factor, col='lightblue')})

@@ -275,6 +275,8 @@ lapply(1:nrow(counts), function(x) {
 schematic.plot.sagittal<-function(regi, dataset){
           EPSatlas<-SAGITTALatlas
       atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
+      plate.width<-1.159292
+      width<-(528-214)*2
 coordinate<-regi$coordinate
 
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
