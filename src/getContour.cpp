@@ -453,8 +453,9 @@ BEGIN_RCPP
 
   minMaxLoc(energy, &minVal, &maxVal);
   energy.convertTo(img, CV_16S, 65536.0/(maxVal - minVal), -minVal * 65536.0/(maxVal - minVal));
-
+if(DISPLAY){
     imshow("energy", img);
+  }
 
 
   if(thresh==0){
@@ -481,7 +482,9 @@ BEGIN_RCPP
       dilate(sureBG,sureBG,element);
 
    }
+   if(DISPLAY){
       imshow("Sure BG", sureBG);
+    }
 
 
   Mat distanceTest;
@@ -491,7 +494,9 @@ BEGIN_RCPP
   distanceTransform(distanceTest, distantrans, CV_DIST_L2, 5);
   // Normalize the distance image on the unit interval
     normalize(distantrans, distantrans, 0, 1., NORM_MINMAX);
+    if(DISPLAY){
     imshow("Distance Transform Image", distantrans);
+  }
 threshold(distantrans, distantrans, distansThresh, 1., CV_THRESH_BINARY);
   distantrans.convertTo(distantrans, CV_8U);
 
@@ -518,13 +523,15 @@ threshold(distantrans, distantrans, distansThresh, 1., CV_THRESH_BINARY);
   Mat mark = Mat::zeros(markers.size(), CV_8UC1);
   markers.convertTo(mark, CV_8UC1);
   bitwise_not(mark, mark);
+  if(DISPLAY){
   imshow("Markers_v2", mark); // uncomment this if you want to see how the mark image looks like at that point
-
+}
 
   int numOfSegments = contoursDist.size();
   Mat wshed = createSegmentationDisplay(markers, numOfSegments, dist_CV_8UC3);
+  if(DISPLAY){
   imshow("wshed", wshed); // uncomment this if you want to see how the mark image looks like at that point
-
+}
   // Get the borders of the objects (beans)
 Mat distanceTest2;
   Mat distantransT;
@@ -533,14 +540,18 @@ Mat distanceTest2;
   distanceTransform(distanceTest2, distantransT, CV_DIST_L2, 5);
   // Normalize the distance image on the unit interval
     normalize(distantransT, distantransT, 0, 1., NORM_MINMAX);
+    if(DISPLAY){
     imshow("Distance Transform Image2", distantransT);
+  }
 threshold(distantransT, distantransT, distansThresh, 1., CV_THRESH_BINARY);
   //distantransT.convertTo(distantransT, CV_8U);
 
 
   minMaxLoc(distantransT, &minVal, &maxVal);
   distantransT.convertTo(distantransT, CV_8U, 255.0/(maxVal - minVal), -minVal * 255.0/(maxVal - minVal));
+  if(DISPLAY){
     imshow("Distance Transform Image3", distantransT);
+  }
 
   Mat breans, mupp;
   img_bw.convertTo(breans, CV_8UC1);
@@ -574,14 +585,18 @@ threshold(distantransT, distantransT, distansThresh, 1., CV_THRESH_BINARY);
     cv::Mat dt(mupp.size(), CV_8UC3);
 
     cv::drawContours(dt,localMaxima,-1,cv::Scalar(255,255,255),-1);
+    if(DISPLAY){
         cv::imshow(std::string("dist_CV_8UC3"), dist_CV_8UC3);
+      }
 
     cv::Mat dilation, erosion;
     cv::dilate(sureBG, dilation, cv::Mat(), cv::Point(-1,-1), 3);
     cv::erode(dilation, erosion, cv::Mat());
     cv::Mat border(sureBG.size(), CV_8U, cv::Scalar(0));
     border = dilation - erosion;
+    if(DISPLAY){
         cv::imshow(std::string("border"), border);
+      }
 
 /*
 // Get the distance transform and normalize the result to [0,255]
@@ -646,14 +661,15 @@ threshold(distantransT, distantransT, distansThresh, 1., CV_THRESH_BINARY);
               }
         }
     }
+    if(DISPLAY){
   imshow("whitemask", white_mask); // uncomment this if you want to see how the mark image looks like at that point
-
+}
     cv::dilate(white_mask, white_mask, cv::Mat());
 
 Mat nuclei = distantransT - white_mask;
-
+if(DISPLAY){
   imshow("nuclei", nuclei); // uncomment this if you want to see how the mark image looks like at that point
-
+}
 
 
   vector<vector<Point> > contours;
@@ -707,7 +723,9 @@ int numOfSegments2 = contoursDist.size();
   imshow("output", wshed2); // uncomment this if you want to see how the mark image looks like at that point
 
     cv::dilate(green_mask, green_mask, cv::Mat());
+    if(DISPLAY){
     cv::imshow(std::string("green_mask"), green_mask);
+  }
 
 
 minMaxLoc(border, &minVal, &maxVal);
@@ -717,7 +735,9 @@ minMaxLoc(border, &minVal, &maxVal);
     cv::cvtColor(border, border, CV_GRAY2RGB);
 
     cv::Mat result = originalImag + green_mask + border;
+    if(DISPLAY){
     cv::imshow(std::string("result"), result);
+    }
 /*
 Mat labeledImage;
 connectedComponents(distantrans, labeledImage, 8, CV_32S);   
@@ -754,6 +774,7 @@ connectedComponents(distantrans, labeledImage, 8, CV_32S);
   }
   }
   }
+
   //return R_NilValue;
 
    return List::create(
