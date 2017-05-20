@@ -27,6 +27,9 @@ if(plane=="sagittal"){
  EPSatlas<-SAGITTALatlas
  atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
  plate.width<-1.159292
+}else{
+   atlasIndex<-atlasIndex[atlasIndex$plane=="coronal", ]
+
 }
 
 #get closest coordinate in millimeters
@@ -1068,12 +1071,12 @@ return(list(plates=mainAtlas, plate.info= plateInfo))
 
 
 testregistration<-function(input, brain.threshold = 200, verbose=TRUE){
-	file <- as.character(input)
+  file <- as.character(input)
     ## check for existence
     if(!file.exists(file))
       stop(file, ", file not found")
     file <- path.expand(file)
 
-	threshold<-brain.threshold
+  threshold<-brain.threshold
   .Call("ThinPlateRegistration", file, as.integer(threshold), as.integer(verbose))
-} 
+}  

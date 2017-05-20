@@ -720,8 +720,9 @@ minMaxLoc(dilation, &minVal, &maxVal);
 
 int numOfSegments2 = contoursDist.size();
   Mat wshed2 = createSegmentationDisplay(markers, numOfSegments, distantransT);//dist_CV_8UC3);
+  if(DISPLAY){
   imshow("output", wshed2); // uncomment this if you want to see how the mark image looks like at that point
-
+  }
     cv::dilate(green_mask, green_mask, cv::Mat());
     if(DISPLAY){
     cv::imshow(std::string("green_mask"), green_mask);

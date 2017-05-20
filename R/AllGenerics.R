@@ -74,6 +74,13 @@ remove.whitematter<-function(dataset){
 	return(dataset)
 }
 
+get.common.regions<-function(dataset1, dataset2){
+	regions.to.reduce<-names(table(dataset1$acronym))[which(!names(table(dataset1$acronym))%in%names(table(dataset2$acronym)))]
+
+	new.names<-get.acronym.parent(regions.to.reduce)
+
+}
+
 get.vector.intensity<-function(input, x, y){
 	file <- as.character(input)
     ## check for existence
