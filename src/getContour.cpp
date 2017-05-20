@@ -494,7 +494,7 @@ if(DISPLAY){
   distanceTransform(distanceTest, distantrans, CV_DIST_L2, 5);
   // Normalize the distance image on the unit interval
     normalize(distantrans, distantrans, 0, 1., NORM_MINMAX);
-    if(DISPLAY){
+  if(DISPLAY){
     imshow("Distance Transform Image", distantrans);
   }
 threshold(distantrans, distantrans, distansThresh, 1., CV_THRESH_BINARY);

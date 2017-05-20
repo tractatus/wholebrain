@@ -1079,4 +1079,4 @@ testregistration<-function(input, brain.threshold = 200, verbose=TRUE){
 
   threshold<-brain.threshold
   .Call("ThinPlateRegistration", file, as.integer(threshold), as.integer(verbose))
-}  
+}
