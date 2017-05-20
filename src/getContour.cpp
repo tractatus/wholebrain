@@ -736,9 +736,9 @@ minMaxLoc(border, &minVal, &maxVal);
     cv::cvtColor(border, border, CV_GRAY2RGB);
 
     cv::Mat result = originalImag + green_mask + border;
-    if(DISPLAY){
+
     cv::imshow(std::string("result"), result);
-    }
+  
 /*
 Mat labeledImage;
 connectedComponents(distantrans, labeledImage, 8, CV_32S);   
@@ -774,11 +774,15 @@ connectedComponents(distantrans, labeledImage, 8, CV_32S);
     break;
   }
   }
+  }else{
+     cout << '\n' << "Assembling output list" << endl;
+    destroyAllWindows();
+
   }
 
   //return R_NilValue;
 
-   return List::create(
+  return List::create(
     _["x"] = xPoint,
     _["y"] = yPoint,
     _["contour.ID"] = contourID,
