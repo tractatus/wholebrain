@@ -357,7 +357,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
    atlasIndex<-atlasIndex[atlasIndex$plane=="coronal", ]
 }
 
-  
+
 
     if(plateimage!=FALSE){
       plateimage <- as.character(plateimage)
@@ -826,8 +826,12 @@ get.cell.ids<-function(registration, segmentation, forward.warp=FALSE){
     if(registration$plane=="sagittal"){
       EPSatlas<-SAGITTALatlas
       atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
-    }
-  }
+    }else{
+      atlasIndex<-atlasIndex[atlasIndex$plane=="coronal", ]
+    } 
+  }else{
+      atlasIndex<-atlasIndex[atlasIndex$plane=="coronal", ]
+    } 
 
   coordinate<-registration$coordinate
 
