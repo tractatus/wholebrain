@@ -29,7 +29,6 @@ if(plane=="sagittal"){
  plate.width<-1.159292
 }else{
    atlasIndex<-atlasIndex[atlasIndex$plane=="coronal", ]
-
 }
 
 #get closest coordinate in millimeters
@@ -354,7 +353,11 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
      atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
     plate.width<-1.159292
     SAGITTAL<-!SAGITTAL
-  }
+  }else{
+   atlasIndex<-atlasIndex[atlasIndex$plane=="coronal", ]
+}
+
+  
 
     if(plateimage!=FALSE){
       plateimage <- as.character(plateimage)
