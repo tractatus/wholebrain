@@ -15,6 +15,9 @@ import(plyr)
 ## class
 
 ## misc
+
+export(update.wholebrain)
+
 export(conv)
 export(showImage)
 export(create.output.directory)

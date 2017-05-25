@@ -1,5 +1,9 @@
 
-
+update.wholebrain<-function(){
+	detach('package:wholebrain', unload=TRUE)
+	remove.packages("wholebrain")
+	devtools::install_github("tractatus/wholebrain")
+}
 
 acronym.from.id<-function(x){
 	unlist(lapply(x, function(y){if(length(which(ontology$id ==y))!=0){return(as.character(ontology$acronym[which(ontology$id ==y)]))}else{return(NA)} }))
