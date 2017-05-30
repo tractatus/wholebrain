@@ -45,6 +45,9 @@ stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', t
   if(show.image){show.image<-1}else{show.image<-0}
   show.image<-as.integer(show.image)
   
+  #if output.folder is specified
+  outputfolder<-output.folder
+  
   if(output.folder=='../'){
     defaultwd<-getwd()
     parentpath<-dirname(dirname(input))[1]
