@@ -1077,6 +1077,248 @@ return(list(plates=mainAtlas, plate.info= plateInfo))
 }
 
 
+
+
+custom.get.cell.ids<-function(registration, segmentation){
+
+  #scale up transformation grid
+  scale.factor<-mean(c(dim(registration$transformationgrid$mx)[1]/registration$transformationgrid$height,
+   dim(registration$transformationgrid$mx)[2]/registration$transformationgrid$width) )
+
+  outlines<-registration$atlas$outlines
+  
+  namelist<-as.numeric(as.vector(plate.info$structure_id))
+  colorlist<-plate.info$style
+  neuronregion<-rep(0,length(segmentation$soma$x))
+  neuroncolor<-rep('#000000',length(segmentation$soma$x))
+  right.hemisphere<-rep(NA, length(segmentation$soma$x))
+
+  for(i in 1:length(outlines)){
+    temp<-point.in.polygon(segmentation$soma$x, segmentation$soma$y, c(outlines[[i]]$xlT/scale.factor),c(outlines[[i]]$ylT/scale.factor) )
+    neuronregion[which(temp==1)]<-namelist[i]
+    neuroncolor[which(temp==1)]<-as.character(colorlist[i])
+    right.hemisphere[which(temp==1)]<-FALSE
+  
+    temp<-point.in.polygon(segmentation$soma$x, segmentation$soma$y, c(outlines[[i]]$xrT/scale.factor),c(outlines[[i]]$yrT/scale.factor) )
+    neuronregion[which(temp==1)]<-namelist[i]
+    neuroncolor[which(temp==1)]<-as.character(colorlist[i])
+    right.hemisphere[which(temp==1)]<-TRUE
+  }
+  
+  segmentation$soma$id<- neuronregion
+  segmentation$soma$color<- neuroncolor
+  segmentation$soma$right.hemisphere<-right.hemisphere
+  dataset<-data.frame(segmentation$soma)
+  if(forward.warp==TRUE){
+    if(!(length(registration$transformationgrid$mxF)>0) ){
+      registration<-get.forward.warpRCPP(registration)
+    }
+    index<-round(scale.factor*cbind(dataset$y, dataset$x))
+    #ensure that 0 indexes are 1
+    index[index==0]<-1
+    #check if point is outside image
+    if( length( which(index[,1]>dim(registration$transformationgrid$mxF)[1]) ) ){
+        index[which(index[,1]>dim(registration$transformationgrid$mxF)[1]) ,1]<-dim(registration$transformationgrid$mxF)[1]
+    }
+    if( length( which(index[,2]>dim(registration$transformationgrid$mxF)[2]) ) ){
+      index[which(index[,2]>dim(registration$transformationgrid$mxF)[2]),2]<-dim(registration$transformationgrid$mxF)[2]
+    }
+
+    somaX<-registration$transformationgrid$mxF[index]/scale.factor
+    somaY<-registration$transformationgrid$myF[index]/scale.factor
+    tomecoord<-stereotactic.coordinates(somaX,somaY,registration, inverse=FALSE)
+    dataset$ML<-tomecoord$x
+    dataset$DV<-tomecoord$y
+  }
+  dataset$acronym<-rep(NA, length(dataset$id))
+  class(dataset$acronym)<-'character'
+  dataset$acronym[dataset$id>0]<-as.character(acronym.from.id(dataset$id[dataset$id>0]))
+  dataset$name<-rep(NA, length(dataset$id))
+  class(dataset$name)<-'character'
+  dataset$name[dataset$id>0]<-as.character(name.from.id(dataset$id[dataset$id>0]))
+  imagename<-substr(basename(registration$outputfile), nchar('Registration_')+1 ,nchar(basename(registration $outputfile)))
+  dataset$image<-rep(imagename, nrow(dataset))
+ dataset<-data.frame(animal=rep(NA, nrow(dataset)), AP=rep(registration$coordinate, nrow(dataset)), dataset)
+  dataset$color<-as.character(dataset$color)
+  return(dataset)
+}
+
+
+
+
+custom.registration<-function(input='/Volumes/Seagate Backup Plus Drive/transgenic/copy_transgenic_Lhx6_EGFP.tif' , EPSfile='~/Documents/Annotation2014_141_0254-01.eps', output.folder='../', directory='TEMPORARY', close.image=TRUE, save.image=TRUE, filter=seg$filter, width=456, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2)){
+
+
+file <- as.character(input)
+    ## check for existence
+    if(!file.exists(file))
+      stop(file, ", file not found")
+    file <- path.expand(file)
+
+eps<-PostScriptTrace(EPSfile) 
+atlas <- readPicture(paste0(getwd(),'/', tools::file_path_sans_ext(basename(EPSfile)), '.eps.xml')
+) #100960324_2
+plate.width<-1 #1.159292
+
+quartz(width= plate.width*11.300 , height= 7.900)
+par(mar=c(0,0,0,0), bg='black', xaxs='i', yaxs='i')
+plot(atlas[[1]]@paths$path@x, atlas[[1]]@paths$path@y, col=0, xlim=c(0, plate.width*97440), ylim=c(0, 68234.56), axes=F)
+polygon(atlas[[1]]@paths$path@x, atlas[[1]]@paths$path@y, col='white', border='white' )
+
+plate<-basename(tools::file_path_sans_ext(EPSfile))
+
+if(directory == 'TEMPORARY'){
+  full.filename<-paste(tempdir(),'/',plate,'.tif', sep='')
+}else{
+  full.filename<-paste(directory,'/',plate,'.tif', sep='')
+} 
+
+if(save.image){
+dev.copy(tiff, full.filename, width = plate.width*width, height = 7900*(width/11300), units = "px", res = 150)
+dev.off()
+cat(paste('Saved as:', full.filename,'\n') )
+}
+
+if(close.image){dev.off()}
+
+
+if(is.null(correspondance)){
+#get the contours
+contourInput<-get.contour(file, thresh=filter$brain.threshold, resize=filter$resize, blur=filter$blur, num.nested.objects=0, display=FALSE)  
+contourAtlas<-get.contour(full.filename, resize=1, blur=15, num.nested.objects=0, display=FALSE)
+
+contoursI<-as.numeric(names(sort(tapply(contourInput$x,contourInput$contour.ID, min))))
+contours<-as.numeric(names(sort(tapply(contourAtlas$x,contourAtlas$contour.ID, min))))
+
+#get the resolution level
+    cor.pointsInput<-list()
+    cor.pointsAtlas<-list()
+    for(i in 1:length(contours) ){
+      if(contours[i]==0){
+        resLevel<-resolutionLevel[1]
+      }else{
+        resLevel<-resolutionLevel[2]
+      }
+      cor.pointsAtlas[[i]]<-automatic.correspondences(cbind(contourAtlas$x[which(contourAtlas$contour.ID==contours[i])],contourAtlas$y[which(contourAtlas$contour.ID==contours[i])]), resLevel, plot=FALSE)
+      cor.pointsInput[[i]]<-automatic.correspondences(cbind(contourInput$x[which(contourInput$contour.ID==contoursI[i])],contourInput$y[which(contourInput$contour.ID==contoursI[i])]), resLevel, plot=FALSE)
+    }
+
+    cor.points<-list(atlas=cor.pointsAtlas, input=cor.pointsInput)
+    
+  targetP.x<-numeric()
+    referenceP.x<-numeric()
+    targetP.y<-numeric()
+    referenceP.y<-numeric()
+    shape<-numeric()
+    
+   centroidAtlas<-cor.points$atlas[[1]]$q[1,]
+    centroidNorm<-centroidAtlas-cor.points$input[[1]]$q[1,]
+    for(i in 1:length(contours) ){
+      referenceP.x<-append(referenceP.x, 4*(cor.points$atlas[[i]]$p[,1]-centroidNorm[1]))
+      referenceP.y<-append(referenceP.y, 4*(cor.points$atlas[[i]]$p[,2]-centroidNorm[2]))
+
+      targetP.x<-append(targetP.x, 4*cor.points$input[[i]]$p[,1])
+      targetP.y<-append(targetP.y, 4*cor.points$input[[i]]$p[,2])
+      shape<-append(shape, rep(i, length(cor.points$input[[i]]$p[,2])))
+    }
+
+    }else{
+      correspondance$correspondance<-na.omit(correspondance$correspondance)
+      targetP.x<-correspondance$correspondance[,1]
+      targetP.y<-correspondance$correspondance[,2]
+      referenceP.x<-correspondance$correspondance[,3]
+      referenceP.y<-correspondance$correspondance[,4]
+      shape<-correspondance$correspondance[,5]
+      centroidNorm<-correspondance$centroidNorm
+      centroidAtlas<-correspondance$centroidAtlas
+    }
+    
+    
+    #SET OUTPUT FILE
+     outputfile<-basename(file)
+    outputfile<-strsplit(outputfile, "\\.")[[1]]
+    outputfile<-paste(outputfile[-length(outputfile)], collapse='.')
+
+    defaultwd<-getwd()
+
+    if(output.folder=='./'){
+      parentpath<-dirname(input)[1]
+    }
+    if(output.folder=='../'){
+      parentpath<-dirname(dirname(input))[1]
+    }
+
+    outfolder<-paste('output', outputfile, sep='_')
+    setwd(parentpath)
+    create.output.directory(outfolder, verbose=FALSE)
+    setwd(defaultwd)
+
+    outputfile<-paste(parentpath, outfolder,paste('Registration', outputfile, sep='_'), sep='/')
+       if(is.null(filter)){
+        MaxDisp<-0
+        MinDisp<-0
+      }else{
+        MaxDisp<-filter$Max
+        MinDisp<-filter$Min
+        brain.threshold<-filter$brain.threshold
+        resize<-filter$resize
+      }
+      if(is.null(MinDisp)){
+        MinDisp<-0
+      } 
+
+    resizeP<-resize*4
+
+    
+   transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
+
+numPaths<-atlas@summary@numPaths
+  scale.factor<-456/97440
+
+  outlines<-list()
+  for(i in 1:numPaths){
+    
+        x<-4*((atlas[[i]]@paths$path@x)*scale.factor-centroidNorm[1])
+        y<-4*(((-atlas[[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
+
+
+        index<-cbind(as.integer(round(y)), as.integer(round(x)))
+        xT<-(x+(transformationgrid$mx[index]-x) )
+        yT<-(y+(transformationgrid$my[index]-y) )
+
+
+      outlines[[i]]<-list(x  = x, y = y, xT = xT, yT= yT)
+  }
+  
+
+
+ img<-paste(outputfile,'_undistorted.png', sep='')
+        img <- readPNG(img)
+
+        img = as.raster(img[,])
+
+        par(xaxs='r', yaxs='r')
+        plot(c(0, dim(img)[2]*2),c(0, dim(img)[1]), axes=F, asp=1, col=0, xlab='', ylab='', ylim=c(dim(img)[1],0))
+        polygon(c(-5, dim(img)[2]+5, dim(img)[2]+5, -5), c(-5, -5, dim(img)[1]+5, dim(img)[1]+5) , col='orange')
+        polygon(c(-5+ dim(img)[2], 2*dim(img)[2]+5, 2*dim(img)[2]+5, -5+ dim(img)[2]), c(-5, -5, dim(img)[1]+5, dim(img)[1]+5) , col='purple')
+        
+        rasterImage(img,0,0, dim(img)[2], dim(img)[1])
+        rasterImage(img,dim(img)[2],0, 2*dim(img)[2], dim(img)[1])
+        abline(v=dim(img)[2], lwd=2, col='white')
+             
+    lapply(1:numPaths, function(x){polygon(outlines[[x]]$x, outlines[[x]]$y, border='orange' )})
+        lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xT,outlines[[x]]$yT, border='purple' )})
+        lapply(1:length(targetP.x), function(x){points(c(targetP.x[x]+dim(img)[2],referenceP.x[x]) , c(targetP.y[x],referenceP.y[x]), pch=c(19), col='black', cex=1.8); text(c(targetP.x[x]+dim(img)[2],referenceP.x[x]) , c(targetP.y[x],referenceP.y[x]), label=x, col='white', cex=0.7) } )
+    
+    
+    
+    returnlist<-list(atlas=list(outlines=outlines, numRegions=numPaths, col=unlist(lapply(1:numPaths, function(x){atlas[[x]]@paths$path@rgb})) ), transformationgrid=transformationgrid, correspondance=data.frame(targetP.x, targetP.y, referenceP.x, referenceP.y, shape), centroidAtlas=centroidAtlas, centroidNorm = centroidNorm, coordinate=NA, resize= resize, outputfile=outputfile, plane=NA )
+    
+   return(returnlist)   
+ } 
+
+
+
 testregistration<-function(input, brain.threshold = 200, verbose=TRUE){
   file <- as.character(input)
     ## check for existence
