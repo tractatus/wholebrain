@@ -27,7 +27,7 @@ stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', t
       input<-get.images(input)
       #order them
       index<-basename(input)
-      index<-gsub("[A-z \\.\\(\\)]","",index)
+      index<-gsub("[-A-z \\.\\(\\)]","",index)
       index<-as.numeric(index)
       index<-order(index)
       input<-input[index]
