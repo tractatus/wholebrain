@@ -52,6 +52,7 @@ export(get.sub.structure)
 export(get.acronym.parent)
 export(get.acronym.child)
 export(reflect.cells)
+export(agg.datasets)
 
 export(segment)
 export(makewebmap)

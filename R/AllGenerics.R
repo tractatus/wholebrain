@@ -85,6 +85,19 @@ get.common.regions<-function(dataset1, dataset2){
 
 }
 
+agg.datasets<-function(folder){
+	files<-dir(folder, full.names=TRUE)
+	files<-files[tools::file_ext(files)=='RData']
+	load(files[1])
+	dataset.master<-dataset
+	for(i in seq_along(files)[-1]){
+		load(files[i])
+		dataset.master<-rbind(dataset.master, dataset)
+	}
+	return(dataset.master)
+}
+
+
 get.vector.intensity<-function(input, x, y){
 	file <- as.character(input)
     ## check for existence
