@@ -158,6 +158,12 @@ public:
 
     bool endSegment;
     bool dosegmentation;
+    bool getContour;
+
+    std::vector<int> xPoint;
+    std::vector<int> yPoint;
+    std::vector<int> contourID;
+    int counter = 0;  // counter for counring number of contours.
 
     unsigned int p;
     unsigned int increment;
@@ -214,7 +220,7 @@ public:
         muBrain[i] = moments( brainContours[i], false );
       }
 
-      ///  Get the mass centers:
+      //  Get the mass centers:
       vector<Point2f> mcBrain( brainContours.size() );
       for( int i = 0; i < brainContours.size(); i++ )
          { mcBrain[i] = Point2f( muBrain[i].m10/muBrain[i].m00 , muBrain[i].m01/muBrain[i].m00 ); }
@@ -226,7 +232,7 @@ public:
       Rect bounding_rect;
       Point largest_centroid;
 
-       /// Calculate the area with the moments 00 and compare with the result of the OpenCV function
+       // Calculate the area
       for( int i = 0; i< brainContours.size(); i++ )
         {
 
@@ -340,10 +346,23 @@ public:
            centroidY.push_back( mu[k].m01/mu[k].m00 ); //
            contourSomaArea.push_back(area0);
             mask.copyTo(labels);
-          drawContours(labels, contours, k, Scalar(k), CV_FILLED);
-          Rect roi = boundingRect(contours[k]);
-          Scalar Avg = cv::mean( src(roi), labels(roi) == k);
-          intensitySoma.push_back(Avg[0]);
+            drawContours(labels, contours, k, Scalar(k), CV_FILLED);
+            Rect roi = boundingRect(contours[k]);
+            Scalar Avg = cv::mean( src(roi), labels(roi) == k);
+            intensitySoma.push_back(Avg[0]);
+            if(getContour){
+              //loop through contours
+                for (int j = 0; j < contours[k].size(); ++j){
+                  xPoint.push_back(contours[k][j].x);
+                  yPoint.push_back(contours[k][j].y);
+                  contourID.push_back(counter);
+                }
+                xPoint.push_back(contours[k][0].x); //make sure polygon is closed
+                yPoint.push_back(contours[k][0].y);
+                contourID.push_back(counter);
+                counter++;
+            }
+
           }
 
 
@@ -1065,7 +1084,7 @@ RcppExport SEXP getImgStats(SEXP input){
 }
 
 RcppExport SEXP GUI(SEXP input, SEXP numthresh, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename, SEXP shouldDisplay, 
-  SEXP areaMin, SEXP areaMax, SEXP threshMin, SEXP threshMax, SEXP eccent, SEXP renderMin, SEXP renderMax, SEXP bThresh, SEXP resizeB, SEXP gaussBlur) {
+  SEXP areaMin, SEXP areaMax, SEXP threshMin, SEXP threshMax, SEXP eccent, SEXP renderMin, SEXP renderMax, SEXP bThresh, SEXP resizeB, SEXP gaussBlur, SEXP segContour) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; 
   segmentationtype = true;
@@ -1082,7 +1101,8 @@ BEGIN_RCPP
   double matchingResize = Rcpp::as<double>(resizeB);
   matchingResize = matchingResize*2500;
   int blurSize = Rcpp::as<int>(gaussBlur);
-  //
+  int getContour = Rcpp::as<int>(segContour);
+
 
 
   bool display = Rcpp::as<int>(shouldDisplay);
@@ -1128,14 +1148,6 @@ clock_t tStart, tStop;
         }
   }
 
-  // USE THIS LATE RON IN DOUBLE SLIDER
-  /* string text = "intensity";
-  Point textOrg(603, 22);
-  putText(img2, text, textOrg, fontFace, fontScale, Scalar::all(255), thickness, CV_AA);
-  */
-
-
-  //widgets[3].updateImage()
 
   //DRAW THE GUI
   for(unsigned int i=0; i < widgets.size(); i++){
@@ -1161,19 +1173,6 @@ clock_t tStart, tStop;
 
 
   //load the image 
-  /*
-  Rcpp::CharacterVector mf(input);
-  std::string mff(mf[0]);
-  Rcpp::Rcout << "Loading image:" << mff << std::endl;
-  t0 = clock();
-  pd.src = imread(mff, -1); // -1 tag means "load as is"
-  t1 = clock();
-  double time_elapsed = (double)((t1 - t0) / CLOCKS_PER_SEC);
-  Rcpp::Rcout << "LOADED." << " loading took " <<  time_elapsed << " seconds." << std::endl;
-  Rcpp::Rcout << "Image type: " <<  getImgType(pd.src.type()) << "__" << pd.src.type()  << std::endl;
-  */
-
-
   Rcpp::CharacterVector fname(input);
   std::string ffname(fname[0]);
   Rcpp::Rcout << "Loading image:" << ffname << std::endl;
@@ -1204,9 +1203,15 @@ clock_t tStart, tStop;
     pd.src.convertTo(pd.src, CV_16S);
     Rcpp::Rcout << "Changed image type to: " <<  getImgTypes(pd.src.type()) << "_" << pd.src.type() << std::endl;
   }
+
+  Rcpp::Rcout << "Controls:" << std::endl;
+  Rcpp::Rcout << "ESC : exit segmentation and output results." << std::endl;
+  Rcpp::Rcout << "H key: hide/display segmentation overlay." << std::endl;
+  Rcpp::Rcout << "Z key: hide zoom window." << std::endl;
  
   pd.dosegmentation = true;
   pd.resizeParam = resizeParam;
+  pd.getContour = getContour;
 
   if( widgets[0].guiPixelValue.size()==0 ){
     pd.minThresh = 0;
@@ -1340,6 +1345,28 @@ clock_t tStart, tStop;
   range.push_back(pd.maxThresh);
 
   destroyAllWindows();
+  if(getContour){
+    cout << '\n' << "Contours: " << pd.yPoint.size() << endl;
+    return List::create(
+    _["alim"] = arealimits,
+    _["threshold.range"] = range,
+    _["eccentricity"] = pd.eccentricityThresh,
+    _["Max"] = pd.Max,
+    _["Min"] = pd.Min,
+    _["brain.threshold"] = pd.brainThresh,
+    _["blur"] = pd.blurSize,
+    _["resize"] = (pd.matchingResize/2500),
+    _["downsample"] = resizeParam,
+    _["x"] = pd.centroidX,
+    _["y"] = pd.centroidY,
+    _["intensity"] = pd.intensitySoma,
+    _["soma.area"] = pd.contourSomaArea,
+    _["contour.x"] = pd.xPoint,
+    _["contour.y"] = pd.yPoint,
+    _["contour.ID"] = pd.contourID
+    );
+  }else{
+
   return List::create(
     _["alim"] = arealimits,
     _["threshold.range"] = range,
@@ -1355,6 +1382,7 @@ clock_t tStart, tStop;
     _["intensity"] = pd.intensitySoma,
     _["soma.area"] = pd.contourSomaArea
   );
+  }
 
 END_RCPP  
 }
