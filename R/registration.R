@@ -867,7 +867,7 @@ get.cell.ids<-function(registration, segmentation, forward.warp=FALSE){
   segmentation$soma$color<- neuroncolor
   segmentation$soma$right.hemisphere<-right.hemisphere
   #the first four list items are x,y, area and intensity and have equal length. rest are contours with greater length.
-  dataset<-data.frame(segmentation$soma[1:4])  
+  dataset<-data.frame(segmentation$soma[c(1:4,8:10)])  
   if(forward.warp==TRUE){
     if(!(length(registration$transformationgrid$mxF)>0) ){
       registration<-get.forward.warpRCPP(registration)
