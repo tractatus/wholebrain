@@ -346,7 +346,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
 
 
     plate.width<-1
-    SAGITTAL<-right.hemisphere
+    SAGITTAL<-TRUE#right.hemisphere change this if sgaittal not working
   #get cutting plane
   if(plane=="sagittal"){
     EPSatlas<-SAGITTALatlas
