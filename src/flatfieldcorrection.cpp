@@ -76,7 +76,7 @@ int barWidth = 70;
         else if (p == pos) Rcpp::Rcout << ">";
         else Rcpp::Rcout << " ";
     }
-    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();//cout.flush(); 
+    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::flush;
     R_FlushConsole();
     R_ProcessEvents();
     R_CheckUserInterrupt();
@@ -141,7 +141,7 @@ BEGIN_RCPP
         else if (j == pos) Rcpp::Rcout << ">";
         else Rcpp::Rcout << " ";
     }
-    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();//std::cout.flush();
+    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::flush;
     R_FlushConsole();
     R_ProcessEvents();
     R_CheckUserInterrupt();
@@ -185,7 +185,7 @@ BEGIN_RCPP
         else if (j == pos) Rcpp::Rcout << ">";
         else Rcpp::Rcout << " ";
     }
-    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" <<  std::cout.flush();//std::cout.flush();
+    Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" <<  std::flush;
     R_FlushConsole();
     R_ProcessEvents();
     R_CheckUserInterrupt();
