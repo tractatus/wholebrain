@@ -23,6 +23,9 @@ WholeBrain is conceived and created by Daniel Fürth, a PhD student in Konstanti
 ### For developers
 
 Sorry for the poor documentation. I’m working on it. DM me if interested in contributing or specific dev questions.
+As is usually the case with scientific code this code was written on the go with the purpose of what is valued in academia: getting scientific results and publishing. Sorry for this.
+
+Time, effort and thought on design considerations are required to produce quality code/software. Given the publish or perish mantra in academia, this time investment is often spent writing a new publication. It's a risk-reward consideration. I hope I mitigate the problem at a later time by constantly refractory this code base.
 
 <a name="installation"/>
 ### Installation instructions
