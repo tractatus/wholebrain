@@ -493,7 +493,7 @@ void onTrackbarLT(int v, void *vp)
       setTrackbarPos("upper threshold", "Controls", pd->minThresh);
     }
     //Rprintf("Lower threshold: \v%d \r", pd->thresholds[0]);
-    Rcpp::Rcout << " Lower threshold: " << (pd->minThresh) << "\r" << cout.flush();
+    Rcpp::Rcout << " Lower threshold: " << (pd->minThresh) << "\r" << std::flush;
     R_FlushConsole();
     R_ProcessEvents();
 }
@@ -511,7 +511,7 @@ void onTrackbarUT(int v, void *vp)
       setTrackbarPos("upper threshold", "Controls", pd->maxThresh);
     }
     //Rprintf("Lower threshold: \v%d \r", pd->thresholds[0]);
-    Rcpp::Rcout << "Upper threshold: " << (pd->maxThresh) << "\r" << cout.flush();
+    Rcpp::Rcout << "Upper threshold: " << (pd->maxThresh) << "\r" << std::flush;
     R_FlushConsole();
     R_ProcessEvents();
 }
@@ -524,7 +524,7 @@ void onTrackbarMinA(int v, void *vp)
     //imshow("DST", pd->dst);
     //imshow("OUT", pd->dst);
     //Rprintf("Lower threshold: \v%d \r", pd->thresholds[0]);
-    Rcpp::Rcout << "Min. area: " << (pd->minArea) << "\r" << cout.flush();
+    Rcpp::Rcout << "Min. area: " << (pd->minArea) << "\r" << std::flush;
     R_FlushConsole();
     R_ProcessEvents();
 }
@@ -537,7 +537,7 @@ void onTrackbarMaxA(int v, void *vp)
     //imshow("DST", pd->dst);
     //imshow("OUT", pd->dst);
     //Rprintf("Lower threshold: \v%d \r", pd->thresholds[0]);
-    Rcpp::Rcout << "Max. area: " << (pd->maxArea) << "\r" << cout.flush();
+    Rcpp::Rcout << "Max. area: " << (pd->maxArea) << "\r" << std::flush;
     R_FlushConsole();
     R_ProcessEvents();
 }
@@ -550,7 +550,7 @@ void onTrackbarEcc(int v, void *vp)
     //imshow("DST", pd->dst);
     //imshow("OUT", pd->dst);
     //Rprintf("Lower threshold: \v%d \r", pd->thresholds[0]);
-    Rcpp::Rcout << "Eccentricity: " << (pd->eccentricityThresh) << "\r" << cout.flush();
+    Rcpp::Rcout << "Eccentricity: " << (pd->eccentricityThresh) << "\r" << std::flush;
     R_FlushConsole();
     R_ProcessEvents();
 }
@@ -874,7 +874,7 @@ RcppExport SEXP createTiles(SEXP input, SEXP tilesize, SEXP overlap, SEXP positi
             else if (j == pos) Rcpp::Rcout << ">";
           else Rcpp::Rcout << " ";
         }
-        Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::cout.flush();
+        Rcpp::Rcout << "] " << int(progress * 100.0) << "% \r" << std::flush;
           R_FlushConsole();
           R_ProcessEvents();
           R_CheckUserInterrupt();
