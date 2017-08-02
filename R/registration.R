@@ -516,7 +516,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
 
 
     if(display){
-    par(yaxs='i', xaxs='i')
+    par(yaxs='i', xaxs='i', bg='black', mar=c(0,0,0,0)) 
         img<-paste(outputfile,'_undistorted.png', sep='')
         img <- readPNG(img)
 
@@ -555,6 +555,8 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
         lapply(1:length(targetP.x), function(x){points(c(targetP.x[x]+dim(img)[2],referenceP.x[x]) , c(targetP.y[x],referenceP.y[x]), pch=c(19), col='black', cex=1.8); text(c(targetP.x[x]+dim(img)[2],referenceP.x[x]) , c(targetP.y[x],referenceP.y[x]), label=x, col='white', cex=0.7) } )
         #legend('topright', c('Target section', 'Reference atlas', 'Overlap'), pch=c(21,23,22), col='black', bg='white', horiz=TRUE,pt.bg=c(rgb(0.1,1,1,0.3), rgb(1,1,0.1,0.3), rgb(0.72,1,0.8)))
     }
+
+    style<-EPSatlas$plate.info[[k]]$style
 
     returnlist<-list(atlas=list(outlines=outlines, numRegions=numPaths, col=style), transformationgrid=transformationgrid, correspondance=data.frame(targetP.x, targetP.y, referenceP.x, referenceP.y, shape), centroidAtlas=centroidAtlas, centroidNorm = centroidNorm, coordinate=coordinate, resize= resize, outputfile=outputfile, plane=plane )
   if(forward.warp){
@@ -617,6 +619,27 @@ shift.corrpoints<-function(registration, steps=1, clockwise=TRUE, num.points=32)
   registration$correspondance[1:num.points,clockwise]<-registration$correspondance[c((2+steps):num.points,1:(1+steps) ), clockwise]
   return(registration)
 }
+
+
+# function for jona
+generate.correspondance.points<-function(input, thresh, resize, blur, num.nested.objects, display=FALSE){
+  contourROI<-get.contour(input, thresh, resize, blur, num.nested.objects, display=FALSE)
+  contours<-as.numeric(names(sort(tapply(contour$x,contour$contour.ID, min))))
+
+  #make list object with corrpoints
+  cor.points<-list()
+
+  for(i in 1:length(contours) ){
+      if(contours[i]==0){
+        resLevel<-resolutionLevel[1]
+      }else{
+        resLevel<-resolutionLevel[2]
+      }
+      cor.points[[i]]<-automatic.correspondences(cbind(contourROI$x[which(contourROI$contour.ID==contours[i])],contourROI$y[which(contourROI$contour.ID==contours[i])]), resLevel, plot=display)
+    }
+}
+
+
 
 
 stereotactic.coordinates <-function(x,y,registration,inverse=FALSE){
@@ -704,10 +727,10 @@ if(is.null(main)){
 
         rasterImage(img,0,0, registration$transformationgrid$width, registration$transformationgrid$height)
 
-
-  lapply(1:registration$atlas$numRegions, function(x){polygon(registration$atlas$outlines[[x]]$xrT/scale.factor, registration$atlas$outlines[[x]]$yrT/scale.factor, border=border ) })
-        lapply(1:numPaths, function(x){polygon(registration$atlas$outlines[[x]]$xlT/scale.factor, registration$atlas$outlines[[x]]$ylT/scale.factor, border=border )})
-        
+if(!is.null(border)){
+    lapply(1:registration$atlas$numRegions, function(x){polygon(registration$atlas$outlines[[x]]$xrT/scale.factor, registration$atlas$outlines[[x]]$yrT/scale.factor, border=border ) })
+    lapply(1:registration$atlas$numRegions, function(x){polygon(registration$atlas$outlines[[x]]$xlT/scale.factor, registration$atlas$outlines[[x]]$ylT/scale.factor, border=border )})
+}
 if(draw.trans.grid){
 lapply(seq(1,hei,by=100), function(x){lines(registration$transformationgrid$mx[x,]/scale.factor,registration$transformationgrid$my[x,]/scale.factor, col='lightblue')})
 lines(registration$transformationgrid$mx[hei,]/scale.factor,registration$transformationgrid$my[hei,]/scale.factor, col='lightblue')
@@ -718,12 +741,14 @@ lines(registration$transformationgrid$mx[,wid]/scale.factor,registration$transfo
 }
 
 
-inspect.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, cex=0.5, draw.trans.grid=TRUE, width= 12.280488, height=  6.134146){
+inspect.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, device=TRUE,cex=0.5, draw.trans.grid=TRUE, width= 12.280488, height=  6.134146){
   if(.Platform$OS.type=="windows") {
       batch.mode=TRUE
   }
-  quartz(width= width, height=  height)
-par(yaxs='i',xaxs='i', mfrow=c(1,2), mar=c(4,4,1,1))
+  if(device){
+    quartz(width= width, height=  height)
+    par(yaxs='i',xaxs='i', mfrow=c(1,2), mar=c(4,4,1,1))
+  }
 
 if(is.null(registration$transformationgrid$myF)){
   registration.nm <-deparse(substitute(registration))
@@ -837,7 +862,7 @@ get.cell.ids<-function(registration, segmentation, forward.warp=FALSE){
 
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
 
- plate.info<-EPSatlas$plate.info[[k]] 
+ plate.info<-EPSatlas$plate.info[[k]]
 
   #scale up transformation grid
   scale.factor<-mean(c(dim(registration$transformationgrid$mx)[1]/registration$transformationgrid$height,
@@ -1010,6 +1035,10 @@ update.regi<-function(regi, manual.output, filter=NULL, display=FALSE){
   
   return(regi)
 
+
+}
+
+regiter.to<-function(input, target=1){
 
 } 
 

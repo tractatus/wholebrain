@@ -53,7 +53,7 @@ prune.spots<-function(segmentation, array.dim=c(35, 33), corner=2, tol.dist=200)
   return(list(spot.id=spot.id, missing=missing))
 } 
 
-#' Assign to polygon
+#' Remove spot outliers
 #'
 #' This takes segmented cell nuclei from H&E staining and spot contours form Cy3 ST array 
 #' and returns a parent vector for each cell nuclei.
@@ -67,9 +67,6 @@ prune.spots<-function(segmentation, array.dim=c(35, 33), corner=2, tol.dist=200)
 #' @examples
 #' prune.spots(seg)
 #' @export 
-
-
-
 remove.spot.outliers<-function(segmentation, width=26000, height){
     if(missing(height)){
         height<-width
@@ -111,7 +108,7 @@ combine.st.data<-function(spots, registration, stdata, nuclei, corner=1){
     spots<-remove.spot.outliers(spots)
     spot.id<-prune.spots(spots, corner=corner)
 
-    print("1/4 reading ST-data...")
+    cat("1/4 reading ST-data...\n")
     rnaseq<-read.table(stdata)
 
     rna.seq.id<-strsplit(row.names(rnaseq),'x')
@@ -153,8 +150,12 @@ combine.st.data<-function(spots, registration, stdata, nuclei, corner=1){
     rna.seq.index<-as.integer(rna.seq.index)
 
   rnaseq<-rnaseq[rna.seq.index,]
-  master.data<-list(spots=dataset, genes=rnaseq, nulcei=nuclei.dataset)
+  master.data<-list(spots=dataset, genes=rnaseq, nuclei=nuclei.dataset, corner=corner)
   return(master.data)
+}
+
+st.plot.quality<-function(){
+
 }
 
 spatial.transcriptomics<-function(anatomy, cDNA, feature.filter, cell.body.feature, plot=FALSE){

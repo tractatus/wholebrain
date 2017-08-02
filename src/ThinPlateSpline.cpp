@@ -15,11 +15,8 @@
 
 using namespace cv;
 using namespace Rcpp;
-using namespace std;
-//#include "stdafx.h"
-//#include <cv.h>
-//#include <cxcore.h>
-//#include <highgui.h>
+using namespace std; //bad practise remove when you have time.
+
 #include "CThinPlateSpline.h"
 
 
@@ -120,8 +117,8 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
     Rcpp::CharacterVector fname(input);
     std::string ffname(fname[0]);
     Rcpp::Rcout << "Loading image:" << ffname << std::endl;
-	// load a nice picture
     Mat img = imread(ffname, -1);
+    
     //original image size
     int width = img.cols;
     int height = img.rows;
@@ -140,7 +137,6 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
 
 
 	// generate some generic points
-	// usually you would use a interest point detector such as SURF or SIFT
 	std::vector<cv::Point> iP, iiP;
 
 	NumericVector srX(srcX);
@@ -176,10 +172,6 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
 	Mat my;
 	tps.getMaps(mx, my);
 
-
-
-	//resize(mx, mx, Size(), 2.4375, 2.4375, INTER_LINEAR);
-	//resize(my, my, Size(), 2.4375, 2.4375, INTER_LINEAR);
 
 	vector<float> X;
 	vector<float> Y;
