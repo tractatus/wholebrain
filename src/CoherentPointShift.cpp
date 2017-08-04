@@ -43,30 +43,28 @@ RcppExport SEXP CoherentPointDriftRegistration(){
     std::string off(of[0]);
     */
 
-    int width = 50;
-    int height = 20;
+    int width = 40;
+    int height = 50;
 
-    //define meshgrid in y-coordinates
-    cpd::Matrix y(height, 1);
-    y.col(0) = cpd::Array::LinSpaced(height, 0, height-1);
-   	y = y.replicate(width,1);
-
-   	Rcpp::Rcout << "Y:\n" << y.rows() << std::endl;
-
-
-   	//define meshgrid in x-coordinates
-   	cpd::Matrix x(y.rows(),1);
-   	for (cpd::Matrix::Index i = 0; i < width; ++i) {
-        for (cpd::Matrix::Index j = 0; j < height; ++j) {
-            x(i * , 1) = i;
+    //define meshgrid in y-coordinates could be done more elegant with Eigen but quick and dirty for now
+    cpd::Matrix y(height*width, 1);
+    cpd::Matrix x(y.rows(),1);
+    for (int i = 0; i < width; ++i) {
+        for (int j = 0; j < height; ++j) {
+            y(j+height*i, 0) = j;
+            x(j+height*i, 0) = i;
         }
     }
-    /*
 
-  	cpd::Matrix m_fish_distorted = cpd::matrix_from_path("/Users/danielfurth/Downloads/cpd-master/tests/fixtures/fish_distorted.csv");
-  	cpd::Matrix m_fish = cpd::matrix_from_path("/Users/danielfurth/Downloads/cpd-master/tests/fixtures/fish.csv");
 
-  	Rcpp::Rcout << "File:\n" << "/Users/danielfurth/Downloads/cpd-master/tests/fixtures/fish_distorted2.csv" << std::endl;
+    //column bind to a 2D matrix
+    cpd::Matrix grid(y.rows(), x.cols()+y.cols());
+	grid << x, y;
+
+
+  	cpd::Matrix m_fish_distorted = cpd::matrix_from_path("/Users/danielfurth/Downloads/cpd-master/tests/fixtures/moving.csv");
+  	cpd::Matrix m_fish = cpd::matrix_from_path("/Users/danielfurth/Downloads/cpd-master/tests/fixtures/fixed.csv");
+
 
 
 
@@ -88,19 +86,29 @@ RcppExport SEXP CoherentPointDriftRegistration(){
 
    	Rcpp::Rcout << "m_W size:\n" << result.m_W.rows() << " | " << result.m_W.cols() << std::endl;
 
-   	result.grid = m_fish.replicate(2,1);
+   	result.grid = grid;//m_fish.replicate(2,1);
 
    	Rcpp::Rcout << "Grid size:\n" << result.grid.rows() << " | " << result.grid.cols() << std::endl;
 
-
-   	cpd::Matrix transform = result.matrix(m_fish_distorted);
+   	cpd::Matrix transform = result.transformation_grid(m_fish_distorted);
 
    	Rcpp::Rcout << "T size:\n" << transform.rows() << " | " << transform.cols() << std::endl;
 
+   	//from the eigen vector to the std vector
+    std::vector<double> trans(transform.data(), transform.data() + transform.rows() * transform.cols());
+    std::vector<double> correspondance(transform.data(), probabilities.correspondence.data() + probabilities.correspondence.rows() * probabilities.correspondence.cols());
 
+
+/*
    	Rcpp::Rcout << "X:\n" << x.rows() << std::endl;
    	Rcpp::Rcout << "Y:\n" << y.rows() << std::endl;
 
+   	Rcpp::Rcout << "T.col(0):\n" << transform.col(0) << std::endl;
+   	Rcpp::Rcout << "T.col(1)\n" << transform.col(1) << std::endl;
+
+
+   	Rcpp::Rcout << "grid.col(0):\n" << x.col(0) << std::endl;
+   	Rcpp::Rcout << "grid.col(1)\n" << y.col(0) << std::endl;
 
     //cpd::Matrix transform = result.matrix();
 
@@ -122,8 +130,11 @@ RcppExport SEXP CoherentPointDriftRegistration(){
 
 	/*return List::create(
     	_["transform"] = xx
-  	);*/
-  	return R_NilValue;
+  	);
+  	return R_NilValue; */
+  	return List::create(
+    	_["trans"] = trans
+  	);
 
     END_RCPP
     

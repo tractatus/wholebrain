@@ -7,6 +7,8 @@ The purpose of WholeBrain is to provide a user-friendly and efficient way for sc
 
 WholeBrain is conceived and created by Daniel Fürth, a PhD student in Konstantinos Meletis lab, at Department of Neuroscience, Karolinska Institutet.
 
+Quick question about something you think can be resolved quite fast? Then just go to the gitter room and chat with me (I will respond quite fast):
+[Ask quick questions in our Gitter Room](https://gitter.im/tractatus/Lobby)
 
 ### Table of Contents  
 

@@ -32,6 +32,7 @@ const double DEFAULT_LAMBDA = 3.0;
 
 /// The result of a nonrigid coherent point drift run.
 struct NonrigidResult : public Result {
+    //grid to use for interpolation
     Matrix grid;
     /// The translation component of the transformation.
     Matrix translation;
@@ -41,9 +42,8 @@ struct NonrigidResult : public Result {
     Matrix m_W;
     // the beta parameter
     double m_Beta;
-    /// Returns a single matrix that contains all the velocity
-    /// information.
-    Matrix matrix(const Matrix& moving) const;
+    /// Returns a single matrix that contains the velocity for interpolation points
+    Matrix transformation_grid(const Matrix& moving) const;
 
     void denormalize(const Normalization& normalization);
 };

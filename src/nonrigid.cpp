@@ -60,16 +60,16 @@ NonrigidResult nonrigid(const Matrix& fixed, const Matrix& moving) {
 }
 
 
-Matrix NonrigidResult::matrix(const Matrix& moving) const {
+Matrix NonrigidResult::transformation_grid(const Matrix& moving) const {
     Matrix::Index rows = grid.rows() + 1;
     Matrix::Index cols = grid.cols() + 1;
-    Matrix matrix = Matrix::Zero(rows, cols);
+    Matrix transformation_grid = Matrix::Zero(rows, cols);
 
     Matrix m_G = affinity(grid, moving, m_Beta);
 
-    matrix = grid * scale + m_G * m_W + translation.transpose().replicate(grid.rows(), 1);
+    transformation_grid = grid * scale + m_G * m_W + translation.transpose().replicate(grid.rows(), 1);
 
-    return matrix;
+    return transformation_grid;
 }
 
 void NonrigidResult::denormalize(const Normalization& normalization) {
