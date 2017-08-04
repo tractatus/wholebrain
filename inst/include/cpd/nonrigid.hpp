@@ -31,7 +31,22 @@ const double DEFAULT_BETA = 3.0;
 const double DEFAULT_LAMBDA = 3.0;
 
 /// The result of a nonrigid coherent point drift run.
-struct NonrigidResult : public Result {};
+struct NonrigidResult : public Result {
+    Matrix grid;
+    /// The translation component of the transformation.
+    Matrix translation;
+    /// The scaling component of the transformation.
+    double scale;
+    //the W matrix
+    Matrix m_W;
+    // the beta parameter
+    double m_Beta;
+    /// Returns a single matrix that contains all the velocity
+    /// information.
+    Matrix matrix(const Matrix& moving) const;
+
+    void denormalize(const Normalization& normalization);
+};
 
 /// Nonrigid coherent point drift.
 class Nonrigid : public Transform<NonrigidResult> {

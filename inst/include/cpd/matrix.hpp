@@ -37,6 +37,9 @@ typedef Eigen::Matrix<Matrix::Index, Eigen::Dynamic, 1> IndexVector;
 /// Typedef for our specific type of array.
 typedef Eigen::ArrayXd Array;
 
+// Typedef for specific type of RowVector
+typedef Eigen::RowVectorXd RowVector;
+
 /// Apply a transformation matrix to a set of points.
 ///
 /// The transformation matrix should be one column wider than the point matrix.

@@ -38,13 +38,13 @@ const size_t DEFAULT_MAX_ITERATIONS = 150;
 /// Whether points should be normalized by default.
 const bool DEFAULT_NORMALIZE = true;
 /// The default outlier weight.
-const double DEFAULT_OUTLIERS = 0.1;
+const double DEFAULT_OUTLIERS = 0.7;
 /// The default tolerance.
 const double DEFAULT_TOLERANCE = 1e-5;
 /// The default sigma2.
 const double DEFAULT_SIGMA2 = 0.0;
 /// Whether correspondence vector should be computed by default.
-const bool DEFAULT_CORRESPONDENCE = false;
+const bool DEFAULT_CORRESPONDENCE = true;
 /// Are the scalings of the two datasets linked by default?
 const bool DEFAULT_LINKED = true;
 

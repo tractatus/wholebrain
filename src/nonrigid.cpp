@@ -28,6 +28,7 @@ void Nonrigid::modify_probabilities(Probabilities& probabilities) const {
     probabilities.l += m_lambda / 2.0 * (m_w.transpose() * m_g * m_w).trace();
 }
 
+
 NonrigidResult Nonrigid::compute_one(const Matrix& fixed, const Matrix& moving,
                                      const Probabilities& probabilities,
                                      double sigma2) const {
@@ -48,11 +49,34 @@ NonrigidResult Nonrigid::compute_one(const Matrix& fixed, const Matrix& moving,
              .sum() -
          2 * (probabilities.px.transpose() * result.points).trace()) /
         (np * cols));
+    result.m_Beta = m_beta;
+    result.m_W = w;
     return result;
 }
 
 NonrigidResult nonrigid(const Matrix& fixed, const Matrix& moving) {
     Nonrigid nonrigid;
     return nonrigid.run(fixed, moving);
+}
+
+
+Matrix NonrigidResult::matrix(const Matrix& moving) const {
+    Matrix::Index rows = grid.rows() + 1;
+    Matrix::Index cols = grid.cols() + 1;
+    Matrix matrix = Matrix::Zero(rows, cols);
+
+    Matrix m_G = affinity(grid, moving, m_Beta);
+
+    matrix = grid * scale + m_G * m_W + translation.transpose().replicate(grid.rows(), 1);
+
+    return matrix;
+}
+
+void NonrigidResult::denormalize(const Normalization& normalization) {
+    Result::denormalize(normalization);
+    scale = normalization.fixed_scale / normalization.moving_scale;
+    translation = normalization.fixed_mean - normalization.fixed_scale/normalization.moving_scale*normalization.moving_mean;
+    m_Beta = m_Beta * normalization.moving_scale;
+    m_W = m_W * normalization.fixed_scale;
 }
 } // namespace cpd
