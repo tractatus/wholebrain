@@ -29,6 +29,10 @@ export(unstitch)
 export(flat.field.correction)
 export(laplacetest)
 
+export(prune.spots)
+export(remove.spot.outliers)
+export(combine.st.data)
+
 export(find.dim)
 export(get.grid.coordinates)
 export(stitch)
@@ -65,6 +69,7 @@ export(imstats)
 
 export(getWholeSection)
 export(automatic.correspondences)
+export(cpdNonrigid)
 export(registration)
 export(custom.registration)
 export(update.regi)

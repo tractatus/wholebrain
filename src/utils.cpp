@@ -95,4 +95,9 @@ Matrix affinity(const Matrix& x, const Matrix& y, double beta) {
     }
     return g;
 }
+
+
+
+
+
 } // namespace cpd

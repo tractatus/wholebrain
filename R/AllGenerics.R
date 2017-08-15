@@ -262,7 +262,7 @@ add.group <- function(data, subjectID, group){
 #' image<-'/Volumes/microscope/animal001/slide001/section001.tif'
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
-rgb2gray<-function(input, verbose=TRUE, savefilename=TRUE, invert=TRUE){
+rgb2gray<-function(input,verbose=TRUE, savefilename=TRUE, invert=TRUE, rotate=0){
     file <- as.character(input)
     ## check for existence
     if(!file.exists(file))
@@ -275,7 +275,7 @@ rgb2gray<-function(input, verbose=TRUE, savefilename=TRUE, invert=TRUE){
       savefilename<-paste(getwd(),'/grayscale_',filename,'.tif', sep='')
      }
 
-    a<-.Call("rgbTogray", file, as.integer(verbose), savefilename, as.integer(invert))
+    a<-.Call("rgbTogray", file, as.integer(verbose), savefilename, as.integer(invert), rotate)
     
     return(savefilename)
 }

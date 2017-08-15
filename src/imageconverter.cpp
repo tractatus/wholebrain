@@ -10,7 +10,6 @@ using namespace std;
 using namespace Rcpp;
 
 
-
 string ImgTypesConv(int imgTypeInt)
 {
     int numImgTypes = 35; // 7 base types, with five channel options each (none or C1, ..., C4)
@@ -38,10 +37,25 @@ string ImgTypesConv(int imgTypeInt)
     return "unknown image type";
 }
 
-
+void rotation(cv::Mat &img, int rotflag){
+  //1=CW, 2=CCW, 3=180
+  if (rotflag == 90){
+    Mat tmp = img.t();
+    flip(tmp, img, 1); //transpose+flip(1)=CW
+  } else if (rotflag == -90) {
+    Mat tmp = img.t();
+    flip(tmp, img, 0); //transpose+flip(0)=CCW     
+  } else if (rotflag == 180){
+    flip(img, img,-1);    //flip(-1)=180          
+  } else if (rotflag != 0){ //if not 0,1,2,3:
+    Point2f src_center(img.cols/2.0F, img.rows/2.0F);
+    Mat rot_mat = getRotationMatrix2D(src_center, (double)rotflag, 1.0);
+    warpAffine(img, img, rot_mat, img.size());
+  }
+}
 
 /* apply operation to stack */
-RcppExport SEXP rgbTogray(SEXP input, SEXP writetoconsole, SEXP saveoutput, SEXP invertimg) {
+RcppExport SEXP rgbTogray(SEXP input, SEXP writetoconsole, SEXP saveoutput, SEXP invertimg, SEXP rotate) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
   //Rcpp::CharacterVector std::vector< std::string >
@@ -54,11 +68,17 @@ BEGIN_RCPP
 
   bool verbose = Rcpp::as<bool>(writetoconsole);
   bool invert = Rcpp::as<bool>(invertimg);
+  int angle = Rcpp::as<int>(rotate);
 
   if(verbose){Rcpp::Rcout << "Loading image:" << ffname << std::endl;}
   Mat img = imread(ffname, -1);
   if(verbose){Rcpp::Rcout << "====== LOADING DONE ======" << std::endl;}
 
+  if(rotate!=0){
+    if(verbose){Rcpp::Rcout << "Rotating..." << angle << " degrees" << std::endl;}
+    rotation(img, angle);
+    if(verbose){Rcpp::Rcout << "====== ROTATION DONE ======" << std::endl;}
+  }
    
   
   if(img.type()==16){

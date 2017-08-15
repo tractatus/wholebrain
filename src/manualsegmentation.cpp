@@ -349,7 +349,7 @@ public:
             drawContours(labels, contours, k, Scalar(k), CV_FILLED);
             Rect roi = boundingRect(contours[k]);
             Scalar Avg = cv::mean( src(roi), labels(roi) == k);
-            intensitySoma.push_back(Avg[0]);
+            intensitySoma.push_back((double)Avg[0]);
             if(getContour){
               //loop through contours
                 for (int j = 0; j < contours[k].size(); ++j){

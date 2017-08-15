@@ -100,9 +100,9 @@ remove.spot.outliers<-function(segmentation, width=26000, height){
     
 }
 
-aggregate.st.data<-function(datasets){
-
-}
+#aggregate.st.data<-function(datasets){
+#
+#}
 
 combine.st.data<-function(spots, registration, stdata, nuclei, corner=1){
     spots<-remove.spot.outliers(spots)

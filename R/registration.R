@@ -288,6 +288,26 @@ custom.registration<-function(input, atlas){
   transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
 }
 
+cpdNonrigid<-function(file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile){
+  output<-.Call("CoherentPointDriftRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
+  #reshape into Txy matrix
+  dwp.height<-output$dwp.height
+  dwp.width<-output$dwp.width
+  index1<-seq(1, length(output$trans)/2)
+  index2<-seq(length(output$trans)/2+1, length(output$trans))
+  Tx<-array(output$trans[index1], c(dwp.height, dwp.width))
+  Ty<-array(output$trans[index2], c(dwp.height, dwp.width))
+  #reconstruct the original downsampled matrix
+  x<-array(rep(0:(dwp.height-1), each=dwp.width), c(dwp.height, dwp.width))
+  y<-array(rep(0:(dwp.width-1), dwp.height), c(dwp.height, dwp.width)) 
+
+  #transformation grid
+  mx<-Tx
+  my<-Ty 
+
+  return(list(mx=mx, my=my, width=output$width, height=output$height))
+}
+
 #' Register
 #'
 #' An image sensor of a camera is composed of a two dimensional array of light sensitive detectors or pixels. The sesnor array is #'mechanically quite stable with the pixels retaining a rigidly fixed geometric relationship. Each pixel within the array, however, #'has its own unique light sensitivity characteristics. As these characteristics affect camera performance, they must be removed #'through calibration. The process by which a camera is calibrated is known as "Flat Fielding" or "Shading Correction".
@@ -302,7 +322,7 @@ custom.registration<-function(input, atlas){
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
 
-registration<- function(input, coordinate=NULL, plane="coronal", right.hemisphere=NULL, brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', batch.mode=FALSE, verbose=TRUE){
+registration<- function(input, coordinate=NULL, plane="coronal", right.hemisphere=NULL, interpolation='tps', interpolation.param=NULL, brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', batch.mode=FALSE, verbose=TRUE){
     if(.Platform$OS.type=="windows") {
       
       batch.mode=TRUE
@@ -342,7 +362,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
     create.output.directory(outfolder, verbose=verbose)
     setwd(defaultwd)
 
-    outputfile<-paste(parentpath, outfolder,paste('Registration', outputfile, sep='_'), sep='/')
+    outputfile<-paste(parentpath, outfolder, paste('Registration', outputfile, sep='_'), sep='/')
 
 
     plate.width<-1
@@ -451,7 +471,11 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
    #(1/8)
    #/4)*9.75
 
-  transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
+  if(interpolation=='cpd'){
+    transformationgrid<-cpdNonrigid(file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
+  }else{
+    transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
+  } 
 
 
   #transform outlines
@@ -614,6 +638,8 @@ change.corrpoints<-function(registration, n.points, target.only=TRUE){
   return(registration)
 }
 
+
+
 shift.corrpoints<-function(registration, steps=1, clockwise=TRUE, num.points=32){
   clockwise<-1:2+(!clockwise)*2
   registration$correspondance[1:num.points,clockwise]<-registration$correspondance[c((2+steps):num.points,1:(1+steps) ), clockwise]
@@ -710,7 +736,7 @@ plot.registration<-function(registration, main=NULL, border=rgb(154,73,109,maxCo
     xMin<-min(c(registration$transformationgrid$mx,registration$transformationgrid$mxF),na.rm=TRUE)*(1/scale.factor)
   yMax<-max(c(registration$transformationgrid$my,registration$transformationgrid$myF),na.rm=TRUE)*(1/scale.factor)
     yMin<-min(c(registration$transformationgrid$my,registration$transformationgrid$myF),na.rm=TRUE)*(1/scale.factor)
-
+main.title<-main
 if(is.null(main)){
   main.title<-basename(registration$outputfile)
 }

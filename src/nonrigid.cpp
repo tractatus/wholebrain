@@ -60,7 +60,7 @@ NonrigidResult nonrigid(const Matrix& fixed, const Matrix& moving) {
 }
 
 
-Matrix NonrigidResult::transformation_grid(const Matrix& moving) const {
+Matrix NonrigidResult::transformation_grid(const Matrix& moving, const Matrix& grid) const {
     Matrix::Index rows = grid.rows() + 1;
     Matrix::Index cols = grid.cols() + 1;
     Matrix transformation_grid = Matrix::Zero(rows, cols);
