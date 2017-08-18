@@ -16,11 +16,17 @@ using namespace Rcpp;
 #include <cpd/nonrigid.hpp>
 //#include <Eigen/Dense>
 
-RcppExport SEXP CoherentPointDriftRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dstX, SEXP dstY, SEXP resizeP, SEXP MaxDisp, SEXP MinDisp, SEXP outputfile){
+RcppExport SEXP CoherentPointDriftRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dstX, SEXP dstY, SEXP resizeP, SEXP MaxDisp, SEXP MinDisp, SEXP outputfile, SEXP betaR, SEXP lambdaR, SEXP gammaR, SEXP sigmaR, SEXP max_iterR){
     BEGIN_RCPP
 
    Rcpp::RNGScope __rngScope;
 
+    double beta = Rcpp::as<double>(betaR);
+    double lambda = Rcpp::as<double>(lambdaR);
+    double gamma = Rcpp::as<double>(gammaR);
+    double sigma = Rcpp::as<double>(sigmaR);
+    int max_iter = Rcpp::as<int>(max_iterR);
+            
     Rcpp::CharacterVector fname(input);
     std::string ffname(fname[0]);
     Rcpp::Rcout << "Loading image:" << ffname << std::endl;
@@ -101,32 +107,34 @@ RcppExport SEXP CoherentPointDriftRegistration(SEXP input, SEXP srcX, SEXP srcY,
 	//initialize the runner
   	cpd::Nonrigid runner;
   	//set the parameters
-    runner.outliers(0.7).sigma2(0.0).tolerance(1e-5).max_iterations(150);
+
+    runner.outliers(gamma).sigma2(sigma).tolerance(1e-5).max_iterations(max_iter);
     cpd::NonrigidResult result = runner.run(iP, iiP);
 
   	//Rcpp::Rcout << "Results:\n" << result.points << std::endl;
   	//Rcpp::Rcout << "Reference:\n" << m_fish << std::endl;
   	Rcpp::Rcout << "Iterations: " << result.iterations << std::endl;
 
-  	/* cpd::GaussTransformDirect direct;
-    cpd::Probabilities probabilities = direct.compute(iP, result.points, result.sigma2, 0.1);
+  	cpd::GaussTransformDirect direct;
+    cpd::Probabilities probabilities = direct.compute(iP, result.points, result.sigma2, gamma);
 
-    Rcpp::Rcout << "Correspondance:\n" << probabilities.correspondence << std::endl;
-   	*/
+    //Rcpp::Rcout << "Correspondance:\n" << probabilities.correspondence << std::endl;
+   	
 
    	Rcpp::Rcout << "\nComputing Coherent Point Shift (CPD) transformation\n" << std::endl;
    	cpd::Matrix transform = result.transformation_grid(iiP, grid);
 
    	//from the eigen vector to the std vector
     std::vector<double> trans(transform.data(), transform.data() + transform.rows() * transform.cols());
-    //std::vector<double> correspondance(probabilities.correspondence.data(), probabilities.correspondence.data() + probabilities.correspondence.rows() * probabilities.correspondence.cols());
+    std::vector<int> correspondance(probabilities.correspondence.data(), probabilities.correspondence.data() + probabilities.correspondence.rows() * probabilities.correspondence.cols());
 
   	return List::create(
     	_["trans"] = trans,
     	_["width"] = origwidth,
     	_["height"] = origheight,
        	_["dwp.width"] = width,
-    	_["dwp.height"] = height	
+    	_["dwp.height"] = height,
+    	_["corr.index"] = correspondance
   	);
 
     END_RCPP

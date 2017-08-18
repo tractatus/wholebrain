@@ -288,8 +288,8 @@ custom.registration<-function(input, atlas){
   transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
 }
 
-cpdNonrigid<-function(file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile){
-  output<-.Call("CoherentPointDriftRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
+cpdNonrigid<-function(file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile, beta, lambda, gamma, sigma, max.iter ){
+  output<-.Call("CoherentPointDriftRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile, beta, lambda, gamma, sigma^2, max.iter)
   #reshape into Txy matrix
   dwp.height<-output$dwp.height
   dwp.width<-output$dwp.width
@@ -305,7 +305,7 @@ cpdNonrigid<-function(file, targetP.x, targetP.y, referenceP.x, referenceP.y, re
   mx<-Tx
   my<-Ty 
 
-  return(list(mx=mx, my=my, width=output$width, height=output$height))
+  return(list(mx=mx, my=my, width=output$width, height=output$height, corr.index=output$corr.index))
 }
 
 #' Register
@@ -322,7 +322,7 @@ cpdNonrigid<-function(file, targetP.x, targetP.y, referenceP.x, referenceP.y, re
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
 
-registration<- function(input, coordinate=NULL, plane="coronal", right.hemisphere=NULL, interpolation='tps', interpolation.param=NULL, brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', batch.mode=FALSE, verbose=TRUE){
+registration<- function(input, coordinate=NULL, plane="coronal", right.hemisphere=NULL, interpolation='tps', intrp.param=NULL, brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', batch.mode=FALSE, verbose=TRUE){
     if(.Platform$OS.type=="windows") {
       
       batch.mode=TRUE
@@ -472,7 +472,10 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
    #/4)*9.75
 
   if(interpolation=='cpd'){
-    transformationgrid<-cpdNonrigid(file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
+    if(is.null(intrp.param)){
+      intrp.param<-list(beta = 3.0, lambda = 3.0, gamma = 0.7, sigma = 0.0, max.iter = 150)
+    }
+    transformationgrid<-cpdNonrigid(file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile, intrp.param$beta, intrp.param$lambda, intrp.param$gamma, intrp.param$sigma, intrp.param$max.iter )
   }else{
     transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
   } 
