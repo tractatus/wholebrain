@@ -100,12 +100,15 @@ remove.spot.outliers<-function(segmentation, width=26000, height){
     
 }
 
-aggregate.st.data<-function(datasets){
+merge.st.data<-function(datasets){
+  cat(paste0('Merging dataset: ', 1,'/', length(datasets), '\r'))
   load(datasets[1])
   master.data<-data.frame(cbind(dataset$spots, dataset$genes))
   for(i in seq_along(datasets)[-1]){
+    load(datasets[i])
     master.data.tmp<-data.frame(cbind(dataset$spots, dataset$genes))
     master.data<-rbind.fill(master.data, master.data.tmp)
+    cat(paste0('Merging dataset: ', i,'/', length(datasets), '\r'))
   }
   return(master.data)
 }
