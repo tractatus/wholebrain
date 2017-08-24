@@ -100,9 +100,15 @@ remove.spot.outliers<-function(segmentation, width=26000, height){
     
 }
 
-#aggregate.st.data<-function(datasets){
-#
-#}
+aggregate.st.data<-function(datasets){
+  load(datasets[1])
+  master.data<-data.frame(cbind(dataset$spots, dataset$genes))
+  for(i in seq_along(datasets)[-1]){
+    master.data.tmp<-data.frame(cbind(dataset$spots, dataset$genes))
+    master.data<-rbind.fill(master.data, master.data.tmp)
+  }
+  return(master.data)
+}
 
 combine.st.data<-function(spots, registration, stdata, nuclei, corner=1){
     spots<-remove.spot.outliers(spots)
