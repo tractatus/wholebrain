@@ -860,3 +860,22 @@ dot.plot <- function(dataset, device=TRUE, region.lab='Input region:') {
     
   })
 }
+
+
+plot.outlines<-function(regi, plot=FALSE){
+scale.factor<-regi$transformationgrid$width/dim(regi$transformationgrid$mx)[1]
+if(plot)
+plot(c(regi$atlas$outlines[[1]]$xrT*scale.factor, regi$atlas$outlines[[1]]$xlT*scale.factor), c(regi$atlas$outlines[[1]]$yrT*scale.factor, regi$atlas$outlines[[1]]$ylT*scale.factor), type='l', lwd=2, xlim=c(regi$transformationgrid$width, 0), ylim=c(regi$transformationgrid$height, 0), axes=FALSE, asp=1, xlab='', ylab='')
+
+for(i in 1:regi$atlas$numRegions){
+  if(regi$atlas$col[i]=='#cccccc'){
+    bg<-'#cccccc'
+    lwd<-2
+  }else{
+    bg<-gray(0.95)
+    lwd<-1
+  }
+  polygon(regi$atlas$outlines[[i]]$xlT*scale.factor, regi$atlas$outlines[[i]]$ylT*scale.factor, col=bg, lwd=lwd)
+  polygon(regi$atlas$outlines[[i]]$xrT*scale.factor, regi$atlas$outlines[[i]]$yrT*scale.factor, col=bg, lwd=lwd)
+}
+}

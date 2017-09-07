@@ -108,6 +108,7 @@ export(read.brains)
 export(get.acronym.parent)
 export(suggestions)
 export(plot.suggestions)
+export(plot.outlines)
 
 export(rgb2gray)
 export(morph)
