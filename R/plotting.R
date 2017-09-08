@@ -863,7 +863,7 @@ dot.plot <- function(dataset, device=TRUE, region.lab='Input region:') {
 
 
 plot.outlines<-function(regi, plot=FALSE){
-scale.factor<-regi$transformationgrid$width/dim(regi$transformationgrid$mx)[1]
+scale.factor<-regi$transformationgrid$width/dim(regi$transformationgrid$mx)[2]
 if(plot)
 plot(c(regi$atlas$outlines[[1]]$xrT*scale.factor, regi$atlas$outlines[[1]]$xlT*scale.factor), c(regi$atlas$outlines[[1]]$yrT*scale.factor, regi$atlas$outlines[[1]]$ylT*scale.factor), type='l', lwd=2, xlim=c(regi$transformationgrid$width, 0), ylim=c(regi$transformationgrid$height, 0), axes=FALSE, asp=1, xlab='', ylab='')
 
