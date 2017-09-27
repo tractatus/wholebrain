@@ -1,4 +1,4 @@
-PKG_CPPFLAGS= -I"$(LIB_OPENCV)/release/install/include" -I"$(LIB_OPENCV)/release/bin" -I"$(LIB_FFTW)/" -I../inst/include
-PKG_LIBS= -L"$(LIB_OPENCV)/release/install/x64/mingw/lib" -L"$(LIB_FFTW)/"  -lopencv_core320 -lopencv_highgui320 -lopencv_imgproc320 -lopencv_imgcodecs320 -lopencv_stitching320  -lfftw3-3 `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"`
+PKG_CPPFLAGS= -I"$(LIB_OPENCV)/release/install/include" -I"$(LIB_OPENCV)/release/bin" -I"$(LIB_FFTW)" -I../inst/include
+PKG_LIBS= -L"$(LIB_OPENCV)/release/install/x64/mingw/lib" -L"$(LIB_FFTW)"  -lopencv_core320 -lopencv_highgui320 -lopencv_imgproc320 -lopencv_imgcodecs320 -lopencv_stitching320  -lfftw3-3 `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"`
 PKG_CXXFLAGS = "-std=c++11"
  
