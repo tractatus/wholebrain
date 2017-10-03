@@ -388,7 +388,7 @@ clock_t t0, t1;
     Mat displayImage(dest2);
     cv::resize(dest2, displayImage, Size(), 0.25, 0.25);
 
-    string String = static_cast<ostringstream*>( &(ostringstream() << j) )->str();
+    string String = std::to_string(j);//static_cast<ostringstream*>( &(ostringstream() << j) )->str();
 
     //imshow( String, displayImage ); // image visualisation
     x2 = x1[j];
@@ -500,7 +500,7 @@ clock_t t0, t1;
 
     }
     
-    string cellBodyfilename = static_cast<ostringstream*>( &(ostringstream() << cellB) )->str();
+    string cellBodyfilename = std::to_string(cellB);//static_cast<ostringstream*>( &(ostringstream() << cellB) )->str();
     input = "trace/d" + cellBodyfilename + "_" + "Energy_" + off + ".tif";
     try {
       imwrite(input, energy);

@@ -217,9 +217,9 @@ RcppExport SEXP createWeb(SEXP input, SEXP alpha, SEXP beta, SEXP verbose, SEXP 
             
             tileInput = dstImage(srcTile);
             
-            string tier_number = static_cast<ostringstream*>( &(ostringstream() << tierInd) )->str();
-            string col_number = static_cast<ostringstream*>( &(ostringstream() << colTile) )->str();
-            string row_number = static_cast<ostringstream*>( &(ostringstream() << rowTile) )->str();
+            string tier_number = std::to_string(tierInd);// static_cast<ostringstream*>( &(ostringstream() << tierInd) )->str();
+            string col_number = std::to_string(colTile);//static_cast<ostringstream*>( &(ostringstream() << colTile) )->str();
+            string row_number = std::to_string(rowTile);//static_cast<ostringstream*>( &(ostringstream() << rowTile) )->str();
             
             //imshow( String, displayImage ); // image visualisation
             string filepath;
