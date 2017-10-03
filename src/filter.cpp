@@ -849,7 +849,7 @@ RcppExport SEXP createTiles(SEXP input, SEXP tilesize, SEXP overlap, SEXP positi
             
             copySourceTile(finalImage, tileInput, srcTile);
             
-            string String = static_cast<ostringstream*>( &(ostringstream() << k) )->str();
+            string String = std::to_string(k);//static_cast<ostringstream*>( &(ostringstream() << k) )->str();
             
             //imshow( String, displayImage ); // image visualisation
             string filepath;
@@ -1330,7 +1330,7 @@ BEGIN_RCPP
     Mat displayImage(dest2);
     cv::resize(dest2, displayImage, Size(), 0.25, 0.25);
 
-    string String = static_cast<ostringstream*>( &(ostringstream() << j) )->str();
+    string String = std::to_string(j);//static_cast<ostringstream*>( &(ostringstream() << j) )->str();
 
     //imshow( String, displayImage ); // image visualisation
     x2 = x1[j];
@@ -1500,7 +1500,7 @@ BEGIN_RCPP
   resize(cellImg, cellImg, Size(), 0.25, 0.25);
   */
     
-    string cellBodyfilename = static_cast<ostringstream*>( &(ostringstream() << cellB) )->str();
+    string cellBodyfilename = std::to_string(cellB);//static_cast<ostringstream*>( &(ostringstream() << cellB) )->str();
     input = "scharr/d" + cellBodyfilename + "Scharr_"   + off + ".tif";
     try {
         imwrite(input, grad);
