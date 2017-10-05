@@ -335,17 +335,18 @@ float progress = 0.0;
             }
             
 
-
+            Rcpp::Rcout << "Assigning ROIs: m = " << m << ", overlap = " << overlap << ", y = " << y << ", h = " << h << std::endl;
             Rect left_ROI = Rect(m-overlap, y, overlap, h);
             Rect right_ROI = Rect(0, y, overlap, h);
             Mat src1 = src.at(horizLeftIndex[s]-1)(left_ROI);
             Mat src2 = src.at(horizLeftIndex[s])(right_ROI);
 
-
+            Rcpp::Rcout << "Attempting multiBandBlending" << std::endl;
             Mat blended = multiBandBlending(src1, src2, false);
             //Rcpp::Rcout << "blended.cols: " <<  blended.cols << ", blended.rows: " << blended.rows << std::endl;
             //Rcpp::Rcout << "S: " <<  s << ", x0: " << x0[s] << ", y0: " << y0[s] << ", overlap: " << overlap << ", h: " << h  << std::endl;
 
+            Rcpp::Rcout << "Reassigning blend: x0[s] = " << x0[s] << ", y0[s] = " << y0[s] << ", overlap = " << overlap << ", h = " << h << std::endl;
             blended.copyTo(dst(cv::Rect(x0[s], y0[s], overlap, h)));
              // Rcpp::Rcout << "placed" << std::endl;
 
