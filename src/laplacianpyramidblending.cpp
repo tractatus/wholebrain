@@ -349,7 +349,7 @@ float progress = 0.0;
             Mat src1 = src.at(horizLeftIndex[s]-1)(left_ROI);
             Mat src2 = src.at(horizLeftIndex[s])(right_ROI);
 
-            Rcpp::Rcout << "Attempting multiBandBlending" << std::endl;
+            Rcpp::Rcout << "Attempting multiBandBlending: Rows: " << src1.rows << "Cols: " << src1.cols << std::endl;
             Mat blended = multiBandBlending(src1, src2, false);
             //Rcpp::Rcout << "blended.cols: " <<  blended.cols << ", blended.rows: " << blended.rows << std::endl;
             //Rcpp::Rcout << "S: " <<  s << ", x0: " << x0[s] << ", y0: " << y0[s] << ", overlap: " << overlap << ", h: " << h  << std::endl;
