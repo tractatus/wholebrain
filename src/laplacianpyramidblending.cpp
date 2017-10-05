@@ -81,12 +81,13 @@ private:
      
     void blendLapPyrs() {
         resultSmallestLevel = leftSmallestLevel.mul(maskGaussianPyramid.back())  + 
-                                    rightSmallestLevel.mul(1.0 - maskGaussianPyramid.back());  //rightSmallestLevel.mul(Scalar(1.0,1.0,1.0) - maskGaussianPyramid.back()); */
+        rightSmallestLevel.mul(1.0 - maskGaussianPyramid.back());  //rightSmallestLevel.mul(Scalar(1.0,1.0,1.0) - maskGaussianPyramid.back()); */
         for (int l=0; l<levels; l++) {
             Mat A = leftLapPyr[l].mul(maskGaussianPyramid[l]);
             Mat antiMask = 1.0 - maskGaussianPyramid[l]; //Scalar(1.0,1.0,1.0) - maskGaussianPyramid[l];
             Mat B = rightLapPyr[l].mul(antiMask);
-            Mat_<Vec3f> blendedLevel = A + B;
+            Mat blendedLevel = A + B;
+            //Mat_<Vec3f> blendedLevel = A + B;
              
             resultLapPyr.push_back(blendedLevel);
 
