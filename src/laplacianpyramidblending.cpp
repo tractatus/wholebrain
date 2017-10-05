@@ -100,16 +100,13 @@ public:
     { 
         assert(_left.size() == _right.size());
         assert(_left.size() == _blendMask.size());
-        Rcpp::Rcout << "buildPyramids..." << std::endl;
 
         buildPyramids();
-                Rcpp::Rcout << "blendLapPyrs..." << std::endl;
 
         blendLapPyrs();
     };
      
     Mat_<float> blend() {
-                        Rcpp::Rcout << "reconstructImgFromLapPyramid..." << std::endl;
 
         return reconstructImgFromLapPyramid();
     }   
@@ -126,7 +123,6 @@ Mat_<ushort> multiBandBlending(Mat src1, Mat src2, bool vertical) {
     {
      cerr << "cannot get image overlap" << endl;
     }
-  Rcpp::Rcout << "Convert to Float 32" << std::endl;
    Mat_<float> dst1; src1.convertTo(dst1, CV_32F, 1.0/65535.0);
    Mat_<float> dst2; src2.convertTo(dst2, CV_32F, 1.0/65535.0);
    Mat_<float> m(dst1.rows,dst2.cols,0.0);
@@ -137,7 +133,6 @@ Mat_<ushort> multiBandBlending(Mat src1, Mat src2, bool vertical) {
    }else{
      m(Range::all(),Range(0,m.cols/2)) = 1.0;
    }
-     Rcpp::Rcout << "LaPlacian Blending" << std::endl;
 
    Mat_<float> blend = LaplacianBlend(dst1, dst2, m);
    Mat output;
@@ -344,18 +339,15 @@ float progress = 0.0;
             }
             
 
-            Rcpp::Rcout << "Assigning ROIs: m = " << m << ", overlap = " << overlap << ", y = " << y << ", h = " << h << std::endl;
             Rect left_ROI = Rect(m-overlap, y, overlap, h);
             Rect right_ROI = Rect(0, y, overlap, h);
             Mat src1 = src.at(horizLeftIndex[s]-1)(left_ROI);
             Mat src2 = src.at(horizLeftIndex[s])(right_ROI);
 
-            Rcpp::Rcout << "Attempting multiBandBlending: Rows: " << src1.rows << "Cols: " << src1.cols << std::endl;
             Mat blended = multiBandBlending(src1, src2, false);
             //Rcpp::Rcout << "blended.cols: " <<  blended.cols << ", blended.rows: " << blended.rows << std::endl;
             //Rcpp::Rcout << "S: " <<  s << ", x0: " << x0[s] << ", y0: " << y0[s] << ", overlap: " << overlap << ", h: " << h  << std::endl;
 
-            Rcpp::Rcout << "Reassigning blend: x0[s] = " << x0[s] << ", y0[s] = " << y0[s] << ", overlap = " << overlap << ", h = " << h << std::endl;
             blended.copyTo(dst(cv::Rect(x0[s], y0[s], overlap, h)));
              // Rcpp::Rcout << "placed" << std::endl;
 

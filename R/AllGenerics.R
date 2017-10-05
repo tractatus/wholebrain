@@ -465,11 +465,11 @@ stitch.animal<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE, start.at=1, do
 }
 
 
-stitch.experiment<-function(folder){
+stitch.experiment<-function(folder, rotate=0, FFC=TRUE, web.map=TRUE){
 	all.animals<-dir(folder)
 	for(i in all.animals){
 		section.folder<-paste(folder,i, sep='/')
-		stitch.animal(section.folder)
+		stitch.animal(section.folder, rotate = rotate, FFC= FFC, web.map=web.map)
 	}
 }
 
