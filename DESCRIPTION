@@ -1,7 +1,7 @@
 Package: wholebrain
 Type: Package
 Title: Functions to segment and register cells from microscopic image files with R
-Version: 0.0.9
+Version: 0.1.0
 Date: 2015-10-29
 Author: Daniel Fürth <daniel.furth@ki.se> - @wholebrainsuite
 Maintainer: Daniel Fürth <daniel.furth@ki.se>
