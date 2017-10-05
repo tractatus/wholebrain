@@ -99,11 +99,17 @@ public:
     { 
         assert(_left.size() == _right.size());
         assert(_left.size() == _blendMask.size());
+        Rcpp::Rcout << "buildPyramids..." << std::endl;
+
         buildPyramids();
+                Rcpp::Rcout << "blendLapPyrs..." << std::endl;
+
         blendLapPyrs();
     };
      
     Mat_<float> blend() {
+                        Rcpp::Rcout << "reconstructImgFromLapPyramid..." << std::endl;
+
         return reconstructImgFromLapPyramid();
     }   
 };
@@ -119,16 +125,18 @@ Mat_<ushort> multiBandBlending(Mat src1, Mat src2, bool vertical) {
     {
      cerr << "cannot get image overlap" << endl;
     }
-
+  Rcpp::Rcout << "Convert to Float 32" << std::endl;
    Mat_<float> dst1; src1.convertTo(dst1, CV_32F, 1.0/65535.0);
    Mat_<float> dst2; src2.convertTo(dst2, CV_32F, 1.0/65535.0);
    Mat_<float> m(dst1.rows,dst2.cols,0.0);
    
+
    if(vertical){
      m(Range(0,m.rows/2),Range::all()) = 1.0;
    }else{
      m(Range::all(),Range(0,m.cols/2)) = 1.0;
    }
+     Rcpp::Rcout << "LaPlacian Blending" << std::endl;
 
    Mat_<float> blend = LaplacianBlend(dst1, dst2, m);
    Mat output;
