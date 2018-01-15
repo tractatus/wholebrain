@@ -272,7 +272,7 @@ lapply(1:nrow(counts), function(x) {
 }
 
 
-schematic.plot.sagittal<-function(regi, dataset){
+schematic.plot.sagittal<-function(regi, dataset, pch=21, cex=0.5, col='black'){
           EPSatlas<-SAGITTALatlas
       atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
       plate.width<-1.159292
@@ -379,7 +379,7 @@ index<-round(scale.factor*cbind(dataset$y, dataset$x))
 
 polygon(c(5,6,6,5),  c(-4.2, -4.2, -4.1, -4.1), col='black' )
 
-points(x,y, pch=21, cex=0.5, col=gray(0.1), bg=dataset$color) }
+points(x,y, pch=pch, cex=cex, col=col, bg=dataset$color) }
 
 
 
@@ -390,7 +390,8 @@ schematic.plot<-function (dataset, coordinate = NULL, plane='coronal', title = T
 
 if(plane=="sagittal"){
 
-      schematic.plot.sagittal(regi, dataset) #really really ugly hack
+      schematic.plot.sagittal(regi, dataset, pch = pch, cex=cex, col=col) #really really ugly hack
+      return()
 }
 
     if (!save.plots) {
