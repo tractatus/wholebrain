@@ -111,6 +111,21 @@ get.vector.intensity<-function(input, x, y){
 	return(intensity)
 }
 
+#' Get pixel intensity
+#'
+#' This function extracts the pixel intensity for a given set of x and y coordinates.
+#' Returns a numeric vector of values.
+#' @param input file path to a valid monochrome 16-bit TIFF.
+#' @param x pixel x coordinate(s).
+#' @param y pixel y coordinate(s).
+#' @param type what type of intensity value default is 'SNR' set to 'intensity' to get raw pixel intensities.
+#' @param roi .
+#' @param background .
+#' @keywords pixel intensity
+#' @export
+#' @examples
+#' snr <- get.pixel.intensity(image, dataset$x, dataset$y, type='SNR', roi=10, background=40)
+#' intensity <- get.pixel.intensity(image, dataset$x, dataset$y, type='intensity', roi=10)
 get.pixel.intensity<-function(input, x, y, type='SNR', roi= 9,  background=40){
 	file <- as.character(input)
     ## check for existence
@@ -125,7 +140,7 @@ get.pixel.intensity<-function(input, x, y, type='SNR', roi= 9,  background=40){
     	type=1
     }
 	intensity<-.Call("getPixelIntensity", file, as.integer(x), as.integer(y), type, roi, background)
-	return(intensity)
+	return(intensity$intensity)
 }
 
 get.range<-function(input){
