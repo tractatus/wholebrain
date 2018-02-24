@@ -273,11 +273,11 @@ lapply(1:nrow(counts), function(x) {
 
 
 schematic.plot.sagittal<-function(regi, dataset, pch=21, cex=0.5, col='black'){
-          EPSatlas<-SAGITTALatlas
+      EPSatlas<-SAGITTALatlas
       atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
       plate.width<-1.159292
       width<-(528-214)*2
-coordinate<-regi$coordinate
+      coordinate<-regi$coordinate
 
   k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
 
@@ -384,7 +384,7 @@ points(x,y, pch=pch, cex=cex, col=col, bg=dataset$color) }
 
 
 schematic.plot<-function (dataset, coordinate = NULL, plane='coronal', title = TRUE, mm.grid = TRUE, 
-    save.plots = FALSE, dev.size = c(5.4, 4.465), pch=21, cex=0.5, col='black', scale.bar=FALSE, region.colors=FALSE) 
+    save.plots = FALSE, dev.size = c(5.4, 4.465), pch=21, cex=0.5, col='black', scale.bar=FALSE, region.colors=FALSE, device = TRUE) 
 {
 
 
@@ -394,7 +394,7 @@ if(plane=="sagittal"){
       return()
 }
 
-    if (!save.plots) {
+    if ( (!save.plots)&(device) ) {
         quartz(width = dev.size[1], height = dev.size[1])
     }
     #assign temporary animal label if this is not defined
@@ -426,10 +426,10 @@ if(plane=="sagittal"){
                 scale = 0.9579832
                 if(length(dataset$image)>0){
                         bregmaX = 5640
-                        bregmaY = 0
+                        bregmaY = 200
                     }else{
                       bregmaX = 5640
-                  bregmaY = 200
+                      bregmaY = 200
                     }
                 ventricles <- c(which(EPSatlas$plate.info[[k]]$style == 
                   "#aaaaaa"))
@@ -451,7 +451,7 @@ if(plane=="sagittal"){
                 else {
                   main.title <- ""
                 }
-                if (save.plots) {
+                if (save.plots&device) {
                   quartz(width = dev.size[1], height = dev.size[1])
                 }
                 if (mm.grid) {
@@ -715,6 +715,12 @@ if(plane=="sagittal"){
     
     
 }
+
+
+
+
+
+
 
 paxTOallen<-function(paxinos){
  	round(214+(20-(paxinos*1000))/25)
