@@ -1205,7 +1205,7 @@ clock_t tStart, tStop;
   }
 
   Rcpp::Rcout << "Controls:" << std::endl;
-  Rcpp::Rcout << "ESC : exit segmentation and output results." << std::endl;
+  Rcpp::Rcout << "ESC or Q key: exit segmentation and output results." << std::endl;
   Rcpp::Rcout << "H key: hide/display segmentation overlay." << std::endl;
   Rcpp::Rcout << "Z key: hide zoom window." << std::endl;
  
@@ -1315,7 +1315,7 @@ clock_t tStart, tStop;
     zoomOn = false;
     destroyWindow("zoom");
   }
-  if( (k == 27)|(k == -1)|(k == 115) ){
+  if( (k == 27)|(k == -1)|(k == 115)|(k == 113) ){
     cout << '\n' << "Assembling output list" << endl;
   pd.endSegment = true;
   pd.runthreshold();
