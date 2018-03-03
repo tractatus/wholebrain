@@ -731,7 +731,7 @@ stereotactic.coordinates <-function(x,y,registration,inverse=FALSE){
 
 }
 
-plot.registration<-function(registration, main=NULL, border=rgb(154,73,109,maxColorValue=255), draw.trans.grid=FALSE, batch.mode=FALSE){
+plot.registration<-function(registration, main=NULL, border=rgb(154,73,109,maxColorValue=255), draw.trans.grid=FALSE, grid.color = 'lightblue', batch.mode=FALSE){
 
   scale.factor<-mean(dim(registration$transformationgrid$mx)/c(registration$transformationgrid$height,registration$transformationgrid$width) )
   
@@ -751,7 +751,11 @@ if(is.null(main)){
 
         img = as.raster(img[,])
 
-        if(batch.mode){img <- apply(img, 2, rev)}
+
+  if(.Platform$OS.type=="windows" | batch.mode) {
+     img <- apply(img, 2, rev)}
+  }
+
 
 
         rasterImage(img,0,0, registration$transformationgrid$width, registration$transformationgrid$height)
@@ -761,10 +765,13 @@ if(!is.null(border)){
     lapply(1:registration$atlas$numRegions, function(x){polygon(registration$atlas$outlines[[x]]$xlT/scale.factor, registration$atlas$outlines[[x]]$ylT/scale.factor, border=border )})
 }
 if(draw.trans.grid){
-lapply(seq(1,hei,by=100), function(x){lines(registration$transformationgrid$mx[x,]/scale.factor,registration$transformationgrid$my[x,]/scale.factor, col='lightblue')})
-lines(registration$transformationgrid$mx[hei,]/scale.factor,registration$transformationgrid$my[hei,]/scale.factor, col='lightblue')
-lapply(seq(1, wid,by=100), function(x){lines(registration$transformationgrid$mx[,x]/scale.factor,registration$transformationgrid$my[,x]/scale.factor, col='lightblue')})
-lines(registration$transformationgrid$mx[,wid]/scale.factor,registration$transformationgrid$my[, wid]/scale.factor, col='lightblue')
+  hei<-dim(registration$transformationgrid$mx)[1]
+  wid<-dim(registration$transformationgrid$mx)[2]
+
+  lapply(seq(1,hei,by=100), function(x){lines(registration$transformationgrid$mx[x,]/scale.factor,registration$transformationgrid$my[x,]/scale.factor, col=grid.color)})
+  lines(registration$transformationgrid$mx[hei,]/scale.factor,registration$transformationgrid$my[hei,]/scale.factor, col=grid.color)
+  lapply(seq(1, wid,by=100), function(x){lines(registration$transformationgrid$mx[,x]/scale.factor,registration$transformationgrid$my[,x]/scale.factor, col=grid.color)})
+  lines(registration$transformationgrid$mx[,wid]/scale.factor,registration$transformationgrid$my[, wid]/scale.factor, col=grid.color)
 }
 
 }
@@ -824,13 +831,7 @@ lines(registration$transformationgrid$mxF[, wid]/scale.factor,registration$trans
  index<-round(scale.factor*cbind(dataset$y, dataset$x))
  somaX<-registration$transformationgrid$mxF[index]/scale.factor
  somaY<-registration$transformationgrid$myF[index]/scale.factor
- #for(x in id){
-  #index<-round(scale.factor*cbind(rois[[x]]$coords[,2],rois[[x]]$coords[,1]))
-  #  rois2[[x]]$coords[,1]<-registration$transformationgrid$mxF[index]/scale.factor
- #   rois2[[x]]$coords[,2]<-registration$transformationgrid$myF[index]/scale.factor
-
-#} 
-#lapply(id, function(x){polygon(rois2[[x]]$coords, col=rgb(100,163,117,120,maxColorValue=255), border=gray(0.95));text(apply(rois2[[x]]$coords,2,mean)[1],apply(rois2[[x]]$coords,2,mean)[2],x, cex=0.7, col='white')})
+ 
 circle.color<-rep('', nrow(dataset))
 circle.color[dataset$id>0]<-'black'
 circle.color[dataset$id==0]<-'red'
@@ -880,12 +881,15 @@ get.cell.ids<-function(registration, segmentation, forward.warp=FALSE){
     if(registration$plane=="sagittal"){
       EPSatlas<-SAGITTALatlas
       atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
+      plane<-'sagittal'
     }else{
       atlasIndex<-atlasIndex[atlasIndex$plane=="coronal", ]
+      plane<-'coronal'
     } 
   }else{
       atlasIndex<-atlasIndex[atlasIndex$plane=="coronal", ]
-    } 
+      plane<-'coronal'
+  } 
 
   coordinate<-registration$coordinate
 
@@ -953,6 +957,10 @@ get.cell.ids<-function(registration, segmentation, forward.warp=FALSE){
   dataset$image<-rep(imagename, nrow(dataset))
  dataset<-data.frame(animal=rep(NA, nrow(dataset)), AP=rep(registration$coordinate, nrow(dataset)), dataset)
   dataset$color<-as.character(dataset$color)
+  if(plane == 'sagittal'){
+    dataset$AP<-dataset$ML
+    dataset$ML<-registration$coordinate
+  }
   return(dataset)
 }
 

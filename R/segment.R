@@ -1,14 +1,28 @@
-#' Segment image using multiple thresholds
+#' Segment features
 #'
-#' Segment brain section.
-#' @param input input a character vector consisting of the full path name to 16-bit raw tif image files.
-#' @param numthresh numbe rof binary thresholds to use (default is 8).
+#' This function performs image segmentation.
+#' Returns a list object.
+#' @param input file path to a valid monochrome 16-bit TIFF.
+#' @numthresh unsigned integer. Number of threshold that should be used. Default is 8. Increase to pick up more fine grained intensity differences if cellbodies exist at multiple intensity differences.
+#' @downsample real-valued unsigned scalar. Tells how much the original image should be downsampled to decrease computation time, default is 1/4, i.e. 0.25. Usually good if pixel resolution is around 0.5 micron. For larger pixel resolutions consider setting downsample = 1.
+#' @filter filter list object. Sets the default filter parameters to be used. Default is NULL and sets the filter parameters to previous used.
+#' @post character. Post-processing cleanup step. Default is NULL.
+#' @pre character. Pre-processing step. Default is NULL.
+#' @post character. Pre-processing step. Default is NULL.
+#' @get.contour boolean. Should contours of segmented objects be extracted to output. Default is FALSE. If set to TRUE contours can be found as 
+#' @display boolean. TRUE or FALSE value if GUI should be shown. Default is TRUE. Set to FALSE to use segment() in for loops.
+#' @return output is returned in the form of a list object with two principle items: soma and filter.
+#' \itemize{
+#' \item{soma}{segmented features}
+#' \item{filter}{filter parameters used to segment features with segment()}
+#' }
+#' @keywords segmentation
+#' @export
 #' @examples
-#' #folder where image tiles are stored
-#'images<-get.images('/Volumes/microscope/animal001/slide001/section001')
-#' #stitch images
-#' segment(system.file('sample_tiles/rabiesEGFP.tif', package='wholebrain')) 
-
+#' seg<-segment(FFC_filename)
+#' plot(seg$soma$x, seg$soma$y, ylim=rev(range(seg$soma$y)), asp=1, pch=16)
+#' #invoke text editor to extract filter for copy paste into your script for reprodicible results.
+#' edit(seg$filter)
 segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, post=NULL, pre=NULL, get.contour=FALSE, display=TRUE){
   inputfile<-character()
   for(i in 1:length(input)){
