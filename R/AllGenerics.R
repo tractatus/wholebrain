@@ -2,7 +2,11 @@
 update.wholebrain<-function(){
 	detach('package:wholebrain', unload=TRUE)
 	remove.packages("wholebrain")
-	devtools::install_github("tractatus/wholebrain")
+	if( .Platform$OS.type=="windows" ){
+		devtools::install_github("tractatus/wholebrain", args='--no-multiarch')
+	}else{
+		devtools::install_github("tractatus/wholebrain")
+	}
 }
 
 acronym.from.id<-function(x){
@@ -84,6 +88,7 @@ get.common.regions<-function(dataset1, dataset2){
 	new.names<-get.acronym.parent(regions.to.reduce)
 
 }
+
 
 agg.datasets<-function(folder){
 	files<-dir(folder, full.names=TRUE)
@@ -168,6 +173,8 @@ imstats<-function(input){
 	maxmin<-.Call("getImgStats", file)
 	return(maxmin)
 }
+
+
 
 
 #' Flip cells to the ipsilateral side
