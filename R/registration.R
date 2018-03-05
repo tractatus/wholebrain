@@ -753,7 +753,7 @@ if(is.null(main)){
 
 
   if(.Platform$OS.type=="windows" | batch.mode) {
-     img <- apply(img, 2, rev)}
+     img <- apply(img, 2, rev)
   }
 
 
