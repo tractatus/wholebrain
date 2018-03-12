@@ -23,7 +23,7 @@
 #' plot(seg$soma$x, seg$soma$y, ylim=rev(range(seg$soma$y)), asp=1, pch=16)
 #' #invoke text editor to extract filter for copy paste into your script for reprodicible results.
 #' edit(seg$filter)
-segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, post=NULL, pre=NULL, get.contour=FALSE, display=TRUE){
+segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, post=NULL, pre=NULL, get.contour=FALSE, channel = 0, display=TRUE){
   inputfile<-character()
   for(i in 1:length(input)){
     inputfile <- as.character(input[i])
@@ -86,7 +86,7 @@ segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, post=NULL, p
     iterations<-pre$iter   
   }  
 
-  a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground, display, areaMin, areaMax, threshMin, threshMax, eccent, renderMin, renderMax, bThresh, resizeB, gaussBlur, as.integer(get.contour))
+  a<-.Call("GUI",inputfile,numthresh, resizeP,file,fileslider,filebackground, display, areaMin, areaMax, threshMin, threshMax, eccent, renderMin, renderMax, bThresh, resizeB, gaussBlur, as.integer(get.contour), as.integer(channel))
   a$x<-(1/ downsample)*a$x
   a$y<-(1/ downsample)*a$y
   a$contour.x<-(1/ downsample)*a$contour.x

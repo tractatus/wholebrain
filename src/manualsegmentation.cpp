@@ -1084,7 +1084,7 @@ RcppExport SEXP getImgStats(SEXP input){
 }
 
 RcppExport SEXP GUI(SEXP input, SEXP numthresh, SEXP resizeP, SEXP filename, SEXP sliderFilename, SEXP backgroundFilename, SEXP shouldDisplay, 
-  SEXP areaMin, SEXP areaMax, SEXP threshMin, SEXP threshMax, SEXP eccent, SEXP renderMin, SEXP renderMax, SEXP bThresh, SEXP resizeB, SEXP gaussBlur, SEXP segContour) {
+  SEXP areaMin, SEXP areaMax, SEXP threshMin, SEXP threshMax, SEXP eccent, SEXP renderMin, SEXP renderMax, SEXP bThresh, SEXP resizeB, SEXP gaussBlur, SEXP segContour, SEXP channelOI) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; 
   segmentationtype = true;
@@ -1102,12 +1102,12 @@ BEGIN_RCPP
   matchingResize = matchingResize*2500;
   int blurSize = Rcpp::as<int>(gaussBlur);
   int getContour = Rcpp::as<int>(segContour);
-
+  int channelOfInterest = Rcpp::as<int>(channelOI);
 
 
   bool display = Rcpp::as<int>(shouldDisplay);
   //to handle execution time logging
-clock_t tStart, tStop;
+  clock_t tStart, tStop;
   double resizeParam = Rcpp::as<int>(resizeP);
   resizeParam = resizeParam/100;
 
@@ -1176,7 +1176,7 @@ clock_t tStart, tStop;
   Rcpp::CharacterVector fname(input);
   std::string ffname(fname[0]);
   Rcpp::Rcout << "Loading image:" << ffname << std::endl;
-    Segmentation pd;
+  Segmentation pd;
   tStart = clock();
   pd.src = imread(ffname, -1); // -1 tag means "load as is"
   tStop = clock();
@@ -1187,8 +1187,14 @@ clock_t tStart, tStop;
   int depth;
   if(pd.src.type()==16){
     //if RGB image 8bit
-    cvtColor(pd.src,pd.src,CV_RGB2GRAY);
-    bitwise_not ( pd.src, pd.src );
+    Mat bgr[3];   //destination array
+    split(pd.src,bgr);//split source
+    if(channelOfInterest != 0){
+      pd.src = bgr[3-channelOfInterest];
+    }else{
+      cvtColor(pd.src,pd.src,CV_RGB2GRAY);
+    }
+    //bitwise_not ( pd.src, pd.src );
     //pd.src.convertTo(pd.src, CV_16S);
     Rcpp::Rcout << "Changed image type to: " <<  getImgTypes(pd.src.type()) << "_" << pd.src.type() << std::endl;
 
