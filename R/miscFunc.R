@@ -95,6 +95,7 @@ create.output.directory<-function(subDir, mainDir=getwd(), verbose=TRUE){
       }
       # Handle this error as appropriate
     }
+    return(file.path(mainDir, subDir))
 }
 
 createfilter<- function(input, numthresh=8){
