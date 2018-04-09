@@ -92,7 +92,7 @@ segment<-function(input, numthresh=8, downsample=0.25, filter=NULL, post=NULL, p
   a$contour.x<-(1/ downsample)*a$contour.x
   a$contour.y<-(1/ downsample)*a$contour.y
   a$soma.area <-(1/ downsample)*a$soma.area
-  outputlist<-list(filter=list(alim= a$alim, threshold.range = a$threshold.range, eccentricity = a$eccentricity,  Max = a$Max, Min = a$Mina, brain.threshold=a$brain.threshold, resize=a$resize, blur=a$blur, downsample=a$downsample), soma = list(x =a$x, y=a$y, intensity = a$intensity, area = a$soma.area, contour.x= a$contour.x, contour.y=a$contour.y, contour.ID=a$contour.ID))
+  outputlist<-list(filter=list(alim= a$alim, threshold.range = a$threshold.range, eccentricity = a$eccentricity,  Max = a$Max, Min = a$Min, brain.threshold=a$brain.threshold, resize=a$resize, blur=a$blur, downsample=a$downsample), soma = list(x =a$x, y=a$y, intensity = a$intensity, area = a$soma.area, contour.x= a$contour.x, contour.y=a$contour.y, contour.ID=a$contour.ID))
   if(is.null(outputlist$filter$Min)){
     outputlist$filter$Min<-0
   }
