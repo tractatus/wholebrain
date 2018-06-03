@@ -11,7 +11,7 @@ for(i in 1:length(neuX)){
     if(is.null(color)){
       fill.color <- ontology$allen.color[which(ontology$id== structureAN[i])]
     }else{
-      fill.color <- color
+      fill.color <- color[i]
     }
     cat(paste('{\n
             "geometry": {\n
@@ -27,7 +27,7 @@ for(i in 1:length(neuX)){
   if(is.null(color)){
     fill.color <- ontology$allen.color[which(ontology$id== structureAN[i])]
   }else{
-    fill.color <- color
+    fill.color <- color[i]
   }
   cat(paste('{\n
             "geometry": {\n
