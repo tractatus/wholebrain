@@ -1,5 +1,5 @@
 
-printJSONneuron<-function(neuX, neuY, intensity, area, structureAN, ytop){
+printJSONneuron<-function(neuX, neuY, intensity, area, structureAN, ytop, color = NULL){
 #probably should remove ytop
 cat('var neurons = {\n
   
@@ -8,7 +8,11 @@ cat('var neurons = {\n
 for(i in 1:length(neuX)){
     if(structureAN[i]==0){
     line.color<-"#ff0000"
-    
+    if(is.null(color)){
+      fill.color <- ontology$allen.color[which(ontology$id== structureAN[i])]
+    }else{
+      fill.color <- color
+    }
     cat(paste('{\n
             "geometry": {\n
                 "type": "Point",\n
@@ -16,11 +20,15 @@ for(i in 1:length(neuX)){
           neuY[i],',\n',
           neuX[i],
                 '\n]\n',
-            '},\n "type": "Feature",\n "properties": {\n "popupContent": "<b><u>Pixel properties:</u></b> <br> <b>Mean intensity:</b> ', round(log(intensity[i],2),3), ' bits<br> <b>Soma size:</b> ', round(area[i]), ' &mu;m<sup>2</sup> <br> </br> <b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', '?', ': ', 'Undefined/unspecific', '<br>"\n},\n "hexcolor": ', paste('"',ontology$allen.color[which(ontology$id== structureAN[i])], '"', sep=''), ',\n"linecolor": ', paste('"',line.color, '"', sep=''),', \n"id": ', i, '\n },\n'))
+            '},\n "type": "Feature",\n "properties": {\n "popupContent": "<b><u>Pixel properties:</u></b> <br> <b>Mean intensity:</b> ', round(log(intensity[i],2),3), ' bits<br> <b>Soma size:</b> ', round(area[i]), ' &mu;m<sup>2</sup> <br> </br> <b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', '?', ': ', 'Undefined/unspecific', '<br>"\n},\n "hexcolor": ', paste('"', fill.color, '"', sep=''), ',\n"linecolor": ', paste('"',line.color, '"', sep=''),', \n"id": ', i, '\n },\n'))
     
   }else{
   line.color<-"#000"
-  
+  if(is.null(color)){
+    fill.color <- ontology$allen.color[which(ontology$id== structureAN[i])]
+  }else{
+    fill.color <- color
+  }
   cat(paste('{\n
             "geometry": {\n
                 "type": "Point",\n
@@ -28,7 +36,7 @@ for(i in 1:length(neuX)){
           neuY[i],',\n',
           neuX[i],
                 '\n]\n',
-            '},\n "type": "Feature",\n "properties": {\n "popupContent": "<b><u>Pixel properties:</u></b> <br> <b>Mean intensity:</b> ', round(log(intensity[i],2),3), ' bits<br> <b>Soma size:</b> ', round(area[i]), ' &mu;m<sup>2</sup> <br> </br> <b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', ontology$acronym[which(ontology$id== structureAN[i])], ': ',  ontology$name[which(ontology$id== structureAN[i])], '<br>"\n},\n "hexcolor": ', paste('"',ontology$allen.color[which(ontology$id== structureAN[i])], '"', sep=''), ',\n"linecolor": ', paste('"',line.color, '"', sep=''),', \n"id": ', i, '\n },\n'))
+            '},\n "type": "Feature",\n "properties": {\n "popupContent": "<b><u>Pixel properties:</u></b> <br> <b>Mean intensity:</b> ', round(log(intensity[i],2),3), ' bits<br> <b>Soma size:</b> ', round(area[i]), ' &mu;m<sup>2</sup> <br> </br> <b><u>Allen P56 reference atlas:</u></b> <br> <b>Region: </b>', ontology$acronym[which(ontology$id== structureAN[i])], ': ',  ontology$name[which(ontology$id== structureAN[i])], '<br>"\n},\n "hexcolor": ', paste('"', fill.color, '"', sep=''), ',\n"linecolor": ', paste('"',line.color, '"', sep=''),', \n"id": ', i, '\n },\n'))
   
   }
   
@@ -1036,7 +1044,7 @@ cat('var imageProperties = {
     "width": ',a$width,',
     "height": ', a$height,'};\n')
 if( (!is.null(dataset))&(!is.null(registration)) ){
-  printJSONneuron(dataset$x, dataset$y, dataset$intensity, dataset$area*scale, dataset$id, registration$transformationgrid$height)
+  printJSONneuron(dataset$x, dataset$y, dataset$intensity, dataset$area*scale, dataset$id, registration$transformationgrid$height, dataset$color)
   printJSONoutlines(registration)
 }else{
   if((is.null(dataset))&(!is.null(registration))){
