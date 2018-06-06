@@ -18,7 +18,7 @@
 #        }
 #    }
 #    
-#    if( (x-width*height)<0){
+#    if( (x-width*height)<0){get.grid.coordinates
 #        if(width>height){
 #            area<-width*height
 #            width<-width+abs((x-area))/2
@@ -58,16 +58,24 @@ find.dim<-function(x){
 #' @examples
 #' grid.coordinates<-get.grid.coordinates(1:63, 2048, plotgrid=F)
 
-get.grid.coordinates<-function(input, tilesize, overlap=0.1, rotate=0, plotgrid=FALSE){
+get.grid.coordinates<-function(input, tilesize, overlap=0.1, rotate=0, dim = NULL, plotgrid=FALSE){
 
 numfiles<-length(input)
-if(abs(rotate)<90){
-    colTiles<-find.dim(numfiles)[1]
-    rowTiles<-find.dim(numfiles)[2]
+if(!is.null(dim)){
+    dim.width <- find.dim(numfiles)[1]
+    dim.height <-  find.dim(numfiles)[2]
 }else{
-    if(abs(rotate)==90){
-        colTiles<-find.dim(numfiles)[2]
-        rowTiles<-find.dim(numfiles)[1]
+    dim.width <- dim[1]
+    dim.height <- dim[2]
+}
+  
+if (abs(rotate) < 90) {
+    colTiles <- dim.width
+    rowTiles <- dim.height
+}else {
+    if (abs(rotate) == 90) {
+      colTiles <- dim.height
+      rowTiles <- dim.width
     }
 }
 
