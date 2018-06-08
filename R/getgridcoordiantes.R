@@ -61,7 +61,7 @@ find.dim<-function(x){
 get.grid.coordinates<-function(input, tilesize, overlap=0.1, rotate=0, dim = NULL, plotgrid=FALSE){
 
 numfiles<-length(input)
-if(!is.null(dim)){
+if(is.null(dim)){
     dim.width <- find.dim(numfiles)[1]
     dim.height <-  find.dim(numfiles)[2]
 }else{
