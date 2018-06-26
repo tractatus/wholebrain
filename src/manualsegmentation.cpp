@@ -328,7 +328,7 @@ public:
 
       findContours(dst, contours, hierarchy, RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
       Mat mask = Mat::zeros(src.size(), CV_8UC1);
-      Mat labels;
+      //Mat labels;
       vector<Moments> mu(contours.size());
       for (size_t k = 0; k < contours.size(); ++k)
       {
@@ -345,7 +345,8 @@ public:
            centroidX.push_back( mu[k].m10/mu[k].m00 ); //
            centroidY.push_back( mu[k].m01/mu[k].m00 ); //
            contourSomaArea.push_back(area0);
-            mask.copyTo(labels);
+            //mask.copyTo(labels);
+            Mat labels = Mat::zeros(src.size(), CV_16UC1);
             drawContours(labels, contours, k, Scalar(k), CV_FILLED);
             Rect roi = boundingRect(contours[k]);
             Scalar Avg = cv::mean( src(roi), labels(roi) == k);

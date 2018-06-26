@@ -825,7 +825,7 @@ dot.plot <- function(dataset, device=TRUE, region.lab='Input region:') {
    par(mar=c(4,4,4,6))
    zeros<-min(is.finite(counts))-1
    counts[!is.finite(counts)]<-zeros
-  x.range<-round(range(counts[is.finite(counts)]))
+  x.range<-ceiling(range(counts[is.finite(counts)]))
   plot( apply(counts, 1, max), nrow(counts):1-0.125, pch=21, bg='white', ylim=c(0.5,nrow(counts)+0.5),  xlim=x.range, xlab='', axes=F, ylab='', col=0 )
   
   for(i in 1:nrow(counts)){
