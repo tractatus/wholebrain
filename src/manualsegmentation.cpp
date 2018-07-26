@@ -947,13 +947,17 @@ RcppExport SEXP imageshow(SEXP input, SEXP autoRange, SEXP  lq, SEXP uq, SEXP re
   }
   if(k == 122){
     zoomOn = false;
-    destroyWindow("zoom");
+    if (cv::getWindowProperty("zoom", WND_PROP_AUTOSIZE) != -1)
+      destroyWindow("zoom");
   }
   if( (k == 27)|(k == -1)|(k == 115) ){
-  destroyWindow("controls");
-  destroyWindow("display");
-  destroyWindow("zoom");
-  break;
+    if (cv::getWindowProperty("controls", WND_PROP_AUTOSIZE) != -1)
+      destroyWindow("controls");
+    if (cv::getWindowProperty("display", WND_PROP_AUTOSIZE) != -1)    
+      destroyWindow("display");
+    if (cv::getWindowProperty("zoom", WND_PROP_AUTOSIZE) != -1)    
+      destroyWindow("zoom");
+    break;
   }
   }
 
@@ -1320,17 +1324,22 @@ BEGIN_RCPP
   }
   if(k == 122){
     zoomOn = false;
-    destroyWindow("zoom");
+    if (cv::getWindowProperty("zoom", WND_PROP_AUTOSIZE) != -1)
+      destroyWindow("zoom");
   }
   if( (k == 27)|(k == -1)|(k == 115)|(k == 113) ){
     cout << '\n' << "Assembling output list" << endl;
   pd.endSegment = true;
   pd.runthreshold();
   cout << '\n' << "OUTPUT SEGMENTED CELLS: " << pd.centroidX.size() << endl;
-  destroyWindow("controls");
-  destroyWindow("display");
-  destroyWindow("histogram");
-  destroyWindow("zoom");
+  if (cv::getWindowProperty("controls", WND_PROP_AUTOSIZE) != -1)
+    destroyWindow("controls");
+  if (cv::getWindowProperty("display", WND_PROP_AUTOSIZE) != -1)
+    destroyWindow("display");
+  if (cv::getWindowProperty("histogram", WND_PROP_AUTOSIZE) != -1)
+    destroyWindow("histogram");
+  if (cv::getWindowProperty("zoom", WND_PROP_AUTOSIZE) != -1)
+    destroyWindow("zoom");
   break;
   }
   }
