@@ -322,8 +322,8 @@ cpdNonrigid<-function(file, targetP.x, targetP.y, referenceP.x, referenceP.y, re
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
 
-registration<- function(input, coordinate=NULL, plane="coronal", right.hemisphere=NULL, interpolation='tps', intrp.param=NULL, brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', batch.mode=FALSE, verbose=TRUE){
-    if(.Platform$OS.type=="windows") {
+registration<- function(input, coordinate=NULL, plane="coronal", right.hemisphere=NULL, interpolation='tps', intrp.param=NULL, brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', batch.mode=FALSE, channel = 0, verbose=TRUE){
+    if(.Platform$OS.type=="windows" | grepl("linux-gnu", R.version$os) ) {
       
       batch.mode=TRUE
   }
@@ -477,7 +477,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
     }
     transformationgrid<-cpdNonrigid(file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile, intrp.param$beta, intrp.param$lambda, intrp.param$gamma, intrp.param$sigma, intrp.param$max.iter )
   }else{
-    transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
+    transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile, channel)
   } 
 
 
@@ -752,7 +752,7 @@ if(is.null(main)){
         img = as.raster(img[,])
 
 
-  if(.Platform$OS.type=="windows" | batch.mode) {
+  if(.Platform$OS.type=="windows" | grepl("linux-gnu", R.version$os) | batch.mode ) {
      img <- apply(img, 2, rev)
   }
 
@@ -778,7 +778,7 @@ if(draw.trans.grid){
 
 
 inspect.registration<-function(registration,segmentation,soma=TRUE, forward.warps=FALSE, batch.mode=FALSE, device=TRUE,cex=0.5, draw.trans.grid=TRUE, width= 12.280488, height=  6.134146){
-  if(.Platform$OS.type=="windows") {
+  if(.Platform$OS.type=="windows" | grepl("linux-gnu", R.version$os) ) {
       batch.mode=TRUE
   }
   if(device){
