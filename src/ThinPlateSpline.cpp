@@ -111,13 +111,25 @@ RcppExport SEXP forwardWarp(SEXP mx, SEXP my, SEXP transMX, SEXP transMY, SEXP m
     END_RCPP    
 }
 
-RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dstX, SEXP dstY, SEXP resizeP, SEXP MaxDisp, SEXP MinDisp, SEXP outputfile){
+RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dstX, SEXP dstY, SEXP resizeP, SEXP MaxDisp, SEXP MinDisp, SEXP outputfile, SEXP channelOI){
     BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::CharacterVector fname(input);
     std::string ffname(fname[0]);
     Rcpp::Rcout << "Loading image:" << ffname << std::endl;
     Mat img = imread(ffname, -1);
+    int channelOfInterest = Rcpp::as<int>(channelOI);
+
+    if(img.type()==16){
+        //if RGB image 8bit
+        Mat bgr[3];   //destination array
+        split(img,bgr);//split source
+        if(channelOfInterest != 0){
+            img = bgr[3-channelOfInterest];
+        }else{
+            cvtColor(img,img,CV_RGB2GRAY);
+        }
+    }
     
     //original image size
     int width = img.cols;
