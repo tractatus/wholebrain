@@ -407,7 +407,7 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
     #scale.factor<-pixel.resolution*0.390625
 
     #get correspondance points for input image
-    contourInput<-get.contour(file, thresh=brain.threshold, resize=resize, blur=blurring[1], num.nested.objects=num.nested.objects, display=FALSE)
+    contourInput<-get.contour(file, thresh=brain.threshold, resize=resize, blur=blurring[1], num.nested.objects=num.nested.objects, channel = channel, display=FALSE)
     contoursI<-as.numeric(names(sort(tapply(contourInput$x,contourInput$contour.ID, min))))
 
     #get correspondance points for atlas
