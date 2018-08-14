@@ -110,7 +110,7 @@ return(full.filename)
 #' image<-'/Volumes/microscope/animal001/slide001/section001.tif'
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
-get.contour<-function(input, threshold = 'otsu', invert=FALSE, get.largest.object = TRUE, num.nested.objects = 2, blur=0, watershed=FALSE, resize=0.25, display=TRUE, verbose=TRUE, savefilename=FALSE){
+get.contour<-function(input, threshold = 'otsu', invert=FALSE, get.largest.object = TRUE, num.nested.objects = 2, blur=0, watershed=FALSE, channel = 0, resize=0.25, display=TRUE, verbose=TRUE, savefilename=FALSE, channel = 0){
     file <- as.character(input)
     ## check for existence
     if(!file.exists(file))
@@ -124,7 +124,7 @@ get.contour<-function(input, threshold = 'otsu', invert=FALSE, get.largest.objec
       saveoutput<-1
      }
 
-    a<-.Call("getContour", file, as.integer(threshold), as.integer(invert), as.integer(get.largest.object), as.integer(num.nested.objects), as.integer(display), resizeP, blur, as.integer(verbose), savefilename, saveoutput)
+    a<-.Call("getContour", file, as.integer(threshold), as.integer(invert), as.integer(get.largest.object), as.integer(num.nested.objects), as.integer(display), resizeP, blur, as.integer(verbose), savefilename, saveoutput, channel)
     if(saveoutput==1){
     print(savefilename)
     }

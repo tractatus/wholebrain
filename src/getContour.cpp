@@ -41,7 +41,7 @@ string ImgTypes(int imgTypeInt)
 
 
 /* apply operation to stack */
-RcppExport SEXP getContour(SEXP input, SEXP thresho, SEXP invertimg, SEXP getLarge, SEXP getNested, SEXP display, SEXP resizeP, SEXP blurImg, SEXP writetoconsole, SEXP saveoutput, SEXP writeout) {
+RcppExport SEXP getContour(SEXP input, SEXP thresho, SEXP invertimg, SEXP getLarge, SEXP getNested, SEXP display, SEXP resizeP, SEXP blurImg, SEXP writetoconsole, SEXP saveoutput, SEXP writeout, SEXP channelOI) {
 BEGIN_RCPP
   Rcpp::RNGScope __rngScope; //this and BEGIN_RCPP and END_RCPP is needed for wrappers such as Rcpp::as<int>
   //Rcpp::CharacterVector std::vector< std::string >
@@ -62,7 +62,7 @@ BEGIN_RCPP
 
   double resizeParam = Rcpp::as<double>(resizeP);
   int blurImage = Rcpp::as<int>(blurImg);
-
+  int channelOfInterest = Rcpp::as<int>(channelOI);
 
 
   if(verbose){Rcpp::Rcout << "Loading image:" << ffname << std::endl;}
@@ -78,8 +78,17 @@ BEGIN_RCPP
   if(DISPLAY){
     imshow("Original", img);
   }
+
+
   if(img.type()==16){
-    cvtColor(img , img , CV_BGR2GRAY);
+    //if RGB image 8bit
+      Mat bgr[3];   //destination array
+      split(img,bgr);//split source
+      if(channelOfInterest != 0){
+            img = bgr[3-channelOfInterest];
+      }else{
+        cvtColor(img,img,CV_RGB2GRAY);
+      }
     if(invert){
       bitwise_not ( img, img );
     }
