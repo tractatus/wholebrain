@@ -6,8 +6,9 @@
 \usage{
 nuclear.segment(input, thresh = 0.1, kernel = 3, iter = 20,
   threshold = "otsu", invert = FALSE, get.largest.object = TRUE,
-  num.nested.objects = 2, blur = 0, watershed = FALSE, resize = 0.25,
-  display = TRUE, verbose = TRUE, savefilename = FALSE)
+  num.nested.objects = 2, blur = 0, watershed = FALSE,
+  resize = 0.25, display = TRUE, verbose = TRUE,
+  savefilename = FALSE)
 }
 \arguments{
 \item{input}{input a character vector consisting of the full path name to 16-bit raw tif image files.}

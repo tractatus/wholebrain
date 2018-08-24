@@ -6,11 +6,12 @@
 \usage{
 registration(input, coordinate = NULL, plane = "coronal",
   right.hemisphere = NULL, interpolation = "tps", intrp.param = NULL,
-  brain.threshold = 200, blurring = c(4, 15), pixel.resolution = 0.64,
-  resize = (1/8)/4, correspondance = NULL, resolutionLevel = c(4, 2),
-  num.nested.objects = 0, display = TRUE, plateimage = FALSE,
-  forward.warp = FALSE, filter = NULL, output.folder = "../",
-  batch.mode = FALSE, verbose = TRUE)
+  brain.threshold = 200, blurring = c(4, 15),
+  pixel.resolution = 0.64, resize = (1/8)/4, correspondance = NULL,
+  resolutionLevel = c(4, 2), num.nested.objects = 0, display = TRUE,
+  plateimage = FALSE, forward.warp = FALSE, filter = NULL,
+  output.folder = "../", batch.mode = FALSE, channel = 0,
+  verbose = TRUE)
 }
 \arguments{
 \item{input}{input a character vector consisting of the full path name to 16-bit raw tif image files.}

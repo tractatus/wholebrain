@@ -116,6 +116,20 @@ get.vector.intensity<-function(input, x, y){
 	return(intensity)
 }
 
+#' Get region volume
+#'
+#' Providing an acronym, id or name this function returns the volume in cubic millimeters of the region. Option to only output for single hemisphere.
+#' Returns a numeric vector of values in cubic millimeters.
+#' @param regions vector of either acronyms, names or integer ids of regions that you want volume of.
+#' @param bilateral boolean. If volume should be calculated for a single hemisphere or both. Default is TRUE.
+#' @export
+#' @examples
+#' volume <- get.region.volume(dataset$acronym, bilteral = FALSE)
+get.region.volume <- function(regions, bilateral = FALSE){
+  volume<-ontology$volume[match(parent.regions,ontology$acronym)]
+  return(volume*(1-0.5*bilateral))
+}
+
 #' Get pixel intensity
 #'
 #' This function extracts the pixel intensity for a given set of x and y coordinates.
@@ -174,6 +188,29 @@ imstats<-function(input){
 	return(maxmin)
 }
 
+#' Get multi channel
+#'
+#' Gets intensity or signal-to-noise measurement for segmented features in multiple channels.
+#' @param seg a segmentation object.
+#' @param images a character vector with file paths for images.
+#' @param images a character vector with file paths for images.
+#' @examples
+#' dataset<-reflect.cells(dataset)
+#get.multi.channel<-function(image = c('/Volumes/General/Daniel/C1-MAX_05_N1_2017-09-12_006_006.tif', '/Volumes/General/Daniel/C2-MAX_05_N1_2017-09-12_006_006.tif','/Volumes/General/Daniel/C3-MAX_05_N1_2017-09-12_006_006.tif',  '/Volumes/General/Daniel/C4-MAX_05_N1_2017-09-12_006_006.tif'), seg = seg, roi=9, background = 40){
+#  mylist<-list()
+  
+#  for(i in )
+#  assign(paste(), i) 
+  
+#  mylist$Cy5<-get.pixel.intensity(image[1], seg$soma$x, seg$soma$y, roi=roi, background = background)
+#  mylist$TxRd<-get.pixel.intensity(image[2], seg$soma$x, seg$soma$y, roi=roi, background = background)
+#  mylist$Cy3<-get.pixel.intensity(image[3], seg$soma$x, seg$soma$y, roi=roi, background = background)
+#  mylist$FITC<-get.pixel.intensity(image[4], seg$soma$x, seg$soma$y, roi=roi, background = background)
+#  mylist$x<-seg$soma$x
+#  mylist$y<-seg$soma$y
+#  basecall<-data.frame(do.call("cbind", mylist))
+#  return(basecall)
+#}
 
 
 
@@ -365,7 +402,7 @@ pax.to.allen<-function(paxinos){
  	round(214+(20-(paxinos*1000))/25)
 }
 
-read.brains<-function(filenames, animalID=NULL){
+read.brains<-function(filenames, animalID=NULL, type = '.RData', dataset.object = 'dataset'){
 
 data<-read.table(filenames[1], sep=',', header=TRUE, fill=TRUE)
 if(!is.null(animalID)){
@@ -377,6 +414,33 @@ for(i in 1:length(filenames)){
 		data.tmp$animal<-animalID[i]
 	}
 	data<-rbind(data, data.tmp)
+}
+return(data)
+}
+
+read.brains2<-function(filenames, animalID=NULL, type = '.RData', dataset.object = 'dataset'){
+
+if(type == '.RData'){
+  read.section<-function(x){
+    return(read.table(x, sep=',', header=TRUE, fill=TRUE))
+  }
+}
+if(type == '.csv'){
+  read.section<-function(x){
+    return(read.table(x, sep=',', header=TRUE, fill=TRUE))
+  }
+}
+
+data<-read.table(filenames[1], sep=',', header=TRUE, fill=TRUE)
+if(!is.null(animalID)){
+data$animal<-animalID[1]
+}
+for(i in 1:length(filenames)){
+  data.tmp<-read.table(filenames[i], sep=',', header=TRUE, fill=TRUE)
+  if(!is.null(animalID)){
+    data.tmp$animal<-animalID[i]
+  }
+  data<-rbind(data, data.tmp)
 }
 return(data)
 }
@@ -513,6 +577,36 @@ spreadsheet.animal<-function(folder, file, sep=','){
 
 	write.table(data, file=file, sep=sep, row.names=FALSE)
 	return(data)
+}
+
+#' Normalize volume
+#'
+#' Returns a count table of cell counts per region normalized by cubic millimeters.
+#' @param dataset a dataset frame obtained by get.cell.ids() or by inspect.registration().
+#' @param bilateral boolean, if true then cells will be normalized by total volume regardless of hemisphere.
+#' @param aggregate compute volume for subregins based on parent region. Add which parent region you want to aggregate.
+#' @examples
+#'densities<-normalize.volume(dataset, aggregate = c('MO', 'SSp'))
+normalize.volume <- function(dataset, bilateral = TRUE, aggregate = NULL){
+  if(!bilateral){
+    counts<-table(dataset$acronym, dataset$right.hemisphere)
+  }else{
+    counts<-table(dataset$acronym)
+  }
+  
+  parent.regions<-row.names(counts)
+  
+  if(!is.null(aggregate)){
+    parent.regions<-row.names(counts)
+    parent.regions[parent.regions%in%get.sub.structure(aggregate)]<-aggregate
+  }
+  
+  volume<-ontology$volume[match(parent.regions,ontology$acronym)]
+
+  counts<-sweep(counts, 1, volume*(1-0.5*bilateral), FUN = "/")
+  
+  return(counts)
+  
 }
 
 get.cortex.layer<-function(dataset=dataset, layer=c(1,2,3)){

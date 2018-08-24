@@ -6,9 +6,9 @@
 \usage{
 stitch(input, stitched.image.name = "stitched_{default.folder}.tif",
   type = "snake.by.row", order = "left.&.up", output.folder = "../",
-  tilesize = 2048, overlap = 0.1, show.image = FALSE,
-  micromanager = TRUE, verbose = TRUE, brightness = 30, contrast = 3,
-  rotate = 0, feature.matching = FALSE)
+  tilesize = 2048, overlap = 0.1, dim = NULL, show.image = FALSE,
+  micromanager = TRUE, verbose = TRUE, brightness = 30,
+  contrast = 3, rotate = 0, feature.matching = FALSE)
 }
 \arguments{
 \item{input}{input a character vector consisting of the full path name to 16-bit raw tif image files. If length(input)==1 then its a folder and it will get tiffs inside.}

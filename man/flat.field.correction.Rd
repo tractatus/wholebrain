@@ -4,8 +4,8 @@
 \alias{flat.field.correction}
 \title{Flat-field correction}
 \usage{
-flat.field.correction(input, output.folder = "../", output.prefix = "FFC",
-  kernel = 301, show.image = FALSE,
+flat.field.correction(input, output.folder = "../",
+  output.prefix = "FFC", kernel = 301, show.image = FALSE,
   gain.image.name = "gain_{output.folder}.tif", verbose = TRUE)
 }
 \arguments{

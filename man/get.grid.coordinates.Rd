@@ -5,7 +5,7 @@
 \title{Get Grid Coordinates}
 \usage{
 get.grid.coordinates(input, tilesize, overlap = 0.1, rotate = 0,
-  plotgrid = FALSE)
+  dim = NULL, plotgrid = FALSE)
 }
 \arguments{
 \item{input}{vector of files, can be eithe rnumeric or character only importance is that length(input) is defined.}

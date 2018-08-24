@@ -19,6 +19,8 @@ export(get.images)
 export(get.pixel.intensity)
 export(prune.spots)
 export(remove.spot.outliers)
+export(normalize.volume)
+export(get.region.volume)
 
 ## undocumented
 export(update.wholebrain)

@@ -2,22 +2,30 @@
 % Please edit documentation in R/segment.R
 \name{segment}
 \alias{segment}
-\title{Segment image using multiple thresholds}
+\title{Segment features}
 \usage{
 segment(input, numthresh = 8, downsample = 0.25, filter = NULL,
-  post = NULL, pre = NULL, get.contour = FALSE, display = TRUE)
+  post = NULL, pre = NULL, get.contour = FALSE, channel = 0,
+  display = TRUE)
 }
 \arguments{
-\item{input}{input a character vector consisting of the full path name to 16-bit raw tif image files.}
-
-\item{numthresh}{numbe rof binary thresholds to use (default is 8).}
+\item{input}{file path to a valid monochrome 16-bit TIFF.}
+}
+\value{
+output is returned in the form of a list object with two principle items: soma and filter.
+\itemize{
+\item{soma}{segmented features}
+\item{filter}{filter parameters used to segment features with segment()}
+}
 }
 \description{
-Segment brain section.
+This function performs image segmentation.
+Returns a list object.
 }
 \examples{
-#folder where image tiles are stored
-images<-get.images('/Volumes/microscope/animal001/slide001/section001')
-#stitch images
-segment(system.file('sample_tiles/rabiesEGFP.tif', package='wholebrain')) 
+seg<-segment(FFC_filename)
+plot(seg$soma$x, seg$soma$y, ylim=rev(range(seg$soma$y)), asp=1, pch=16)
+#invoke text editor to extract filter for copy paste into your script for reprodicible results.
+edit(seg$filter)
 }
+\keyword{segmentation}

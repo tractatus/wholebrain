@@ -58,7 +58,7 @@ if(i==1){
   cat('var allenoutlines = [\n')
 }
 
-if(!is.na(registration$atlas$outlines[[i]]$xrT)) { 
+if(all(!is.na(registration$atlas$outlines[[i]]$xrT))) { 
 ###############   
 cat('   {\n')
 cat('    "type": "Feature",\n')
@@ -92,7 +92,7 @@ cat('},\n')
 
 ###########
 
-if(!is.na(registration$atlas$outlines[[i]]$xlT)) { 
+if(all(!is.na(registration$atlas$outlines[[i]]$xlT))) { 
 ###############   
 cat('   {\n')
 cat('    "type": "Feature",\n')
@@ -1057,5 +1057,5 @@ if( (!is.null(dataset))&(!is.null(registration)) ){
     sink()
     setwd('../')
 
-    return(paste(getwd(), paste('Web', outputfile, sep='_'), sep='' ))
+    return(paste(getwd(), paste('/Web', outputfile, sep='_'), sep='' ))
 }

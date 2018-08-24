@@ -6,8 +6,8 @@
 \usage{
 get.contour(input, threshold = "otsu", invert = FALSE,
   get.largest.object = TRUE, num.nested.objects = 2, blur = 0,
-  watershed = FALSE, resize = 0.25, display = TRUE, verbose = TRUE,
-  savefilename = FALSE)
+  watershed = FALSE, channel = 0, resize = 0.25, display = TRUE,
+  verbose = TRUE, savefilename = FALSE)
 }
 \arguments{
 \item{input}{input a character vector consisting of the full path name to 16-bit raw tif image files.}
