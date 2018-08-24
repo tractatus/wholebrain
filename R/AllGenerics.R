@@ -126,7 +126,7 @@ get.vector.intensity<-function(input, x, y){
 #' @examples
 #' volume <- get.region.volume(dataset$acronym, bilteral = FALSE)
 get.region.volume <- function(regions, bilateral = FALSE){
-  volume<-ontology$volume[match(parent.regions,ontology$acronym)]
+  volume<-ontology$volume[match(regions,ontology$acronym)]
   return(volume*(1-0.5*bilateral))
 }
 
@@ -587,7 +587,7 @@ spreadsheet.animal<-function(folder, file, sep=','){
 #' @param aggregate compute volume for subregins based on parent region. Add which parent region you want to aggregate.
 #' @examples
 #'densities<-normalize.volume(dataset, aggregate = c('MO', 'SSp'))
-normalize.volume <- function(dataset, bilateral = TRUE, aggregate = NULL){
+normalize.volume  <- function(dataset, bilateral = TRUE, aggregate = NULL){
   if(!bilateral){
     counts<-table(dataset$acronym, dataset$right.hemisphere)
   }else{
@@ -602,7 +602,14 @@ normalize.volume <- function(dataset, bilateral = TRUE, aggregate = NULL){
   }
   
   volume<-ontology$volume[match(parent.regions,ontology$acronym)]
-
+  
+  while(any(volume==0)){
+    parent.regions[volume==0]<-get.acronym.parent(get.acronym.parent(parent.regions[volume==0]))
+    volume<-ontology$volume[match(parent.regions,ontology$acronym)]
+    
+  }
+  
+  
   counts<-sweep(counts, 1, volume*(1-0.5*bilateral), FUN = "/")
   
   return(counts)
