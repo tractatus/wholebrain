@@ -1001,8 +1001,8 @@ points(0,-3.8,pch=23, bg='lightblue', cex=1.3, lwd=2)
 axis(4, at=-3.8, labels='lambda')
 
 for(i in unique(topview$regions[,3])){
-  polygon((topview$regions[which(topview$regions[,3]==i),1]), (topview$regions[which(topview$regions[,3]==i),2]), lty=3, border='black')
-  polygon(-(topview$regions[which(topview$regions[,3]==i),1]), (topview$regions[which(topview$regions[,3]==i),2]), border='black', lty=3)
+  polygon((topview$regions[which(topview$regions[,3]==i),1])/1.92, (topview$regions[which(topview$regions[,3]==i),2])/1.98, lty=3, border='black')
+  polygon(-(topview$regions[which(topview$regions[,3]==i),1])/1.92, (topview$regions[which(topview$regions[,3]==i),2])/1.98, border='black', lty=3)
 }
 
 isocortex <- get.acronym.child(get.acronym.child(get.acronym.child("Isocortex")))
@@ -1104,11 +1104,14 @@ cortical.plot<-function(dataset, type = c('left', 'right', 'top'), show.sections
   
   #plot only both hemispheres
   if(all(c('left', 'right', 'top')%in%type)){
-    quartz(width=8.330275*2.5, height= 5.201835)
-    par(mar=c(4,4,2,1), mfrow=c(1,3))
-    cortical.topview(dataset, dv.cut = dv.cut, show.sections = show.sections, labels = labels, col = col,  pch = pch, pt.bg = pt.bg)
-    cortical.sideview(dataset, right.hemisphere = FALSE, show.sections = show.sections, ml.cut = ml.cut, labels = labels, col = col,  pch = pch, pt.bg = pt.bg)
-    cortical.sideview(dataset, right.hemisphere = TRUE, show.sections = show.sections, ml.cut = ml.cut, labels = labels, col = col,  pch = pch, pt.bg = pt.bg)
+    quartz(width=14.691892, height= 4.864865)
+    layout(matrix(c(1, 1, 1, 1, 2, 2, 2,2,2,3, 3, 3, 3,3), 1, 14, byrow = TRUE))
+    par(mar=c(4,4,4,2), yaxs="r")
+    cortical.topview(dot, show.sections = FALSE)
+    par(mar=c(4,2,3,0), yaxs="i" )
+    cortical.sideview(dataset, right.hemisphere = FALSE, show.sections = FALSE)
+    par(mar=c(4,2,3,4), yaxs="i" )
+    cortical.sideview(dataset, right.hemisphere = TRUE, show.sections = FALSE)
   }
   #plot  top
   if(all(type == 'top')){
