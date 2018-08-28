@@ -1001,8 +1001,8 @@ points(0,-3.8,pch=23, bg='lightblue', cex=1.3, lwd=2)
 axis(4, at=-3.8, labels='lambda')
 
 for(i in unique(topview$regions[,3])){
-  polygon((topview$regions[which(positions2[,3]==i),1]), (topview$regions[which(topview$regions[,3]==i),2]), lty=3, border='black')
-  polygon(-(topview$regions[which(positions2[,3]==i),1]), (topview$regions[which(topview$regions[,3]==i),2]), border='black', lty=3)
+  polygon((topview$regions[which(topview$regions[,3]==i),1]), (topview$regions[which(topview$regions[,3]==i),2]), lty=3, border='black')
+  polygon(-(topview$regions[which(topview$regions[,3]==i),1]), (topview$regions[which(topview$regions[,3]==i),2]), border='black', lty=3)
 }
 
 isocortex <- get.acronym.child(get.acronym.child(get.acronym.child("Isocortex")))
