@@ -4,7 +4,7 @@
 \alias{cortical.sideview}
 \title{Cortical sideview plot}
 \usage{
-cortical.sideview(dataset, right.hemisphere = TRUE,
+cortical.sideview(dataset, right.hemisphere = TRUE, ml.cut = 2,
   show.sections = TRUE, labels = TRUE, col = NULL, pch = 16,
   pt.bg = NULL)
 }
@@ -12,6 +12,8 @@ cortical.sideview(dataset, right.hemisphere = TRUE,
 \item{dataset}{a dataset frame obtained by get.cell.ids() or by inspect.registration().}
 
 \item{right.hemisphere}{boolean, if true then right side of the hemisphere will be plotted, if false left hemisphere will be plotted.}
+
+\item{ml.cut}{numeric, value medio-lateral plane where everything more medial than ml.cut will be excluded. Default is 2.0 mm.}
 
 \item{show.sections}{boolean, if lines should be drawn for each unique AP section. Default is TRUE.}
 

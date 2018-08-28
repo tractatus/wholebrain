@@ -1029,6 +1029,7 @@ points(dataset$ML[isocortex], dataset$AP[isocortex], pch = pch, cex = cex, col =
 #' Plots a schematic brain from the side with cortical regions outlined.
 #' @param dataset a dataset frame obtained by get.cell.ids() or by inspect.registration().
 #' @param right.hemisphere boolean, if true then right side of the hemisphere will be plotted, if false left hemisphere will be plotted.
+#' @param ml.cut numeric, value medio-lateral plane where everything more medial than ml.cut will be excluded. Default is 2.0 mm. 
 #' @param show.sections boolean, if lines should be drawn for each unique AP section. Default is TRUE.
 #' @param labels if labels should be plotted with acronyms for each cortical region.
 #' @param col color code or name.
@@ -1036,7 +1037,7 @@ points(dataset$ML[isocortex], dataset$AP[isocortex], pch = pch, cex = cex, col =
 #' @param pt.bg background (fill) color for the open plot symbols given by pch = 21:25.
 #' @examples
 #' cortical.sideview(dataset, right.hemisphere = FALSE, labels = FALSE)
-cortical.sideview<-function(dataset, right.hemisphere = TRUE, show.sections = TRUE, labels = TRUE,  col = NULL, pch = 16, pt.bg = NULL){
+cortical.sideview<-function(dataset, right.hemisphere = TRUE, ml.cut = 2.0, show.sections = TRUE, labels = TRUE,  col = NULL, pch = 16, pt.bg = NULL){
   hemisphere<-c('Left hemisphere', 'Right hemisphere')
   xlim<-rbind(c(5,-7), c(-7, 5))
   plot(region[,1:2], xlim=xlim[right.hemisphere + 1,], asp=1, ylim=c(-7,0), col=0, axes=F, ylab='Dorso-ventral [mm]', xlab='Anterior-posterior [mm]')
@@ -1058,7 +1059,8 @@ cortical.sideview<-function(dataset, right.hemisphere = TRUE, show.sections = TR
   isocortex <- append(isocortex, get.acronym.child(get.acronym.child("Isocortex")))
   isocortex <- na.omit(isocortex)
   isocortex <- dataset$acronym %in% isocortex
-  
+  isocortex <- (isocortex & (abs(dataset$ML) > ml.cut) )
+
   if(!is.null(col)){
     color<-col
   }else{
