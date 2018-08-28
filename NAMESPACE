@@ -21,6 +21,10 @@ export(prune.spots)
 export(remove.spot.outliers)
 export(normalize.volume)
 export(get.region.volume)
+export(get.cortex.layer)
+export(cortical.plot)
+export(cortical.sideview)
+export(cortical.topview)
 
 ## undocumented
 export(update.wholebrain)

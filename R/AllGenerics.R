@@ -616,7 +616,16 @@ normalize.volume  <- function(dataset, bilateral = TRUE, aggregate = NULL){
   
 }
 
-get.cortex.layer<-function(dataset=dataset, layer=c(1,2,3)){
+#' Get index over cells in specific cortical layers
+#'
+#' Returns a two-dimensional data frame with the first column, layer, indicating which layer the cell is in and the second column, index, indicating which row in the original data frame the cell can be found.
+#' @param dataset a dataset frame obtained by get.cell.ids() or by inspect.registration().
+#' @param layer integer vector with unique layers of interest c(1:6) will give you all layers, default is c(1:6).
+#' @examples
+#'only.layers<-get.cortex.layer(dataset, layer = c(1:6))
+#'dataset$acronym[only.layers$index] <- get.acronym.parent(dataset$acronym[only.layers$index])
+#'dot.plot(dataset)'
+get.cortex.layer<-function(dataset=dataset, layer=c(1:6)){
 	layer[(layer==2)|(layer==3)]<-23
 	remove.non.numbers<-abs(as.numeric(gsub("[A-z]|/","", dataset$acronym)))
 	index<-which(remove.non.numbers%in%layer)

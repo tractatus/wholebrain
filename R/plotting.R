@@ -3,7 +3,7 @@ data(EPSatlas, envir=environment())
 data(atlasIndex, envir=environment())
 #data(atlasOntology, envir=environment())
 data(ontology, envir=environment())
-
+data(schematics, envir=environment())
 
 
 suggestions<-function(dataset, normalize.by=NULL, exclude.below=10, reduce.below=100, clusters=7){
@@ -788,6 +788,61 @@ glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col=
 	
 }
 
+cortical.sideview<-function(dataset, right.hemisphere = TRUE, labels = TRUE,  col = NULL, pch = 16, pt.bg = NULL){
+  hemisphere<-c('Left hemisphere', 'Right hemisphere')
+  xlim<-rbind(c(5,-7), c(-7, 5))
+  plot(region[,1:2], xlim=xlim[right.hemisphere + 1,], asp=1, ylim=c(-7,0), col=0, axes=F, ylab='Dorso-ventral [mm]', xlab='Anterior-posterior [mm]')
+  mtext(hemisphere[right.hemisphere + 1], 3, 1, font=2)
+  graylight<-0.9
+  lapply(5:-8, function(x)abline(v=x, col='lightblue'))
+  lapply(1:-8, function(x)abline(h=x, col='lightblue'))
+  
+  polygon(region[which(sideview$acronym=='brainstem'),1:2], col=gray(graylight))
+  polygon(region[which(sideview$acronym=='cerebellum'),1:2], col=gray(graylight))
+  polygon(region[which(sideview$acronym=='telencephalon'),1:2], col=gray(graylight))
+  
+  cortical<-unique(region$acronym[which(nchar(sideview$acronym)<=5)] )
+  
+  lapply(cortical, function(x){polygon(sideview[which(sideview$acronym==x),1:2], lty=3, col=gray(graylight+0.05))} )
+  
+  if(!is.null(col)){
+    color<-col
+  }else{
+    color<-dataset$color
+  }
+    
+  
+  if(labels)
+    lapply(cortical, function(x){coord<-apply(region[which(sideview$acronym==x),1:2], 2, median);text(coord[1], coord[2], x, cex=0.85, col=rgb(0.3,0,0.3))} )
+  
+  axis(2, at=c(0:-7), las=1)
+  axis(1, at=c(5:-7))
+}
+
+cortical.plot<-function(dataset, type = c('left', 'right', 'top'), labels = TRUE,  col = NULL, pch = 16, pt.bg = NULL){
+  #plot only both hemispheres
+  if(c('left', 'right')%in%type){
+    quartz(width=8.330275*2, height= 5.201835)
+    par(mar=c(4,4,2,1), mfrow=c(1,2))
+    cortical.sideview(right.hemisphere = FALSE, labels = labels)
+    cortical.sideview(right.hemisphere = TRUE, labels = labels)
+  }
+  #plot all
+  
+  #plot only left or right
+  if(xor('left'%in%type, 'right'%in%type)){
+    cortical.sideview(right.hemisphere = (type == 'right'), labels = labels, col = col,  pch = pch, pt.bg = pt.bg)
+  }
+  
+  #plot  top
+  if('top'%in%type){
+    quartz(width=8.330275*2, height= 5.201835)
+    par(mar=c(4,4,2,1), mfrow=c(1,2))
+    cortical.sideview(right.hemisphere = FALSE, labels = labels)
+    cortical.sideview(right.hemisphere = TRUE, labels = labels)
+  }
+  
+}
 
 
 bargraph <- function(dataset, device=TRUE, region.lab='Input region:') {
@@ -899,4 +954,168 @@ for(i in 1:regi$atlas$numRegions){
   polygon(regi$atlas$outlines[[i]]$xlT*scale.factor, regi$atlas$outlines[[i]]$ylT*scale.factor, col=bg, lwd=lwd)
   polygon(regi$atlas$outlines[[i]]$xrT*scale.factor, regi$atlas$outlines[[i]]$yrT*scale.factor, col=bg, lwd=lwd)
 }
+}
+
+
+#' Cortical topview plot
+#'
+#' Plots a schematic brain from the top showing only parts that are easily accessible with cranial windows without removing parts of the temporalis muscle.
+#' @param dataset a dataset frame obtained by get.cell.ids() or by inspect.registration().
+#' @param dv.cut numeric, value dorso-ventral plane where everything above dv.cut will be plotted. Default is -2.8 mm.
+#' @param show.sections boolean, if lines should be drawn for each unique AP section. Default is TRUE.
+#' @param labels if labels should be plotted with acronyms for each cortical region.
+#' @param col color code or name.
+#' @param pch plotting ‘character’, i.e., symbol to use. This can either be a single character or an integer code for one of a set of graphics symbols.
+#' @param pt.bg background (fill) color for the open plot symbols given by pch = 21:25.
+#' @examples
+#' cortical.topview(dataset, right.hemisphere = FALSE, labels = FALSE)
+cortical.topview<-function(dataset, dv.cut = -2.8, show.sections = TRUE, labels = TRUE,  col = NULL, pch = 16, cex = 0.5, pt.bg = NULL){
+
+brain.color<-rgb(0.25, 0.25, 0.25, 0.1)
+
+par(pty='s')
+plot(0,0, col=0, ylab='Anterior-Posterior (mm)', xlab='Medial-Lateral (mm)', xlim=c(-5,5), axes=F, ylim=c(-5,3.7))
+
+
+abline(v=c(-5:5), col='lightblue')
+abline(h=c(-5:5), col='lightblue')
+
+
+polygon(topview$outline[,1]/1.95, topview$outline[,2]/1.95, lwd=2, col= brain.color )
+polygon(-(topview$outline[,1]/1.95), topview$outline[,2]/1.95, lwd=2, col= brain.color)
+
+
+axis(1, at=seq(-4,4, by=0.1), labels=F, col='gray', tck=-0.018)
+axis(2, at=seq(-5,5, by=0.1), labels=F, col='gray', tck=-0.018)
+axis(1, at=-4:4, labels=F)
+axis(2, at=c(-5:5), labels=F)
+
+axis(1, at=seq(-4,4, by=2))
+axis(2, at=seq(-4,4, by=2))
+
+abline(h=0)
+points(0,0,pch=23, bg='white', cex=1.3, lwd=2)  
+axis(4, at=0, labels='Bregma')
+abline(h=-3.8)
+points(0,-3.8,pch=23, bg='lightblue', cex=1.3, lwd=2)   
+axis(4, at=-3.8, labels='lambda')
+
+for(i in unique(topview$regions[,3])){
+  polygon((topview$regions[which(positions2[,3]==i),1]), (topview$regions[which(topview$regions[,3]==i),2]), lty=3, border='black')
+  polygon(-(topview$regions[which(positions2[,3]==i),1]), (topview$regions[which(topview$regions[,3]==i),2]), border='black', lty=3)
+}
+
+isocortex <- get.acronym.child(get.acronym.child(get.acronym.child("Isocortex")))
+isocortex <- append(isocortex, get.acronym.child(get.acronym.child("Isocortex")))
+isocortex <- na.omit(isocortex)
+isocortex <- dataset$acronym %in% isocortex
+isocortex <- (isocortex & (abs(dataset$DV) > dv.cut) )
+
+if(!is.null(col)){
+  color<-col
+}else{
+  color<-dataset$color[isocortex]
+}
+
+if(show.sections)
+    abline(h = unique(dataset$AP), col="gray")
+
+points(dataset$ML[isocortex], dataset$AP[isocortex], pch = pch, cex = cex, col = color, pt.bg = pt.bg)  
+
+}
+
+#' Cortical sideview plot
+#'
+#' Plots a schematic brain from the side with cortical regions outlined.
+#' @param dataset a dataset frame obtained by get.cell.ids() or by inspect.registration().
+#' @param right.hemisphere boolean, if true then right side of the hemisphere will be plotted, if false left hemisphere will be plotted.
+#' @param show.sections boolean, if lines should be drawn for each unique AP section. Default is TRUE.
+#' @param labels if labels should be plotted with acronyms for each cortical region.
+#' @param col color code or name.
+#' @param pch plotting ‘character’, i.e., symbol to use. This can either be a single character or an integer code for one of a set of graphics symbols.
+#' @param pt.bg background (fill) color for the open plot symbols given by pch = 21:25.
+#' @examples
+#' cortical.sideview(dataset, right.hemisphere = FALSE, labels = FALSE)
+cortical.sideview<-function(dataset, right.hemisphere = TRUE, show.sections = TRUE, labels = TRUE,  col = NULL, pch = 16, pt.bg = NULL){
+  hemisphere<-c('Left hemisphere', 'Right hemisphere')
+  xlim<-rbind(c(5,-7), c(-7, 5))
+  plot(region[,1:2], xlim=xlim[right.hemisphere + 1,], asp=1, ylim=c(-7,0), col=0, axes=F, ylab='Dorso-ventral [mm]', xlab='Anterior-posterior [mm]')
+  mtext(hemisphere[right.hemisphere + 1], 3, 1, font=2)
+  graylight<-0.9
+  lapply(5:-8, function(x)abline(v=x, col='lightblue'))
+  lapply(1:-8, function(x)abline(h=x, col='lightblue'))
+  
+  polygon(region[which(sideview$acronym=='brainstem'),1:2], col=gray(graylight))
+  polygon(region[which(sideview$acronym=='cerebellum'),1:2], col=gray(graylight))
+  polygon(region[which(sideview$acronym=='telencephalon'),1:2], col=gray(graylight))
+  
+  cortical<-unique(region$acronym[which(nchar(sideview$acronym)<=5)] )
+  
+  lapply(cortical, function(x){polygon(sideview[which(sideview$acronym==x),1:2], lty=3, col=gray(graylight+0.05))} )
+  
+
+  isocortex <- get.acronym.child(get.acronym.child(get.acronym.child("Isocortex")))
+  isocortex <- append(isocortex, get.acronym.child(get.acronym.child("Isocortex")))
+  isocortex <- na.omit(isocortex)
+  isocortex <- dataset$acronym %in% isocortex
+  
+  if(!is.null(col)){
+    color<-col
+  }else{
+    color<-dataset$color[isocortex & dataset$right.hemisphere == right.hemisphere]
+  }
+  
+  if(show.sections)
+    abline(v = unique(dataset$AP), col="gray")
+  
+  points(dataset$AP[isocortex & dataset$right.hemisphere == right.hemisphere], dataset$DV[isocortex & dataset$right.hemisphere == right.hemisphere], pch = pch, col = color, pt.bg = pt.bg)  
+  
+  if(labels)
+    lapply(cortical, function(x){coord<-apply(region[which(sideview$acronym==x),1:2], 2, median);text(coord[1], coord[2], x, cex=0.85, col=rgb(0.3,0,0.3))} )
+  
+  axis(2, at=c(0:-7), las=1)
+  axis(1, at=c(5:-7))
+}
+
+
+#' Cortical plot
+#'
+#' Plots schematic brain(s) of cells in cortex from different views.
+#' @param dataset a dataset frame obtained by get.cell.ids() or by inspect.registration().
+#' @param type character vector, what type of plots should be made. Default is c('left', 'right', 'top').
+#' @param show.sections boolean, if lines should be drawn for each unique AP section. Default is TRUE.
+#' @param ml.cut numeric, value medio-lateral plane where everything more medial than ml.cut will be excluded. Default is 2.0 mm. 
+#' @param dv.cut numeric, value dorso-ventral plane where everything above dv.cut will be plotted. Default is -2.8 mm.
+#' @param labels if labels should be plotted with acronyms for each cortical region.
+#' @param col color code or name.
+#' @param pch plotting ‘character’, i.e., symbol to use. This can either be a single character or an integer code for one of a set of graphics symbols.
+#' @param pt.bg background (fill) color for the open plot symbols given by pch = 21:25.
+#' @examples
+#' ccortical.plot(dataset, type = c('left', 'right', 'top') )
+cortical.plot<-function(dataset, type = c('left', 'right', 'top'), show.sections = TRUE, labels = TRUE, ml.cut = 2.0, dv.cut = -2.8, col = NULL, cex = 0.5, pch = 16, pt.bg = NULL){
+  if(all(c('left', 'right')%in%type)  & (!'top'%in%type)){
+    quartz(width=8.330275*2, height= 5.201835)
+    par(mar=c(4,4,2,1), mfrow=c(1,2))
+    cortical.sideview(dataset, right.hemisphere = FALSE, show.sections = show.sections, ml.cut = ml.cut, labels = labels, col = col,  pch = pch, pt.bg = pt.bg)
+    cortical.sideview(dataset, right.hemisphere = TRUE, show.sections = show.sections,ml.cut = ml.cut, labels = labels, col = col,  pch = pch, pt.bg = pt.bg)
+  }
+  
+  #plot only both hemispheres
+  if(all(c('left', 'right', 'top')%in%type)){
+    quartz(width=8.330275*2.5, height= 5.201835)
+    par(mar=c(4,4,2,1), mfrow=c(1,3))
+    cortical.topview(dataset, dv.cut = dv.cut, show.sections = show.sections, labels = labels, col = col,  pch = pch, pt.bg = pt.bg)
+    cortical.sideview(dataset, right.hemisphere = FALSE, show.sections = show.sections, ml.cut = ml.cut, labels = labels, col = col,  pch = pch, pt.bg = pt.bg)
+    cortical.sideview(dataset, right.hemisphere = TRUE, show.sections = show.sections, ml.cut = ml.cut, labels = labels, col = col,  pch = pch, pt.bg = pt.bg)
+  }
+  #plot  top
+  if(all(type == 'top')){
+    cortical.topview(dataset, show.sections = show.sections, dv.cut = dv.cut, labels = labels, col = col,  pch = pch, pt.bg = pt.bg)
+  }
+  
+  #plot only left or right
+  if(xor('left'%in%type, 'right'%in%type)){
+    cortical.sideview(dataset, right.hemisphere = (type == 'right'), show.sections = show.sections, ml.cut = ml.cut, labels = labels, col = col,  pch = pch, pt.bg = pt.bg)
+  }
+  
 }
