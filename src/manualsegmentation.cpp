@@ -1180,10 +1180,18 @@ BEGIN_RCPP
   //load the image 
   Rcpp::CharacterVector fname(input);
   std::string ffname(fname[0]);
+
+
   Rcpp::Rcout << "Loading image:" << ffname << std::endl;
   Segmentation pd;
   tStart = clock();
-  pd.src = imread(ffname, -1); // -1 tag means "load as is"
+  if(channelOfInterest != 0){
+    std::vector<cv::Mat> multipageImage;
+    cv::imreadmulti(ffname, multipageImage, cv::IMREAD_ANYDEPTH);
+    pd.src = multipageImage[3-channelOfInterest];
+  }else{
+    pd.src = imread(ffname, -1); // -1 tag means "load as is"
+  }
   tStop = clock();
   double time_elapsed = (double)((tStop - tStart) / CLOCKS_PER_SEC);
   Rcpp::Rcout << "LOADED." << " loading took " <<  time_elapsed << " seconds." << std::endl;

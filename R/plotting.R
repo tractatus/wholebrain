@@ -1093,7 +1093,7 @@ cortical.sideview<-function(dataset, right.hemisphere = TRUE, ml.cut = 2.0, show
 #' @param pch plotting ‘character’, i.e., symbol to use. This can either be a single character or an integer code for one of a set of graphics symbols.
 #' @param pt.bg background (fill) color for the open plot symbols given by pch = 21:25.
 #' @examples
-#' ccortical.plot(dataset, type = c('left', 'right', 'top') )
+#' cortical.plot(dataset, type = c('left', 'right', 'top') )
 cortical.plot<-function(dataset, type = c('left', 'right', 'top'), show.sections = TRUE, labels = TRUE, ml.cut = 2.0, dv.cut = -2.8, col = NULL, cex = 0.5, pch = 16, pt.bg = NULL){
   if(all(c('left', 'right')%in%type)  & (!'top'%in%type)){
     quartz(width=8.330275*2, height= 5.201835)
@@ -1124,3 +1124,20 @@ cortical.plot<-function(dataset, type = c('left', 'right', 'top'), show.sections
   }
   
 }
+
+#' Draw fluorescent blobs
+#'
+#' Draws fluorescent blobs.
+#' @param input a segmentation object obtained by segment() with get.contour = TRUE.
+#' @col color to use as polygon fill. Default is transparent red, .
+#' @border border color to use for the blobs default is 'darkred'.
+#' @examples
+#' plot.registration(regi)
+#' draw.blobs(seg, col = rgb(0,1,0.1, alpha = 0.5), border ='green3')
+draw.blobs<-function(input, col = rgb(1,0,0, 0.5), border = 'darkred'){
+  if(class(input)=='list'){
+    invisible(lapply(unique(input$soma$contour.ID), function(x)polygon(input$soma$contour.x[which(input$soma$contour.ID == x)], input$soma$contour.y[which(input$soma$contour.ID == x)], col=col, border = border)))
+  }else if(class(data.frame)=='data.frame'){
+    
+  }
+} 

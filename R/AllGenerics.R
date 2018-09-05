@@ -636,3 +636,21 @@ get.cortex.layer<-function(dataset=dataset, layer=c(1:6)){
 flag.outlier<-function(dataset){
 	
 }
+
+#' Get Allen 25 micron voxel coordinates from stereotactic
+#'
+#' Returns integer of anterior-posterior voxel index.
+#' @param paxinos AP form bregma.
+pax.to.allen<-function(paxinos){
+  round(214+(20-(paxinos*1000))/25)
+}
+
+
+inside.blobs<-function(dataset, blobs){
+  if(class(dataset)=='list'){
+  }else if(class(dataset)=='data.frame'){
+    test<-(lapply(unique(blobs$soma$contour.ID), function(x)point.in.polygon(dataset$x, dataset$y, blobs$soma$contour.x[which(blobs$soma$contour.ID == x)], blobs$soma$contour.y[which(blobs$soma$contour.ID == x)])))
+    return(apply(do.call("cbind", test), 1, sum)>0)
+  }
+}
+ 

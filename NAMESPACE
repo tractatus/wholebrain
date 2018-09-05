@@ -25,9 +25,12 @@ export(get.cortex.layer)
 export(cortical.plot)
 export(cortical.sideview)
 export(cortical.topview)
+export(draw.blobs)
+export(get.probe.paths)
 
 ## undocumented
 export(update.wholebrain)
+export(inside.blobs)
 
 export(conv)
 export(showImage)
