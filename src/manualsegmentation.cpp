@@ -1185,12 +1185,11 @@ BEGIN_RCPP
   Rcpp::Rcout << "Loading image:" << ffname << std::endl;
   Segmentation pd;
   tStart = clock();
-  if(channelOfInterest != 0){
+  pd.src = imread(ffname, -1); // -1 tag means "load as is"
+  if(channelOfInterest != 0 & pd.src.type()!=16 ){
     std::vector<cv::Mat> multipageImage;
     cv::imreadmulti(ffname, multipageImage, cv::IMREAD_ANYDEPTH);
     pd.src = multipageImage[3-channelOfInterest];
-  }else{
-    pd.src = imread(ffname, -1); // -1 tag means "load as is"
   }
   tStop = clock();
   double time_elapsed = (double)((tStop - tStart) / CLOCKS_PER_SEC);

@@ -31,6 +31,9 @@ export(get.probe.paths)
 ## undocumented
 export(update.wholebrain)
 export(inside.blobs)
+export(tracts3d)
+export(lines.probe.paths)
+export(paxTOallen)
 
 export(conv)
 export(showImage)
