@@ -1218,7 +1218,8 @@ BEGIN_RCPP
   }else if(pd.src.type()==2){
     pd.imgdepth = 1000; //
     depth = 65535;
-    pd.src.convertTo(pd.src, CV_16U);
+
+    pd.src.convertTo(pd.src, CV_16S);
     Rcpp::Rcout << "Changed image type to: " <<  getImgTypes(pd.src.type()) << "_" << pd.src.type() << std::endl;
   }
 
