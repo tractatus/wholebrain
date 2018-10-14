@@ -791,7 +791,7 @@ glassbrain<-function(dataset, high.res=FALSE, dim=c(720,1080), device=TRUE, col=
 cortical.sideview<-function(dataset, right.hemisphere = TRUE, labels = TRUE,  col = NULL, pch = 16, pt.bg = NULL){
   hemisphere<-c('Left hemisphere', 'Right hemisphere')
   xlim<-rbind(c(5,-7), c(-7, 5))
-  plot(region[,1:2], xlim=xlim[right.hemisphere + 1,], asp=1, ylim=c(-7,0), col=0, axes=F, ylab='Dorso-ventral [mm]', xlab='Anterior-posterior [mm]')
+  plot(sideview[,1:2], xlim=xlim[right.hemisphere + 1,], asp=1, ylim=c(-7,0), col=0, axes=F, ylab='Dorso-ventral [mm]', xlab='Anterior-posterior [mm]')
   mtext(hemisphere[right.hemisphere + 1], 3, 1, font=2)
   graylight<-0.9
   lapply(5:-8, function(x)abline(v=x, col='lightblue'))
@@ -813,7 +813,7 @@ cortical.sideview<-function(dataset, right.hemisphere = TRUE, labels = TRUE,  co
     
   
   if(labels)
-    lapply(cortical, function(x){coord<-apply(region[which(sideview$acronym==x),1:2], 2, median);text(coord[1], coord[2], x, cex=0.85, col=rgb(0.3,0,0.3))} )
+    lapply(cortical, function(x){coord<-apply(sideview[which(sideview$acronym==x),1:2], 2, median);text(coord[1], coord[2], x, cex=0.85, col=rgb(0.3,0,0.3))} )
   
   axis(2, at=c(0:-7), las=1)
   axis(1, at=c(5:-7))
@@ -1001,8 +1001,8 @@ points(0,-3.8,pch=23, bg='lightblue', cex=1.3, lwd=2)
 axis(4, at=-3.8, labels='lambda')
 
 for(i in unique(topview$regions[,3])){
-  polygon((topview$regions[which(topview$regions[,3]==i),1])/1.92, (topview$regions[which(topview$regions[,3]==i),2])/1.98, lty=3, border='black')
-  polygon(-(topview$regions[which(topview$regions[,3]==i),1])/1.92, (topview$regions[which(topview$regions[,3]==i),2])/1.98, border='black', lty=3)
+  polygon(as.numeric(topview$regions[which(topview$regions[,3]==i),1])/1.92, as.numeric(topview$regions[which(topview$regions[,3]==i),2])/1.98, lty=3, border='black')
+  polygon(-as.numeric(topview$regions[which(topview$regions[,3]==i),1])/1.92, as.numeric(topview$regions[which(topview$regions[,3]==i),2])/1.98, border='black', lty=3)
 }
 
 isocortex <- get.acronym.child(get.acronym.child(get.acronym.child("Isocortex")))

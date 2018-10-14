@@ -283,10 +283,256 @@ get.forward.warpRCPP<-function(registration){
 }
 
 
-custom.registration<-function(input, atlas){
+#' Register section to atlas
+#'
+#' This function performs registration using point-based algorithms either Thin-Plate B-Splines (TPS) or Coherent Point Drift (CPD).
+#' @param input input a character vector consisting of the full path name to 16-bit raw tif image files.
+#' @param coordinate matching coordinates in the main plane to be registered to (in millimeters).
+#' @param plane the main plane to register too: "coronal", "sagital", "".
+#' @param brain.threshold a integer value, which determien sthe segmentation of the brain slice.
+#' @param verbose boolean value. If true diagnostic output is written to the R console. Deafult is true.
+#' @examples
+#' #path to image
+#' image<-'/Volumes/microscope/animal001/slide001/section001.tif'
+#' #register the image
+#' regi<-registration(image, coordinate = 1.05, filter = seg$filter)
+registration2<- function(input,
+                        coordinate= NULL,
+                        filter=myfilter,
+                        interpolation='tps',
+                        intrp.param=NULL,
+                        output.folder='../',
+                        forward.warp=FALSE,
+                        display=TRUE,
+                        tissue.threshold = 200,
+                        blurring=c(4,4),
+                        pixel.resolution=0.64,
+                        resize=(1/8)/4,
+                        correspondance=NULL,
+                        resolutionLevel=c(4,2),
+                        num.nested.objects=0,
+                        batch.mode=FALSE,
+                        verbose=TRUE){
+  #set atlas resolution
+  atlas.pixel.resolution <-4.48
+  pixel.resolution <- 1
+  #if windows use batch.mode for rendering PNG images not upside down
+  if(.Platform$OS.type=="windows") {
+    batch.mode=TRUE
+  }
 
-  transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
+  if(is.null(coordinate)){
+    if(is.null(correspondance)){
+      coordinate<-0
+    }else{
+      coordinate<-correspondance$coordinate
+    }
+  }
+
+  #check that file exist
+  file <- as.character(input)
+  if(!file.exists(file))
+    stop(file, ", file not found")
+  file <- path.expand(file)
+
+
+  #determine location and name of output images
+  outputfile<-basename(file)
+  outputfile<-strsplit(outputfile, "\\.")[[1]]
+  outputfile<-paste(outputfile[-length(outputfile)], collapse='.')
+  defaultwd<-getwd()
+  parentpath<-output.folder
+  if(output.folder=='./'){
+    parentpath<-dirname(input)[1]
+  }
+  if(output.folder=='../'){
+    parentpath<-dirname(dirname(input))[1]
+  }
+  outfolder<-paste('output', outputfile, sep='_')
+  setwd(parentpath)
+  #create output directory
+  create.output.directory(outfolder, verbose=verbose)
+  setwd(defaultwd)
+
+  outputfile<-paste(parentpath, outfolder, paste('Registration', outputfile, sep='_'), sep='/')
+
+  #if filter is missing set some default. Otherwise use the parameters form the filter
+  if(is.null(filter)){
+    MaxDisp<-0
+    MinDisp<-0
+    pixel.resolution<-1
+  }else{
+    MaxDisp<-filter$Max
+    MinDisp<-filter$Min
+    tissue.threshold<-filter$tissue.threshold
+    resize<-filter$resize
+    blurring[1]<-filter$blur
+    pixel.resolution<-filter$pixel.resolution
+  }
+  #if MinDisp would be NULL make sure it is 0
+  if(is.null(MinDisp)){
+    MinDisp<-0
+  }
+
+  #if correspondance points are already provided then use these
+  if(is.null(correspondance)){
+    #get contours for input image
+    contourInput<-get.contour(file, thresh=tissue.threshold, resize=resize, blur=blurring[1], num.nested.objects=num.nested.objects, display=FALSE)
+    contoursI<-as.numeric(names(sort(tapply(contourInput$x,contourInput$contour.ID, min))))
+
+    #get contours for atlas
+    k <- which(abs(coordinate - atlasIndex$mm.from.origin) ==  min(abs(coordinate - atlasIndex$mm.from.origin)))
+    quartz(width= 5.32 , height= 5.98)
+    par(mar=c(0,0,0,0), bg='black', xaxs='i', yaxs='i')
+    plot(EPSatlas$plates[[k]][[1]]@paths$path@x, EPSatlas$plates[[k]][[1]]@paths$path@y, col=0)
+    polygon(EPSatlas$plates[[k]][[2]]@paths$path@x, EPSatlas$plates[[k]][[2]]@paths$path@y, col='white')
+    full.filename <- paste0(tempdir(), "/", k, ".tif")
+    dev.copy(tiff, full.filename, width = 532,
+             height = 598, units = "px", res = 150)
+    dev.off()
+    cat(paste("Saved as:", full.filename, "\n"))
+
+    filename<-full.filename
+    contourAtlas<-get.contour(full.filename, resize=1, blur=blurring[2], num.nested.objects=num.nested.objects, display=FALSE)
+    contours<-as.numeric(names(sort(tapply(contourAtlas$x,contourAtlas$contour.ID, min))))
+
+    #generate correspondance points along the contours
+    cor.pointsInput<-list()
+    cor.pointsAtlas<-list()
+    for(i in 1:length(contours) ){
+      if(contours[i]==0){
+        resLevel<-resolutionLevel[1]
+      }else{
+        resLevel<-resolutionLevel[2]
+      }
+      cor.pointsAtlas[[i]]<-automatic.correspondences(cbind(contourAtlas$x[which(contourAtlas$contour.ID==contours[i])],contourAtlas$y[which(contourAtlas$contour.ID==contours[i])]), resLevel, plot=FALSE)
+      cor.pointsInput[[i]]<-automatic.correspondences(cbind(contourInput$x[which(contourInput$contour.ID==contoursI[i])],contourInput$y[which(contourInput$contour.ID==contoursI[i])]), resLevel, plot=FALSE)
+    }
+
+    #gather into a correspondance point list
+    cor.points<-list(atlas=cor.pointsAtlas, input=cor.pointsInput)
+
+    #set variables
+    targetP.x <- numeric()
+    targetP.y <- numeric()
+    referenceP.x <- numeric()
+    referenceP.y <- numeric()
+    shape <- numeric()
+    #get the centroids
+    centroidAtlas <- cor.points$atlas[[1]]$q[1, ]*0.5
+    centroidNorm <- centroidAtlas - cor.points$input[[1]]$q[1, ]
+    #get the upsampled correspondance points and a shape index
+    for(i in 1:length(contours) ){
+      #scale reference to pixel resolution of target image in microns
+      referenceP.x<-append(referenceP.x, 4*(cor.points$atlas[[i]]$p[,1]*0.5-centroidNorm[1]))
+      referenceP.y<-append(referenceP.y, 4*(cor.points$atlas[[i]]$p[,2]*0.5-centroidNorm[2]))
+
+      targetP.x<-append(targetP.x, 4*cor.points$input[[i]]$p[,1])
+      targetP.y<-append(targetP.y, 4*cor.points$input[[i]]$p[,2])
+      shape<-append(shape, rep(i, length(cor.points$input[[i]]$p[,2])))
+    }
+
+
+  }else{
+    #correspondance points already provided
+    correspondance$correspondance<-na.omit(correspondance$correspondance)
+    targetP.x<-correspondance$correspondance[,1]
+    targetP.y<-correspondance$correspondance[,2]
+    referenceP.x<-correspondance$correspondance[,3]
+    referenceP.y<-correspondance$correspondance[,4]
+    shape<-correspondance$correspondance[,5]
+    centroidNorm<-correspondance$centroidNorm
+    centroidAtlas<-correspondance$centroidAtlas
+  }
+
+  #upsample the resize parameter
+  resizeP<-resize*4
+
+  #perform interpolation
+  if(interpolation=='cpd'){
+    if(is.null(intrp.param)){
+      intrp.param<-list(beta = 3.0, lambda = 3.0, gamma = 0.7, sigma = 0.0, max.iter = 150)
+    }
+    transformationgrid<-cpdNonrigid(file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile, intrp.param$beta, intrp.param$lambda, intrp.param$gamma, intrp.param$sigma, intrp.param$max.iter )
+  }else{
+    transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile)
+  }
+
+  #get atlas plate
+  k<-which(abs(coordinate-atlasIndex$mm.from.origin)==min(abs(coordinate-atlasIndex$mm.from.origin)))
+  atlas<-EPSatlas$plates[[k]]
+
+  #upsample and transform the atlas
+  numPaths <- atlas@summary@numPaths
+  scale.factor <- mean(c(532/max(atlas[[1]]@paths$path@x), 598/max(atlas[[1]]@paths$path@y) ) )  # 456/97440 #scale factor needed
+  outlines <- list()
+
+  #quartz()
+  #par(mar=c(0, 0, 0, 0))
+  #plot(c(0, dim(img)[2]), c(0, dim(img)[1]), axes = F, asp = 1, col = 0, xlab = "", ylab = "", ylim = c(dim(img)[1],   0))
+  # rasterImage(img, 0, 0, dim(img)[2], dim(img)[1])
+  #lines(targetP.x, targetP.y, col='red')
+  #lines(referenceP.x, referenceP.y, col='blue')
+
+  for (i in 1:numPaths) {
+    x <- 4*(atlas[[i]]@paths$path@x*scale.factor*0.5 - centroidNorm[1])
+    y <- 4*( (-atlas[[i]]@paths$path@y*scale.factor+598)*0.5 - centroidNorm[2])
+    index <- cbind(as.integer(round(y)), as.integer(round(x)))
+    xT <- (x + (transformationgrid$mx[index] - x))
+    yT <- (y + (transformationgrid$my[index] - y))
+    outlines[[i]] <- list(x = x, y = y, xT = xT, yT = yT)
+  }
+
+
+  #plot output
+  if(display){
+    img <- paste(outputfile, "_undistorted.png", sep = "")
+    img <- readPNG(img)
+    img = as.raster(img[, ])
+    par(xaxs = "r", yaxs = "r", mar=c(0,0,0,0), bg='black')
+    plot(c(0, dim(img)[2] * 2), c(0, dim(img)[1]), axes = F,
+         asp = 1, col = 0, xlab = "", ylab = "", ylim = c(dim(img)[1],
+                                                          0))
+    polygon(c(-5, dim(img)[2] + 5, dim(img)[2] + 5, -5), c(-5,
+                                                           -5, dim(img)[1] + 5, dim(img)[1] + 5), col = "orange")
+    polygon(c(-5 + dim(img)[2], 2 * dim(img)[2] + 5, 2 * dim(img)[2] +
+                5, -5 + dim(img)[2]), c(-5, -5, dim(img)[1] + 5, dim(img)[1] +
+                                          5), col = "purple")
+    rasterImage(img, 0, 0, dim(img)[2], dim(img)[1])
+    rasterImage(img, dim(img)[2], 0, 2 * dim(img)[2], dim(img)[1])
+    abline(v = dim(img)[2], lwd = 2, col = "white")
+    lapply(2:numPaths, function(x) {
+      polygon(outlines[[x]]$x, outlines[[x]]$y, border = "orange")
+    })
+    lapply(2:numPaths, function(x) {
+      polygon(dim(img)[2] + outlines[[x]]$xT, outlines[[x]]$yT,
+              border = "purple")
+    })
+    lapply(1:length(targetP.x), function(x) {
+      points(c(targetP.x[x] + dim(img)[2], referenceP.x[x]),
+             c(targetP.y[x], referenceP.y[x]), pch = c(19), col = "black",
+             cex = 1.8)
+      text(c(targetP.x[x] + dim(img)[2], referenceP.x[x]),
+           c(targetP.y[x], referenceP.y[x]), label = x, col = "white",
+           cex = 0.7)
+    })
+
+  }
+
+  #return a registration list
+  returnlist <- list(atlas = list(outlines = outlines, numRegions = numPaths,
+                                  col = unlist(lapply(1:numPaths, function(x) {
+                                    atlas[[x]]@paths$path@rgb
+                                  }))), transformationgrid = transformationgrid, correspondance = data.frame(targetP.x,
+                                                                                                             targetP.y, referenceP.x, referenceP.y, shape), centroidAtlas = centroidAtlas,
+                     centroidNorm = centroidNorm, coordinate = coordinate, resize = resize,
+                     outputfile = outputfile, plane = NA)
+  return(returnlist)
+
+
 }
+
+
 
 cpdNonrigid<-function(file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile, beta, lambda, gamma, sigma, max.iter ){
   output<-.Call("CoherentPointDriftRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile, beta, lambda, gamma, sigma^2, max.iter)
