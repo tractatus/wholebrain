@@ -1,5 +1,5 @@
 .onAttach<-function(...){
-    packageStartupMessage("WholeBrain (version 0.1.3) \"Thurstone\" \n by Daniel Fürth, 2018, by using this software you agree to the EULA")
+    packageStartupMessage("WholeBrain (version 0.1.35) \"Thurstone\" \n by Daniel Fürth, 2018, by using this software you agree to the EULA")
     
  	get_os <- function(){
   		sysinf <- Sys.info()

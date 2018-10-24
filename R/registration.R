@@ -488,7 +488,7 @@ registration2<- function(input,
   if(display){
     img <- paste(outputfile, "_undistorted.png", sep = "")
     img <- readPNG(img)
-    if(dim(img)>2){
+    if(length(dim(img))>2){
       img = as.raster(img[, , ])
     }else{
       img = as.raster(img[, ])
