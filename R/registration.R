@@ -798,7 +798,11 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
         img<-paste(outputfile,'_undistorted.png', sep='')
         img <- readPNG(img)
 
-        img = as.raster(img[,])
+        if(length(dim(img))>2){
+          img = as.raster(img[, , ])
+        }else{
+          img = as.raster(img[, ])
+        }
 
         #img <- apply(img, 2, rev)
         if(batch.mode){img <- apply(img, 2, rev)}
