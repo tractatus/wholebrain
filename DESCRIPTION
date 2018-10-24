@@ -8,7 +8,16 @@ Maintainer: Daniel Fürth <furth@cshl.edu>
 Description: Mouse neuroanatomy for R. 
 License: GPL-3
 NeedsCompilation: yes
-Imports: Rcpp (>= 0.11.0), png, MASS, grImport, sp, rgl, misc3d, plyr
+Imports: 
+	Rcpp (>= 0.11.0), 
+	png, 
+	MASS, 
+	grImport, 
+	sp, 
+	rgl, 
+	misc3d, 
+	plyr,
+	ROpenCVLite (>= 0.1.34.1)
 LinkingTo: Rcpp
 Depends: Rcpp (>= 0.11.0), png, MASS, grImport, sp, rgl, misc3d, plyr
 Suggests: plotrix (>= 3.5-12), knitr
