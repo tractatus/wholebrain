@@ -488,7 +488,12 @@ registration2<- function(input,
   if(display){
     img <- paste(outputfile, "_undistorted.png", sep = "")
     img <- readPNG(img)
-    img = as.raster(img[, ])
+    if(dim(img)>2){
+      img = as.raster(img[, , ])
+    }else{
+      img = as.raster(img[, ])
+    }
+    
     par(xaxs = "r", yaxs = "r", mar=c(0,0,0,0), bg='black')
     plot(c(0, dim(img)[2] * 2), c(0, dim(img)[1]), axes = F,
          asp = 1, col = 0, xlab = "", ylab = "", ylim = c(dim(img)[1],

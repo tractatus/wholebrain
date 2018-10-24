@@ -120,6 +120,13 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
     Mat img = imread(ffname, -1);
     int channelOfInterest = Rcpp::as<int>(channelOI);
 
+        
+    if(channelOfInterest != 0){
+        Mat bgr[3];   //destination array
+        split(img,bgr);//split source
+        img = bgr[3-channelOfInterest];
+    }
+
     if(img.type()==16){
         //if RGB image 8bit
         Mat bgr[3];   //destination array
