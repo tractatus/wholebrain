@@ -599,15 +599,14 @@ registration<- function(input, coordinate=NULL, plane="coronal", right.hemispher
     outputfile<-strsplit(outputfile, "\\.")[[1]]
     outputfile<-paste(outputfile[-length(outputfile)], collapse='.')
 
-    defaultwd<-getwd()
-
-    if(output.folder=='./'){
-      parentpath<-dirname(input)[1]
-    }
-    if(output.folder=='../'){
-      parentpath<-dirname(dirname(input))[1]
-    }
-
+    defaultwd<-getwd() 
+    if (file.exists(output.folder)){ 
+      parentpath <- output.folder
+    } else if (output.folder == "./") {
+      parentpath <- dirname(input)[1]
+    } else if (output.folder == "../") {
+      parentpath <- dirname(dirname(input))[1]
+    } 
     outfolder<-paste('output', outputfile, sep='_')
     setwd(parentpath)
     create.output.directory(outfolder, verbose=verbose)
