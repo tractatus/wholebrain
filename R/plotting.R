@@ -565,15 +565,11 @@ if(plane=="sagittal"){
                     }
                      }else{
                     if(pch%in%c(21:25)){
-                  points((dataset$ML * scale * 1000 + bregmaX) * 
-                    97440/456/25 + 1748.92, (8210 + dataset$DV * 
-                    scale * 1000 - bregmaY) * 97440/456/25, pch = pch, 
+                  points((dataset$ML * 1000) * 97440/456/25+ (97440/2), (8210 + dataset$DV * 1000 - bregmaY) * 97440/456/25, pch = pch, 
                     bg = as.character(dataset$color), col=col, cex = cex)
                     }
                     if(!(pch%in%c(21:25))){
-                    points((dataset$ML * scale * 1000 + bregmaX) * 
-                    97440/456/25 + 1748.92, (8210 + dataset$DV * 
-                    scale * 1000 - bregmaY) * 97440/456/25, pch = pch, 
+                    points((dataset$ML * 1000) * 97440/456/25+ (97440/2), (8210 + dataset$DV * 1000 - bregmaY) * 97440/456/25, pch = pch, 
                     col = as.character(dataset$color), cex = cex)
                     }
                     
@@ -801,7 +797,7 @@ cortical.sideview<-function(dataset, right.hemisphere = TRUE, labels = TRUE,  co
   polygon(region[which(sideview$acronym=='cerebellum'),1:2], col=gray(graylight))
   polygon(region[which(sideview$acronym=='telencephalon'),1:2], col=gray(graylight))
   
-  cortical<-unique(region$acronym[which(nchar(sideview$acronym)<=5)] )
+  cortical<-unique(sideview$acronym[which(nchar(sideview$acronym)<=5)] )
   
   lapply(cortical, function(x){polygon(sideview[which(sideview$acronym==x),1:2], lty=3, col=gray(graylight+0.05))} )
   
@@ -1009,7 +1005,7 @@ isocortex <- get.acronym.child(get.acronym.child(get.acronym.child("Isocortex"))
 isocortex <- append(isocortex, get.acronym.child(get.acronym.child("Isocortex")))
 isocortex <- na.omit(isocortex)
 isocortex <- dataset$acronym %in% isocortex
-isocortex <- (isocortex & (abs(dataset$DV) > dv.cut) )
+isocortex <- (isocortex & (dataset$DV > dv.cut) )
 
 if(!is.null(col)){
   color<-col
@@ -1037,20 +1033,20 @@ points(dataset$ML[isocortex], dataset$AP[isocortex], pch = pch, cex = cex, col =
 #' @param pt.bg background (fill) color for the open plot symbols given by pch = 21:25.
 #' @examples
 #' cortical.sideview(dataset, right.hemisphere = FALSE, labels = FALSE)
-cortical.sideview<-function(dataset, right.hemisphere = TRUE, ml.cut = 2.0, show.sections = TRUE, labels = TRUE,  col = NULL, pch = 16, pt.bg = NULL){
+cortical.sideview<-function(dataset, right.hemisphere = TRUE, ml.cut = 2.0, show.sections = TRUE, labels = TRUE,  col = NULL, pch = 16, pt.bg = NULL, cex = 1){
   hemisphere<-c('Left hemisphere', 'Right hemisphere')
   xlim<-rbind(c(5,-7), c(-7, 5))
-  plot(region[,1:2], xlim=xlim[right.hemisphere + 1,], asp=1, ylim=c(-7,0), col=0, axes=F, ylab='Dorso-ventral [mm]', xlab='Anterior-posterior [mm]')
+  plot(sideview[,1:2], xlim=xlim[right.hemisphere + 1,], asp=1, ylim=c(-7,0), col=0, axes=F, ylab='Dorso-ventral [mm]', xlab='Anterior-posterior [mm]')
   mtext(hemisphere[right.hemisphere + 1], 3, 1, font=2)
   graylight<-0.9
   lapply(5:-8, function(x)abline(v=x, col='lightblue'))
   lapply(1:-8, function(x)abline(h=x, col='lightblue'))
   
-  polygon(region[which(sideview$acronym=='brainstem'),1:2], col=gray(graylight))
-  polygon(region[which(sideview$acronym=='cerebellum'),1:2], col=gray(graylight))
-  polygon(region[which(sideview$acronym=='telencephalon'),1:2], col=gray(graylight))
+  polygon(sideview[which(sideview$acronym=='brainstem'),1:2], col=gray(graylight))
+  polygon(sideview[which(sideview$acronym=='cerebellum'),1:2], col=gray(graylight))
+  polygon(sideview[which(sideview$acronym=='telencephalon'),1:2], col=gray(graylight))
   
-  cortical<-unique(region$acronym[which(nchar(sideview$acronym)<=5)] )
+  cortical<-unique(sideview$acronym[which(nchar(sideview$acronym)<=5)] )
   
   lapply(cortical, function(x){polygon(sideview[which(sideview$acronym==x),1:2], lty=3, col=gray(graylight+0.05))} )
   
@@ -1070,10 +1066,10 @@ cortical.sideview<-function(dataset, right.hemisphere = TRUE, ml.cut = 2.0, show
   if(show.sections)
     abline(v = unique(dataset$AP), col="gray")
   
-  points(dataset$AP[isocortex & dataset$right.hemisphere == right.hemisphere], dataset$DV[isocortex & dataset$right.hemisphere == right.hemisphere], pch = pch, col = color, pt.bg = pt.bg)  
+  points(dataset$AP[isocortex & dataset$right.hemisphere == right.hemisphere], dataset$DV[isocortex & dataset$right.hemisphere == right.hemisphere], pch = pch, col = color, pt.bg = pt.bg, cex = cex)
   
   if(labels)
-    lapply(cortical, function(x){coord<-apply(region[which(sideview$acronym==x),1:2], 2, median);text(coord[1], coord[2], x, cex=0.85, col=rgb(0.3,0,0.3))} )
+    lapply(cortical, function(x){coord<-apply(sideview[which(sideview$acronym==x),1:2], 2, median);text(coord[1], coord[2], x, cex=0.85, col=rgb(0.3,0,0.3))} )
   
   axis(2, at=c(0:-7), las=1)
   axis(1, at=c(5:-7))
