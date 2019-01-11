@@ -1,5 +1,5 @@
 PKG_LIBS = -L/usr/local/lib/ `pkg-config --libs opencv fftw3` -llapack `Rscript -e 'ROpenCVLite::opencvConfig("libs")'`
-PKG_CPPFLAGS = `pkg-config --cflags opencv fftw3` `Rscript -e 'ROpenCVLite::opencvConfig("libs")'`
+PKG_CPPFLAGS = `pkg-config --cflags opencv fftw3` `Rscript -e 'ROpenCVLite::opencvConfig("cflags")'`
 PKG_CXXFLAGS = `Rscript -e 'Rcpp:::CxxFlags()'` -I../inst/include "-std=c++11"
 
 
