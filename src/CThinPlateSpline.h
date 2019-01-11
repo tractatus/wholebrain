@@ -170,7 +170,7 @@ public:
 	void warpImage(const Mat& src, 
 		Mat& dst, 
 		float lambda = 0.001, 
-		const int interpolation = CV_INTER_CUBIC, 
+                   const int interpolation = cv::INTER_CUBIC,
 		const TPS_INTERPOLATION tpsInter = BACK_WARP);
 
 
