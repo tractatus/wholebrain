@@ -276,14 +276,15 @@ clock_t t0, t1;
     }
   }
 
-  IplImage *dvImg; // image used for output
-  CvSize imgSz; // size of output image
+  //IplImage *dvImg;  image used for output
+  cv::Size imgSz; // size of output image
 
   imgSz.width = J*colW;
   imgSz.height = 1*rowW;
 
-  dvImg = cvCreateImage( imgSz, 16, 1 );
-
+  //dvImg = cvCreateImage( imgSz, 16, 1 );
+  cv::Mat dvImg( imgSz, CV_16U);
+    
   /*for (int i = 0; i < imgSz.height; i++ ) {
     for (int j = 0; j < imgSz.width; j++ ){
       if ( detail[i][j] <= 0.0){
@@ -304,9 +305,9 @@ clock_t t0, t1;
       if ( detail[i][j] <= 0.0){
         detail[i][j] = 0.0;
       }
-
-      ((ushort*)(dvImg->imageData + dvImg->widthStep*i))[j] =
-       (short) (detail[i][j]); // use "max) * 65536.0" instead of max) * maxvue if normalie on single tile.  (short) ( (detail[i][j]/ max) * imageMax);
+        dvImg.at<ushort>(j,i) = (short) (detail[i][j]);
+      // ((ushort*)(dvImg->imageData + dvImg->widthStep*i))[j] = (short) (detail[i][j]);
+        // use "max) * 65536.0" instead of max) * maxvue if normalie on single tile.  (short) ( (detail[i][j]/ max) * imageMax);
     }
   }
 
@@ -348,7 +349,7 @@ clock_t t0, t1;
   }
 
 
-  Mat muppo = cvarrToMat(dvImg);
+  Mat muppo = dvImg.clone();
 
   //take out each separate detail coefficient.
   std::vector< int > x1;

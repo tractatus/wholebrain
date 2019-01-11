@@ -4,7 +4,6 @@
 #include "opencv2/opencv_modules.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/stitching.hpp"
 
 using namespace cv;
 using namespace std;
@@ -656,11 +655,11 @@ BEGIN_RCPP
 
 
   if(featurematching){
-    Mat pano;
-    bool try_use_gpu = false;
+    //Mat pano;
+    //bool try_use_gpu = false;
     if(verbose){Rcpp::Rcout << "\n" << std::endl;
   Rcpp::Rcout << "====== RUNNING FEATURE MATCHING STITCHER ======" << std::endl;}
-    Stitcher stitcher = Stitcher::createDefault(try_use_gpu);
+    /*Remove THIS BECAUSE NOT SUPPORTED MODULE Stitcher stitcher = Stitcher::createDefault(try_use_gpu);
     Stitcher::Status status = stitcher.stitch(imgs, pano);
  
     if (status != Stitcher::OK)
@@ -669,9 +668,10 @@ BEGIN_RCPP
            return R_NilValue;
     }
       if(verbose){Rcpp::Rcout << "====== FEATURE MATCHING DONE ======" << std::endl;
-
-  Rcpp::Rcout << "saving stitched image..." << std::endl;}
-
+  */
+  Rcpp::Rcout << "feature matching not supported anymore..." << std::endl;
+    //}
+/*
   string outputname;
   outputname =  outfolder + "/" + off;
   if(angle!=0){
@@ -705,7 +705,7 @@ BEGIN_RCPP
           double ScaleFactor = 600/(double)normalized.rows;
           resize(normalized, normalized, Size(), ScaleFactor, ScaleFactor, INTER_LINEAR);
         }
-  namedWindow( displaywindow, CV_WINDOW_AUTOSIZE);
+  namedWindow( displaywindow, cv::WINDOW_AUTOSIZE);
   imshow(displaywindow, normalized);
   Rcpp::Rcout << '\n' << "Press ESC to close Display window of "<< displaywindow << std::endl;
   while(k > 0){
@@ -717,7 +717,7 @@ BEGIN_RCPP
   }
   }
   }
-
+*/
 
   }else{
 
@@ -794,7 +794,7 @@ BEGIN_RCPP
           double ScaleFactor = 600/(double)normalized.rows;
           resize(normalized, normalized, Size(), ScaleFactor, ScaleFactor, INTER_LINEAR);
         }
-  namedWindow( displaywindow, CV_WINDOW_AUTOSIZE);
+  namedWindow( displaywindow, cv::WINDOW_AUTOSIZE);
   imshow(displaywindow, normalized);
   Rcpp::Rcout << '\n' << "Press ESC to close Display window of "<< displaywindow << std::endl;
   while(k > 0){

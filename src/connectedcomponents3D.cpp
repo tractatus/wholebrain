@@ -5,6 +5,7 @@
 #include "opencv2/opencv_modules.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include <opencv2/imgproc/types_c.h>
 
 using namespace cv;
 using namespace std;
@@ -336,7 +337,7 @@ BEGIN_RCPP
   float progress = 0.0;
 
   std::string ff(f[0]);
-  Mat remove = imread(ff, CV_LOAD_IMAGE_GRAYSCALE);
+  Mat remove = imread(ff, cv::ImreadModes::IMREAD_GRAYSCALE);
   //vector<Mat> zpositions(num_files);
   //int size[3] = { 561, 561, num_files };
   //Mat stack(3, size, CV_8UC1, cv::Scalar(0));
@@ -348,7 +349,7 @@ BEGIN_RCPP
   for (int i = 0; i < f.size(); i++){
     std::string filename(f[i]);
 
-    Mat src = imread(filename, CV_LOAD_IMAGE_GRAYSCALE);
+    Mat src = imread(filename, cv::IMREAD_UNCHANGED);
     Mat tmp;
     threshold(src, tmp, 0, 1, CV_THRESH_BINARY | CV_THRESH_OTSU );
     tmp.convertTo(tmp, CV_16U);

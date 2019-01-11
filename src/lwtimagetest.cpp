@@ -75,7 +75,7 @@ RcppExport SEXP liftScheme(SEXP input) {
 	int nc = img.channels();
 	//   uchar* ptr2 =(uchar*) img->imageData;
 	int pix_depth = img.depth();
-	CvSize size;
+    cv::Size size;
 	size.width =width;
 	size.height=height;
 	cout << "depth" << pix_depth <<  "Channels" << nc << endl;

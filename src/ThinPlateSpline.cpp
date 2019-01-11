@@ -134,7 +134,7 @@ RcppExport SEXP ThinPlateRegistration(SEXP input, SEXP srcX, SEXP srcY, SEXP dst
         if(channelOfInterest != 0){
             img = bgr[3-channelOfInterest];
         }else{
-            cvtColor(img,img,CV_RGB2GRAY);
+            cvtColor(img,img,COLOR_RGB2GRAY);
         }
     }
     

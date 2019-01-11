@@ -3,7 +3,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/imgcodecs/imgcodecs.hpp>
-
+#include <opencv2/imgproc/types_c.h>
 //for sleep
 #include <unistd.h>
 
@@ -318,7 +318,7 @@ public:
           //if area falls within the area limits given by R via "alim" parameter then draw the contour.
           if( (area0 > minArea) && (area0 < maxArea) && (eccentricity< (3*((double)eccentricityThresh/1000)+1) ) ){
             Scalar color(255, 255, 255);
-            drawContours( mask, contours, k, color, CV_FILLED, 8, hierarchy );
+            drawContours( mask, contours, k, color, cv::FILLED, 8, hierarchy );
       
           }
         }
@@ -339,7 +339,7 @@ public:
         //if area falls within the area limits given by R via "alim" parameter then draw the contour.
         if( (area0 > minArea) && (area0 < maxArea) ){
           Scalar color(255, 255, 255);
-          drawContours( mask, contours, k, color, CV_FILLED, 8, hierarchy, 0  );
+          drawContours( mask, contours, k, color, cv::FILLED, 8, hierarchy, 0  );
 
           if(endSegment){
            mu[k] = moments( contours[k], false );
@@ -347,7 +347,7 @@ public:
            centroidY.push_back( mu[k].m01/mu[k].m00 ); //
            contourSomaArea.push_back(area0);
             //mask.copyTo(labels);
-            drawContours(labels, contours, k, Scalar(k), CV_FILLED);
+            drawContours(labels, contours, k, Scalar(k), cv::FILLED);
             Rect roi = boundingRect(contours[k]);
             Scalar Avg = cv::mean( src(roi), labels(roi) == k);
             intensitySoma.push_back((double)Avg[0]);
@@ -386,7 +386,7 @@ public:
         if(hideFilter){
         }else{
         for( int i = 0; i< contours.size(); i++ ){
-          drawContours( dsp, contours, i, red, CV_FILLED, 8, hierarchy, 0 );
+          drawContours( dsp, contours, i, red, cv::FILLED, 8, hierarchy, 0 );
         }
           if(brainContours.size()>0){
             Scalar darkcyan = Scalar( 138, 138,14 );
@@ -399,7 +399,7 @@ public:
         Scalar color(255, 255, 255);
         findContours(dst, contours, hierarchy, RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
         for( int i = 0; i< contours.size(); i++ ){
-          drawContours( out, contours, i, color, CV_FILLED, 8, hierarchy, 0 );
+          drawContours( out, contours, i, color, cv::FILLED, 8, hierarchy, 0 );
         }
         //REMOVE
       }
@@ -415,7 +415,7 @@ public:
         Scalar color(255, 255, 255);
         findContours(dst, contours, hierarchy, RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
         for( int i = 0; i< contours.size(); i++ ){
-          drawContours( out, contours, i, color, CV_FILLED, 8, hierarchy, 0 );
+          drawContours( out, contours, i, color, cv::FILLED, 8, hierarchy, 0 );
         }
       }
     }
@@ -763,7 +763,7 @@ void showImage(){
     cv::Point(globalCoordinateX[0]+20, 41),
     cv::Point(globalCoordinateX[1]-4, 45),
     cv::Scalar(255, 255, 255),
-    CV_FILLED
+    cv::FILLED
      );
 
     string lowlimit = NumberToString( (int)(conversionFactor*(globalCoordinateX[0]-sliderMin)+intercept)  );
@@ -914,7 +914,7 @@ RcppExport SEXP imageshow(SEXP input, SEXP autoRange, SEXP  lq, SEXP uq, SEXP re
     mergewithBackground( &ui_backgroundImage, &ui_display, &widgets[6].storedImage, Point(widgets[6].x, widgets[6].y ) );
   
 
-  namedWindow("controls", CV_WINDOW_AUTOSIZE);
+    namedWindow("controls", cv::WINDOW_AUTOSIZE);
   imshow("controls", ui_display);
   moveWindow("controls", 600, 200);
 
@@ -1168,7 +1168,7 @@ BEGIN_RCPP
   }
 
   if(display){
-  namedWindow("controls", CV_WINDOW_AUTOSIZE);
+      namedWindow("controls", cv::WINDOW_AUTOSIZE);
   imshow("controls", ui_display);
   moveWindow("controls", 600, 200);
   }
@@ -1204,7 +1204,7 @@ BEGIN_RCPP
     if(channelOfInterest != 0){
       pd.src = bgr[3-channelOfInterest];
     }else{
-      cvtColor(pd.src,pd.src,CV_RGB2GRAY);
+      cvtColor(pd.src,pd.src,cv::COLOR_RGB2GRAY);
     }
     //bitwise_not ( pd.src, pd.src );
     //pd.src.convertTo(pd.src, CV_16S);

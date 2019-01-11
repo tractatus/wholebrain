@@ -53,8 +53,8 @@ BEGIN_RCPP
   Mat agea = imread(ageafname, -1);
 
   //resize(img, img, Size(), resizeParam, resizeParam, INTER_LINEAR);
-  cvtColor(mask , mask , CV_BGRA2GRAY);
-  cvtColor(agea , agea , CV_BGR2GRAY);  
+    cvtColor(mask , mask , cv::COLOR_BGR2GRAY);
+  cvtColor(agea , agea , cv::COLOR_BGR2GRAY);  
   bitwise_not( agea, agea );
   //GaussianBlur(agea, agea, 15, 2, 2)
   GaussianBlur(agea, agea, Size(15,15), 2);

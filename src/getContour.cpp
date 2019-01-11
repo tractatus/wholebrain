@@ -4,6 +4,7 @@
 #include "opencv2/opencv_modules.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include <opencv2/imgproc/types_c.h>
 
 using namespace cv;
 using namespace std;
@@ -160,7 +161,7 @@ BEGIN_RCPP
 
   /// Show in a window
   if(DISPLAY){
-    namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
+    namedWindow( "Contours", cv::WINDOW_AUTOSIZE );
     imshow( "Contours", drawing );
   }
   int largest_area=0;

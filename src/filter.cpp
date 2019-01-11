@@ -3,6 +3,7 @@
 #include "opencv2/opencv_modules.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include <opencv2/imgproc/types_c.h>
 
 // FFTW3
 #include "fftw3.h"
@@ -282,7 +283,7 @@ void stepwisethreshold(const cv::Mat& src, vector<int> thresholds, bool displayI
       //if area falls within the area limits given by R via "alim" parameter then draw the contour.
       if( (area0 > minArea) && (area0 < maxArea) ){
         Scalar color(255, 255, 255);
-        drawContours( mask, contours, k, color, CV_FILLED, 8, hierarchy );
+        drawContours( mask, contours, k, color, cv::FILLED, 8, hierarchy );
       }
     }
     //add the contours to the destination Mat.
@@ -299,7 +300,7 @@ void stepwisethreshold(const cv::Mat& src, vector<int> thresholds, bool displayI
     //if area falls within the area limits given by R via "alim" parameter then draw the contour.
     if( (area0 > minArea) && (area0 < maxArea) ){
         Scalar color(255, 255, 255);
-        drawContours( mask, contours, k, color, CV_FILLED, 8, hierarchy );
+        drawContours( mask, contours, k, color, cv::FILLED, 8, hierarchy );
     }
   }
   dst = mask;
@@ -409,7 +410,7 @@ public:
           //if area falls within the area limits given by R via "alim" parameter then draw the contour.
           if( (area0 > minArea) && (area0 < maxArea) && (eccentricity< (3*((double)eccentricityThresh/1000)+1) ) ){
             Scalar color(255, 255, 255);
-            drawContours( mask, contours, k, color, CV_FILLED, 8, hierarchy );
+            drawContours( mask, contours, k, color, cv::FILLED, 8, hierarchy );
       
           }
         }
@@ -428,7 +429,7 @@ public:
         //if area falls within the area limits given by R via "alim" parameter then draw the contour.
         if( (area0 > minArea) && (area0 < maxArea) ){
           Scalar color(255, 255, 255);
-          drawContours( mask, contours, k, color, CV_FILLED, 8, hierarchy, 0  );
+          drawContours( mask, contours, k, color, cv::FILLED, 8, hierarchy, 0  );
            mu[k] = moments( contours[k], false );
            centroidX.push_back( mu[k].m10/mu[k].m00 ); //
            centroidY.push_back( mu[k].m01/mu[k].m00 ); //
@@ -449,7 +450,7 @@ public:
         findContours(dst, contours, hierarchy, RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
         if(hideFilter){}else{
         for( int i = 0; i< contours.size(); i++ ){
-          drawContours( dsp, contours, i, red, CV_FILLED, 8, hierarchy, 0 );
+          drawContours( dsp, contours, i, red, cv::FILLED, 8, hierarchy, 0 );
         }
         }
         //REMOVE
@@ -458,7 +459,7 @@ public:
         Scalar color(255, 255, 255);
         findContours(dst, contours, hierarchy, RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
         for( int i = 0; i< contours.size(); i++ ){
-          drawContours( out, contours, i, color, CV_FILLED, 8, hierarchy, 0 );
+          drawContours( out, contours, i, color, cv::FILLED, 8, hierarchy, 0 );
         }
         //REMOVE
 
@@ -473,7 +474,7 @@ public:
         Scalar color(255, 255, 255);
         findContours(dst, contours, hierarchy, RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
         for( int i = 0; i< contours.size(); i++ ){
-          drawContours( out, contours, i, color, CV_FILLED, 8, hierarchy, 0 );
+          drawContours( out, contours, i, color, cv::FILLED, 8, hierarchy, 0 );
         }
       }
     }
@@ -1750,7 +1751,7 @@ BEGIN_RCPP
 
   for (size_t i = 0; i < contours.size(); ++i)
   {
-    drawContours(labels, contours, i, Scalar(i), CV_FILLED);
+    drawContours(labels, contours, i, Scalar(i), cv::FILLED);
     Rect roi = boundingRect(contours[i]);
     Scalar Avg = cv::mean( tobefiltered(roi), labels(roi) == i);
     contourAvgIntensity[i] = Avg[0];

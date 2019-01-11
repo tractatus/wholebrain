@@ -26,7 +26,7 @@ RcppExport SEXP loadImage(SEXP filename) {
   std::string ff(f[0]);
   img = imread(ff);
 
-  namedWindow("image", CV_WINDOW_AUTOSIZE);
+    namedWindow("image", cv::WINDOW_AUTOSIZE);
   imshow("image", img);
   waitKey(10000);
   destroyWindow("image");
@@ -39,7 +39,7 @@ RcppExport SEXP loadImage(SEXP filename) {
 RcppExport SEXP showImage(SEXP filename) {
   Rcpp::XPtr<cv::Mat> p(filename);
 
-  namedWindow("image", CV_WINDOW_AUTOSIZE);
+  namedWindow("image", cv::WINDOW_AUTOSIZE);
   imshow("image", *p);
   waitKey(10000);
   destroyWindow("image");

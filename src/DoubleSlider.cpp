@@ -219,7 +219,7 @@ void DoubleSlider :: updateImage(){ //intensitySliderImage.backgroundImage
     cv::Point(globalCoordinateX[0]+20, 41),
     cv::Point(globalCoordinateX[1]-4, 45),
     cv::Scalar(255, 255, 255),
-    CV_FILLED
+    cv::FILLED
      );
     lowerLimit = (int)(conversionFactor*(globalCoordinateX[0]-sliderMin)+intercept);
     upperLimit = (int)(conversionFactor*(globalCoordinateX[1]-sliderMin)+intercept);
@@ -227,20 +227,20 @@ void DoubleSlider :: updateImage(){ //intensitySliderImage.backgroundImage
     string upplimit = NumberToString( upperLimit );
     Point posLL(99-charLength*(lowlimit.size()), 48);
     Point posUL(720, 48);
-    putText(img3, lowlimit, posLL, fontFace, fontScale, Scalar::all(255), thickness, CV_AA);
-    putText(img3, upplimit, posUL, fontFace, fontScale, Scalar::all(255), thickness, CV_AA);
+    putText(img3, lowlimit, posLL, fontFace, fontScale, Scalar::all(255), thickness, cv::LINE_AA);
+    putText(img3, upplimit, posUL, fontFace, fontScale, Scalar::all(255), thickness, cv::LINE_AA);
 
-      putText(img3, axisLabelsString.at(0), pos1, fontFace, fontScale, Scalar::all(255), thickness, CV_AA);
-      putText(img3, axisLabelsString.at(1), pos2, fontFace, fontScale, Scalar::all(255), thickness, CV_AA);
-      putText(img3, axisLabelsString.at(2), pos3, fontFace, fontScale, Scalar::all(255), thickness, CV_AA);
-      putText(img3, axisLabelsString.at(3), pos4, fontFace, fontScale, Scalar::all(255), thickness, CV_AA);
-      putText(img3, axisLabelsString.at(4), pos5, fontFace, fontScale, Scalar::all(255), thickness, CV_AA);
-      putText(img3, axisLabelsString.at(5), pos6, fontFace, fontScale, Scalar::all(255), thickness, CV_AA);
-      putText(img3, axisLabelsString.at(6), pos7, fontFace, fontScale, Scalar::all(255), thickness, CV_AA);
+      putText(img3, axisLabelsString.at(0), pos1, fontFace, fontScale, Scalar::all(255), thickness, cv::LINE_AA);
+      putText(img3, axisLabelsString.at(1), pos2, fontFace, fontScale, Scalar::all(255), thickness, cv::LINE_AA);
+      putText(img3, axisLabelsString.at(2), pos3, fontFace, fontScale, Scalar::all(255), thickness, cv::LINE_AA);
+      putText(img3, axisLabelsString.at(3), pos4, fontFace, fontScale, Scalar::all(255), thickness, cv::LINE_AA);
+      putText(img3, axisLabelsString.at(4), pos5, fontFace, fontScale, Scalar::all(255), thickness, cv::LINE_AA);
+      putText(img3, axisLabelsString.at(5), pos6, fontFace, fontScale, Scalar::all(255), thickness, cv::LINE_AA);
+      putText(img3, axisLabelsString.at(6), pos7, fontFace, fontScale, Scalar::all(255), thickness, cv::LINE_AA);
 
 
      Point textOrg(598, 22);
-     putText(img3, textlabel, textOrg, fontFace, fontScale, Scalar::all(255), thickness, CV_AA);
+     putText(img3, textlabel, textOrg, fontFace, fontScale, Scalar::all(255), thickness, cv::LINE_AA);
 
 	displayImage = img3.clone(); //imshow("controls", img3);
 	img3.release();
