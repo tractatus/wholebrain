@@ -1,4 +1,4 @@
 CXX_STD = CXX11
-PKG_LIBS = $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "ROpenCVLite::opencvConfig('libs', arch = Sys.getenv('R_ARCH'))") -L"$(LIB_FFTW)/" -lfftw3-3
+PKG_LIBS = $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "ROpenCVLite::opencvConfig('libs', arch = Sys.getenv('R_ARCH'))") -L"$(LIB_FFTW)/" -lfftw3-3 -L..inst/include/x64
 PKG_CPPFLAGS = $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "ROpenCVLite::opencvConfig('cflags', arch = Sys.getenv('R_ARCH'))") -I"$(LIB_FFTW)/" -I../inst/include
 PKG_CXXFLAGS = $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "Rcpp:::CxxFlags()")
