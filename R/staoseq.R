@@ -113,13 +113,16 @@ merge.st.data<-function(datasets){
   return(master.data)
 }
 
-combine.st.data<-function(spots, registration, stdata, nuclei, corner=1){
+combine.st.data<-function(spots, registration, stdata, nuclei, corner=1, array.dim=c(35, 33), tol.dist=200, gz = FALSE){
     spots<-remove.spot.outliers(spots)
-    spot.id<-prune.spots(spots, corner=corner)
+    spot.id<-prune.spots(spots, corner=corner, array.dim = array.dim, tol.dist=tol.dist)
 
     cat("1/4 reading ST-data...\n")
-    rnaseq<-read.table(stdata)
-
+    if(gz==TRUE){
+        rnaseq<-read.table(gzfile(stdata))
+    }else{
+        rnaseq<-read.table(stdata)
+    }
     rna.seq.id<-strsplit(row.names(rnaseq),'x')
 
     rna.seq.id<-do.call(rbind, rna.seq.id)
