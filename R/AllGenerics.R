@@ -3,7 +3,7 @@ update.wholebrain<-function(){
 	detach('package:wholebrain', unload=TRUE)
 	remove.packages("wholebrain")
 	if( .Platform$OS.type=="windows" ){
-		devtools::install_github("tractatus/wholebrain", args='--no-multiarch')
+		devtools::install_github("tractatus/wholebrain", INSTALL_opts=c("--no-multiarch"))
 	}else{
 		devtools::install_github("tractatus/wholebrain")
 	}
