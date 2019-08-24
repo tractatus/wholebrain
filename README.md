@@ -40,7 +40,7 @@ http://www.wholebrainsoftware.org/cms/tutorials/
 
 #### Author(s)
 
-Daniel Fürth - [@wholebrainsuite](https://twitter.com/wholebrainsuite) - <daniel.furth@ki.se>
+Daniel Fürth - [@wholebrainsuite](https://twitter.com/wholebrainsuite) - <furth@cshl.edu>
 <a name="example"/>
 ### Example processing a single section
 
@@ -68,7 +68,7 @@ Register to coordinate 0.38 mm anterior-posterior from bregma.
 regi<-registration(images[1], coordinate= 0.38, filter=seg$filter)
 ```
 
-![corr.points](http://www.wholebrainsoftware.org/examples/images/correspondance_points.png)
+![corr.points](https://raw.githubusercontent.com/tractatus/wholebrain/master/inst/readmeimages/correspondance_points.png)
 **Figure 1.** *Correspondance points. Edit them with change.corrpoints(), add more points with add.corrpoints(), remove them with remove.corrpoints().*
 
 Get cell counts as well as stereotactic coordinates of each cell and display the results.
