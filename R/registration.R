@@ -695,11 +695,11 @@ registration <- function (input,
   # If no correspondance provided
   if (is.null(correspondance)) {
     # Try to look for pre-processed contour
-    if(!is.null(filter$biggest)){
-      contourInput <- filter$biggest
+    if(!is.null(filter$contour)){
+      contourInput <- filter$contour
       # This call to unique might be problematic
       # The original code looks for contour.ID of the which.min(x)
-      contoursI <- unique(filter$biggest$contour.ID)
+      contoursI <- unique(filter$contour$contour.ID)
       
       # We need to resize, otherwise the transformationgrid$mx[index] command
       # will give out of bounds errors
