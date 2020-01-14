@@ -79,7 +79,7 @@ stitch<-function(input, stitched.image.name = 'stitched_{default.folder}.tif', t
   if(micromanager){overlap<-overlap*2}
   
   grid.coordinates<-get.grid.coordinates(image.order, tilesize, overlap, rotate=rotate, dim = dim, plotgrid=F)
-  if(abs(rotate)<90){
+  if(abs(rotate)!=90){
     numcols<-find.dim(length(files))[1]
     numrows<-find.dim(length(files))[2]
   }else{

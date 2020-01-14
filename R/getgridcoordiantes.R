@@ -69,7 +69,7 @@ if(is.null(dim)){
     dim.height <- dim[2]
 }
   
-if (abs(rotate) < 90) {
+if (abs(rotate) != 90) {
     colTiles <- dim.width
     rowTiles <- dim.height
 }else {
