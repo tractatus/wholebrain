@@ -653,4 +653,51 @@ inside.blobs<-function(dataset, blobs){
     return(apply(do.call("cbind", test), 1, sum)>0)
   }
 }
+
+
+
+get.projection<-function(injection = c(AP, DV, ML), AP = numeric(), DV = numeric(), ML = numeric(), display = FALSE ){
+    
+    matched.scale<- round(c(paxTOallen(injection[1]), -injection[2]*1000/25, injection[3]*1000/25+456/2) *c(13150/528, 7900/320, 11200/456), 0)
+    url.download<-'http://connectivity.brain-map.org/projection/csv?criteria=service::mouse_connectivity_injection_coordinate[injection_structures$eq8,304325711][seed_point$eq%d,%d,%d][primary_structure_only$eqtrue][injection_distance_threshold$eq500]'
+    cat("Downloading from allen...\n")
+    allen.download<-read.table(url(sprintf(url.download, matched.scale[1], matched.scale[2], matched.scale[3])), sep=',', header=TRUE)
+    allen.download<-allen.download[which(allen.download$distance<500),]
+    experiment.id<-allen.download$id[which.max(allen.download$injection.volume)]
+    
+    file.to.download <- sprintf("http://api.brain-map.org/grid_data/download_file/%d??image=projection_density&resolution=100", experiment.id)
+    file.to.open<-download.file(file.to.download, 'trashThis.nrrd', method = 'curl')
+    
+    scale.factor<-8
+    src<-list(AP = integer(), DV= integer(), ML= integer())
+    src$AP<- as.integer(paxTOallen(injection[1])/scale.factor)
+    src$DV<- as.integer((-injection[2] * 1000/25)/scale.factor)
+    src$ML<- as.integer( (injection[3]* 1000/25 + 456/2)/scale.factor )
+    trgt<-list(AP = integer(), DV= integer(), ML= integer())
+    
+    trgt$AP <- as.integer(paxTOallen(AP)/scale.factor)
+    trgt$DV <- as.integer(-(DV) * 1000/25/scale.factor ) #as.integer(-(DV-1.75) * 1000/25/scale.factor )
+    trgt$ML <- as.integer( (ML* 1000/25 + 456/2)/scale.factor)
+    
+    VOL<-read.nrrd('trashThis.nrrd')
+    VOL<-VOL>0+0
+    VOL<-VOL[seq(1, dim(VOL)[1], by=2), seq(1, dim(VOL)[2], by=2), seq(1, dim(VOL)[3], by=2)]
+    
+    if(display){
+        plot(c(0, dim(VOL)[3]), c(dim(VOL)[2], 0), ylim=c(40, 0), asp=1, axes=FALSE, ylab='', xlab='', type='n')
+        rasterImage(VOL[src$AP, , ]>0, xleft = 0, ybottom = 40, xright = 57, ytop = 0)
+        points(src$ML, src$DV, pch=16, col='orange')
+        plot(c(0, dim(VOL)[3]), c(dim(VOL)[2], 0), ylim=c(40, 0), asp=1, axes=FALSE, ylab='', xlab='', type='n')
+        rasterImage(VOL[trgt$AP[3], , ]>0, xleft = 0, ybottom = 40, xright = 57, ytop = 0)
+        points(trgt$ML[1], trgt$DV[1], pch=16, col='purple')
+    }
+    
+    
+    paths<-list()
+    for(i in seq_along(trgt$AP)){
+        paths[[i]]<-searchPath(VOL, c(src$AP, src$DV, src$ML), c(trgt$AP[i], trgt$DV[i], trgt$ML[i]))
+    }
+
+    return(paths)
+}
  

@@ -29,6 +29,7 @@ export(draw.blobs)
 export(get.probe.paths)
 
 ## undocumented
+export(get.projection)
 export(update.wholebrain)
 export(inside.blobs)
 export(tracts3d)
