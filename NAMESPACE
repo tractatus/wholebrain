@@ -30,6 +30,8 @@ export(get.probe.paths)
 
 ## undocumented
 export(get.projection)
+export(get.projection.strength)
+export(get.region.from.coordinate)
 export(update.wholebrain)
 export(inside.blobs)
 export(tracts3d)

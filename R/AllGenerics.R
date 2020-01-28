@@ -1,3 +1,4 @@
+data(fig4, envir=environment())
 
 update.wholebrain<-function(){
 	detach('package:wholebrain', unload=TRUE)
@@ -654,6 +655,68 @@ inside.blobs<-function(dataset, blobs){
   }
 }
 
+get.region.from.coordinate<-function(AP, ML, DV){
+    url<-paste0('http://mouse.brain-map.org/agea/data/P56/voxel_info?seed=', round(-981.1*AP+5244.1,0), '%2C', round(abs(DV)*1000,0), '%2C', round(1000*(ML+11.256/2), 0) )
+    data<-data.frame(id = integer(), abbreviation = character(),  name = character(),  color = character()  )
+    for(i in seq_along(url)){
+        doc <- xmlParse(url[i])
+        doc<-xmlToDataFrame(xpathApply(doc, "//voxelInfo/voxel/label"))
+        data<-rbind(data, doc)
+    }
+    
+    return(data)
+}
+
+
+get.projection.strength<-function(target = cbind(AP, ML, DV), source = cbind(AP, ML, DV), figure = 4){
+    cat('Fetching from Allen atlas...\n')
+    if(figure == 4){
+        figX<-fig4
+    }else{
+        figX<-fig3
+    }
+    target.acronym<-get.region.from.coordinate(target[,1], target[,2], target[,3])$abbreviation
+    cat('DONE\n')
+    target.acronym<-as.character(target.acronym)
+    
+    simplify<-function(target.acronym, figX){
+        need.to.fetch <- target.acronym %in% row.names(figX$ipsi)
+        for(i in which(!need.to.fetch)){
+            parent <- get.acronym.parent(target.acronym[i])
+            if( parent %in% row.names(figX$ipsi) ){
+                target.acronym[i] <- parent
+            }
+        }
+        return(target.acronym)
+    }
+    
+    target.acronym<-simplify(target.acronym, figX)
+    
+    
+    source.acronym<-get.region.from.coordinate(source[,1], source[,2], source[,3])$abbreviation
+    source.acronym<-as.character(source.acronym)
+    source.acronym<-simplify(source.acronym, figX)
+    
+    ipsi<-figX$ipsi[which(row.names(figX$ipsi) %in% source.acronym ), which(row.names(figX$ipsi) %in% target.acronym )]
+    contra<-figX$contra[which(row.names(figX$contra) %in% source.acronym ), which(row.names(figX$contra) %in% target.acronym )]
+    connections<-list(ipsi = ipsi, contra = contra)
+    
+    labels.dir <- expand.grid(row.names(connections$ipsi), names(connections$ipsi))
+    
+    labels.dir <- apply( labels.dir , 1 , paste , collapse = " -> " )
+    
+    projections <- data.frame(projection = labels.dir, weight = matrix(data.matrix(connections$ipsi), ncol=1), contra = FALSE )
+    
+    labels.dir <- expand.grid(row.names(connections$contra), names(connections$contra))
+    
+    labels.dir <- apply( labels.dir , 1 , paste , collapse = " -> " )
+    
+    projections.tmp <- data.frame(projection = labels.dir, weight = matrix(data.matrix(connections$ipsi), ncol=1), contra = TRUE )
+    
+    connections$projections <- rbind(projections, projections.tmp)
+    
+    return(connections)
+}
 
 
 get.projection<-function(injection = c(AP, DV, ML), AP = numeric(), DV = numeric(), ML = numeric(), display = FALSE ){
