@@ -668,6 +668,7 @@ get.region.from.coordinate<-function(AP, ML, DV){
 }
 
 
+
 get.projection.strength<-function(target = cbind(AP, ML, DV), source = cbind(AP, ML, DV), figure = 4){
     cat('Fetching from Allen atlas...\n')
     if(figure == 4){
