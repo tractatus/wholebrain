@@ -1,4 +1,4 @@
-data(fig4, envir=environment())
+data(connectivity, envir=environment())
 
 update.wholebrain<-function(){
 	detach('package:wholebrain', unload=TRUE)
