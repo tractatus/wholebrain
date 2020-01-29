@@ -669,6 +669,7 @@ get.region.from.coordinate<-function(AP, ML, DV){
 
 
 
+
 get.projection.strength<-function(target = cbind(AP, ML, DV), source = cbind(AP, ML, DV), figure = 4){
     cat('Fetching from Allen atlas...\n')
     if(figure == 4){
@@ -691,6 +692,34 @@ get.projection.strength<-function(target = cbind(AP, ML, DV), source = cbind(AP,
         return(target.acronym)
     }
     
+    INSERT_NA_ROW <- function(indice, tabla) {
+        new_Row <- NA
+        colName<-names(tabla)
+        rowName<-row.names(tabla)
+        long <- NROW(tabla)
+        if(long>1){
+            new_Data<- rbind(tabla[1:indice,], new_Row ,tabla[(indice + 1):(long),])
+            new_Data<-t(new_Data)
+            tabla<- rbind(new_Data[1:indice,], new_Row ,new_Data[(indice + 1):(long),])
+            tabla<-data.frame(t(tabla))
+        }else{
+            new_Data<- tabla[1:(indice + 1),]
+            new_Data<-t(new_Data)
+            tabla<- rbind(new_Data[1:indice,], NA ,new_Data[(indice + 1):nrow(new_Data),])
+            tabla<-data.frame(t(tabla))
+        }
+        
+        names(tabla)[-(indice+1)]<-colName
+        row.names(tabla)[-(indice+1)]<-rowName
+        index<-which(row.names(tabla) == 'NA')
+        if(length(index)>0){
+            row.names(tabla)[index]<-paste('NA', seq_along(index), sep='.')
+            names(tabla)[index]<-paste('NA', seq_along(index), sep='.')
+        }
+        
+        return(tabla)
+    }
+    
     target.acronym<-simplify(target.acronym, figX)
     
     
@@ -699,7 +728,16 @@ get.projection.strength<-function(target = cbind(AP, ML, DV), source = cbind(AP,
     source.acronym<-simplify(source.acronym, figX)
     
     ipsi<-figX$ipsi[which(row.names(figX$ipsi) %in% source.acronym ), which(row.names(figX$ipsi) %in% target.acronym )]
+    for(i in which(source.acronym == 'NA') - 1){
+        ipsi<-INSERT_NA_ROW(i, ipsi)
+    }
+    
+    
     contra<-figX$contra[which(row.names(figX$contra) %in% source.acronym ), which(row.names(figX$contra) %in% target.acronym )]
+    for(i in which(source.acronym == 'NA') - 1){
+        contra<-INSERT_NA_ROW(i, contra)
+    }
+    
     connections<-list(ipsi = ipsi, contra = contra)
     
     labels.dir <- expand.grid(row.names(connections$ipsi), names(connections$ipsi))
