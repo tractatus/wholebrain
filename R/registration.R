@@ -572,28 +572,27 @@ cpdNonrigid<-function(file, targetP.x, targetP.y, referenceP.x, referenceP.y, re
 #' image<-'/Volumes/microscope/animal001/slide001/section001.tif'
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
-
-registration <- function (input,
-                          coordinate = NULL,
-                          plane = "coronal",
-                          right.hemisphere = NULL, 
-                          interpolation = "tps",
-                          intrp.param = NULL,
-                          brain.threshold = 200, 
-                          blurring = c(4, 15),
-                          pixel.resolution = 0.64,
-                          resize = (1/8)/4, 
-                          correspondance = NULL,
-                          resolutionLevel = c(4, 2),
-                          num.nested.objects = 0, 
-                          display = TRUE,
-                          plateimage = FALSE,
-                          forward.warp = FALSE, 
-                          filter = NULL,
-                          output.folder = "../",
-                          batch.mode = FALSE, 
-                          channel = 0,
-                          verbose = TRUE){
+registration_MLA <- function (input,
+                              coordinate = NULL,
+                              plane = "coronal",
+                              right.hemisphere = NULL, 
+                              interpolation = "tps",
+                              intrp.param = NULL,
+                              brain.threshold = 200, 
+                              blurring = c(4, 15),
+                              pixel.resolution = 0.64,
+                              resize = (1/8)/4, 
+                              correspondance = NULL,
+                              resolutionLevel = c(4, 2),
+                              num.nested.objects = 0, 
+                              display = TRUE,
+                              plateimage = FALSE,
+                              forward.warp = FALSE, 
+                              filter = NULL,
+                              output.folder = "../",
+                              batch.mode = FALSE, 
+                              channel = 0,
+                              verbose = TRUE){
   
   # We need to access this data that is part of the package
   data("EPSatlas", package = "wholebrain")
@@ -612,43 +611,15 @@ registration <- function (input,
       coordinate <- correspondance$coordinate
     }
   }
-  
-  # File checking #####
+  # File handling ####
   file <- as.character(input)
-  if (!file.exists(file)) 
-    stop(file, ", file not found")
-  # Generate filenames #####
-  file <- path.expand(file)
-  # Get the name of file
-  outputfile <- basename(file)
-  # remove extension
-  outputfile <- tools::file_path_sans_ext(outputfile)
+  print(file)
+  output_list <- regi_prep_files(file, output.folder, verbose=verbose)
+  # extract the values from the list
+  outputfile <- output_list$outputfile   
+  outfolder <- output_list$outfolder
   
-  # Set the output folder path
-  defaultwd <- getwd()
-  if (file.exists(output.folder)) {
-    parentpath <- output.folder
-  }
-  else if (output.folder == "./") {
-    parentpath <- dirname(input)[1]
-  }
-  else if (output.folder == "../") {
-    parentpath <- dirname(dirname(input))[1]
-  }
-  # Generate final output folder name
-  outfolder <- paste("output", outputfile, sep = "_")
-  # directory change needed to feed create.output.directory function
-  setwd(parentpath)
-  # create new directory for output files
-  # verbose wrapper of dir.create (wholebrain::create.outupt.directory)
-  create.output.directory(outfolder, verbose = verbose)
-  # Change directory back
-  setwd(defaultwd)
-  outputfile <- paste(parentpath, outfolder,
-                      paste("Registration", 
-                            outputfile, sep = "_"), sep = "/")
-  
-  # Get Contours #####
+  # Sagittal vs Coronal #####
   # atlasIndex object contains metadata for sections
   # subset according to plane of view
   # try View(atlasIndex)
@@ -657,15 +628,14 @@ registration <- function (input,
   if (plane == "sagittal") {
     EPSatlas <- SAGITTALatlas
     # subset sagittal plate from atlasIndex
-    atlasIndex <- atlasIndex[atlasIndex$plane == "sagittal", 
-                             ]
+    # atlasIndex <- dplyr::filter(atlasIndex, plane == "sagittal")
+    atlasIndex <- atlasIndex[atlasIndex$plane == "sagittal", ]
     plate.width <- 1.159292
     SAGITTAL <- !SAGITTAL
-  }
+  } 
   else {
     # subset coronal plate from atlasIndex
-    atlasIndex <- atlasIndex[atlasIndex$plane == "coronal", 
-                             ]
+    atlasIndex <- atlasIndex[atlasIndex$plane == "coronal", ]
   }
   # Try to look for plate image (only if provided in file)
   if (plateimage != FALSE) {
@@ -674,6 +644,8 @@ registration <- function (input,
       stop(plateimage, ", file not found")
     plateimage <- path.expand(plateimage)
   }
+
+  # Check Filter ------------------------------------------------------------
   # If filter was not provided set intensities for display 
   if (is.null(filter)) {
     MaxDisp <- 0
@@ -692,18 +664,20 @@ registration <- function (input,
   if (is.null(MinDisp)) {
     MinDisp <- 0
   }
+  # Check correspondance and assign pre-calculated filter -----
   # If no correspondance provided
   if (is.null(correspondance)) {
     # Try to look for pre-processed contour
-    if(!is.null(filter$contour)){
-      contourInput <- filter$contour
+    if(!is.null(filter$biggest)){
+      contourInput <- filter$biggest
       # This call to unique might be problematic
       # The original code looks for contour.ID of the which.min(x)
-      contoursI <- unique(filter$contour$contour.ID)
+      contoursI <- unique(filter$biggest$contour.ID)
       
       # We need to resize, otherwise the transformationgrid$mx[index] command
       # will give out of bounds errors
-
+      # let's try something like
+      
       contourInput$x <- resize * contourInput$x
       contourInput$y <- resize * contourInput$y
       
@@ -753,58 +727,53 @@ registration <- function (input,
     # Generate empty lists 
     cor.pointsInput <- list()
     cor.pointsAtlas <- list()
-    
-    # Enter the void :)
+
     for (i in 1:length(contours)) {
       # Toggle resLevel value depending on whether contours is 0
-      if (contours[i] == 0) {
-        # use low level
-        resLevel <- resolutionLevel[1]
-      }
-      else {
-        # use high level
-        resLevel <- resolutionLevel[2]
-      }
-      # Perform correspondences for atlas image
-      # This makes use of wholebrain::automatic.correspondences and other helper functions
-      # Helper functions need annotation!
-      # We could potentially perform
-      # contourAtlas_frame <- contourAtlas %>% as.data.frame() # put outside of the loop
-      # and feed this instead of cbind (readability improvement ?)
-      # as.matrix(contourAtlas_frame)[which(contourAtlas_frame$contour.ID == contours[i]), ]
-      cor.pointsAtlas[[i]] <- automatic.correspondences(cbind(contourAtlas$x[which(contourAtlas$contour.ID == 
-                                                                                     contours[i])], contourAtlas$y[which(contourAtlas$contour.ID == 
-                                                                                                                           contours[i])]), resLevel, plot = FALSE)
+      resLevel <- ifelse(contours[i] == 0, resolutionLevel[1], resolutionLevel[2])
+      
+      corr_matrix_atlas <- cbind(contourAtlas$x[which(contourAtlas$contour.ID == contours[i])],
+                                 contourAtlas$y[which(contourAtlas$contour.ID == contours[i])])
+      
+      corr_matrix_input <- cbind(contourInput$x[which(contourInput$contour.ID == contoursI[i])],
+                                 contourInput$y[which(contourInput$contour.ID == contoursI[i])])
+
+      # Get the automatic correspondances
+      cor.pointsAtlas[[i]] <- automatic.correspondences(corr_matrix_atlas, resLevel, plot = FALSE)
       # Perform correspondences for Input image
-      cor.pointsInput[[i]] <- automatic.correspondences(cbind(contourInput$x[which(contourInput$contour.ID == 
-                                                                                     contoursI[i])], contourInput$y[which(contourInput$contour.ID == 
-                                                                                                                            contoursI[i])]), resLevel, plot = FALSE)
+      cor.pointsInput[[i]] <- automatic.correspondences(corr_matrix_input, resLevel, plot = FALSE)
     }
     # Get the correspondance coordinates into a list 
     cor.points <- list(atlas = cor.pointsAtlas, input = cor.pointsInput)
     
-    
+
+    # Get Centroids -----------------------------------------------------------
     centroidAtlas <- cor.points$atlas[[1]]$q[1, ]
+    centroidInput <- cor.points$input[[1]]$q[1,]
+      
     # Where does this 456/2 come from ? how flexible is it ?       
-    offsetAtlas <- centroidAtlas - 456/2
+    # offsetAtlas defined but not used ?
+    # offsetAtlas <- centroidAtlas - 456/2
+  
     targetP.x <- numeric()
     referenceP.x <- numeric()
     targetP.y <- numeric()
     referenceP.y <- numeric()
     shape <- numeric()
-    centroidNorm <- centroidAtlas - cor.points$input[[1]]$q[1, 
-                                                            ]
+    # Get the difference
+    centroidNorm <- centroidAtlas - centroidInput
+    
     for (i in 1:length(contours)) {
-      referenceP.x <- append(referenceP.x, 4 * (cor.points$atlas[[i]]$p[, 
-                                                                        1] - centroidNorm[1]))
-      referenceP.y <- append(referenceP.y, 4 * (cor.points$atlas[[i]]$p[, 
-                                                                        2] - centroidNorm[2]))
-      targetP.x <- append(targetP.x, 4 * cor.points$input[[i]]$p[, 
-                                                                 1])
-      targetP.y <- append(targetP.y, 4 * cor.points$input[[i]]$p[, 
-                                                                 2])
-      shape <- append(shape, rep(i, length(cor.points$input[[i]]$p[, 
-                                                                   2])))
+      # where is the 4 coming from !?
+      referenceP.x <- append(referenceP.x,
+                             4 * (cor.points$atlas[[i]]$p[, 1] - centroidNorm[1]))
+      referenceP.y <- append(referenceP.y,
+                             4 * (cor.points$atlas[[i]]$p[, 2] - centroidNorm[2]))
+      targetP.x <- append(targetP.x,
+                          4 * cor.points$input[[i]]$p[, 1])
+      targetP.y <- append(targetP.y,
+                          4 * cor.points$input[[i]]$p[, 2])
+      shape <- append(shape, rep(i, length(cor.points$input[[i]]$p[, 2])))
     }
   }
   else {
@@ -817,7 +786,12 @@ registration <- function (input,
     centroidNorm <- correspondance$centroidNorm
     centroidAtlas <- correspondance$centroidAtlas
   }
+  
+  # ??? -----
   resizeP <- resize * 4
+  
+
+  # Create transformationgrid -----------------------------------------------
   if (interpolation == "cpd") {
     if (is.null(intrp.param)) {
       intrp.param <- list(beta = 3, lambda = 3, gamma = 0.7, 
@@ -847,13 +821,15 @@ registration <- function (input,
   k <- which(abs(coordinate - atlasIndex$mm.from.bregma) == min_dist)
   
   
-  # EPSatlas #####
+  # Scaling using EPSatlas #####
   # Where does this scaling factor come from, how flexible is it ? 
-  xmin <- (plane != "sagittal") * (min(EPSatlas$plates[[k]][[1]]@paths$path@x) - 
-                                     97440/2)
+  xmin <- (plane != "sagittal") * (min(EPSatlas$plates[[k]][[1]]@paths$path@x) - 97440/2)
+  
+  # get the number of paths on the specific plate
   numPaths <- EPSatlas$plates[[k]]@summary@numPaths
   # Where does this scaling factor come from, how flexible is it ? 
   scale.factor <- 456/97440
+  # get the color to plot each line
   style <- EPSatlas$plate.info[[k]]$style
   outlines <- list()
   for (i in 1:numPaths) {
@@ -869,14 +845,16 @@ registration <- function (input,
       yl <- 4 * (((-EPSatlas$plates[[k]][[i]]@paths$path@y) * 
                     scale.factor + 320) - centroidNorm[2])
       index <- cbind(as.integer(round(yr)), as.integer(round(xr)))
-      # TODO: These lines throw uninformative subset errors
-      # Code should check whether is even possible to do subset
-      # The code relies on the resize parameter...should that be improved ???
-      # Unless the resize is within bound, it will break here with no info
-      
+
+      # transformationgrid[index] can create error out of bounds
+      # use helper to fix the index if needed (see fix_index())
+      index <- fix_index(index, transformationgrid$mx)
+      # now do the subset
       xrT <- (xr + (transformationgrid$mx[index] - xr))
       yrT <- (yr + (transformationgrid$my[index] - yr))
+      # repeat for the left side
       index <- cbind(as.integer(round(yl)), as.integer(round(xl)))
+      index <- fix_index(index, transformationgrid$mx)
       xlT <- (xl + (transformationgrid$mx[index] - xl))
       ylT <- (yl + (transformationgrid$my[index] - yl))
     }
@@ -1002,7 +980,6 @@ registration <- function (input,
   }
   return(returnlist)
 }
-
 
 add.corrpoints<-function(registration, n.points=NULL){
   print("Begin with Target image (right) then add same point in reference atlas (left)")
@@ -1808,3 +1785,74 @@ testregistration<-function(input, brain.threshold = 200, verbose=TRUE){
   .Call("ThinPlateRegistration", file, as.integer(threshold), as.integer(verbose))
 }
 
+# Helper function to prevent indexing issues
+fix_index <- function(index, trans_grid) {
+  # This function was writen to prevent index out of bounds on transformationgrid
+  #Browse[2]> apply(index,2,max)
+  #    rows columns
+  #[1] 1307 2029
+  #Browse[2]> dim(transformationgrid$mx)
+  #[1] 1666 2400
+  # if the max row/col combination is greater than
+  # what transformationgrid object has, 
+  # you get out of bounds error!  
+  
+  # helper function to fix the dimensions
+  fix_dimension <- function(values, max_value){
+    return(ifelse(values > max_value, max_value, values))
+  }
+  
+  # check whether we need to do anything
+  fix_dims <- any(dim(trans_grid) < apply(index, 2, max))
+  
+  if (fix_dims) {
+    index <- sapply(1:ncol(index),
+                    function(tt) fix_dimension(values = index[,tt],
+                                               max_value = dim(trans_grid)[tt]))
+    message("Avoiding crash due to out of bounds error on transformationgrid indexing.\nResults might be suboptimal, you might want to change resize parameter")
+    
+  } else {
+    # do nothing
+  }
+  return(index)
+}
+
+# Helper function to deal with files
+regi_prep_files <- function(file, output.folder, verbose){
+  # File checking #####
+  
+  if (!file.exists(file)) 
+    stop(file, ", file not found")
+  # Generate filenames #####
+  file <- path.expand(file)
+  # Get the name of file
+  outputfile <- basename(file)
+  # remove extension
+  outputfile <- tools::file_path_sans_ext(outputfile)
+  
+  # Set the output folder path
+  defaultwd <- getwd()
+  if (file.exists(output.folder)) {
+    parentpath <- output.folder
+  }
+  else if (output.folder == "./") {
+    parentpath <- dirname(input)[1]
+  }
+  else if (output.folder == "../") {
+    parentpath <- dirname(dirname(input))[1]
+  }
+  # Generate final output folder name
+  outfolder <- paste("output", outputfile, sep = "_")
+  # directory change needed to feed create.output.directory function
+  setwd(parentpath)
+  # create new directory for output files
+  # verbose wrapper of dir.create (wholebrain::create.outupt.directory)
+  create.output.directory(outfolder, verbose = verbose)
+  # Change directory back
+  setwd(defaultwd)
+  outputfile <- paste(parentpath, outfolder,
+                      paste("Registration", 
+                            outputfile, sep = "_"), sep = "/")
+  
+  return(list(outfolder=outfolder, outputfile=outputfile))
+} 
