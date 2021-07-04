@@ -572,7 +572,7 @@ cpdNonrigid<-function(file, targetP.x, targetP.y, referenceP.x, referenceP.y, re
 #' image<-'/Volumes/microscope/animal001/slide001/section001.tif'
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
-registration_MLA <- function (input,
+registration <- function (input,
                               coordinate = NULL,
                               plane = "coronal",
                               right.hemisphere = NULL, 
