@@ -572,413 +572,279 @@ cpdNonrigid<-function(file, targetP.x, targetP.y, referenceP.x, referenceP.y, re
 #' image<-'/Volumes/microscope/animal001/slide001/section001.tif'
 #' #register the image
 #' registration(image, AP=1.05, brain.threshold=220)
-registration <- function (input,
-                              coordinate = NULL,
-                              plane = "coronal",
-                              right.hemisphere = NULL, 
-                              interpolation = "tps",
-                              intrp.param = NULL,
-                              brain.threshold = 200, 
-                              blurring = c(4, 15),
-                              pixel.resolution = 0.64,
-                              resize = (1/8)/4, 
-                              correspondance = NULL,
-                              resolutionLevel = c(4, 2),
-                              num.nested.objects = 0, 
-                              display = TRUE,
-                              plateimage = FALSE,
-                              forward.warp = FALSE, 
-                              filter = NULL,
-                              output.folder = "../",
-                              batch.mode = FALSE, 
-                              channel = 0,
-                              verbose = TRUE){
+
+registration<- function(input, coordinate=NULL, plane="coronal", right.hemisphere=NULL, interpolation='tps', intrp.param=NULL, brain.threshold = 200, blurring=c(4,15), pixel.resolution=0.64, resize=(1/8)/4, correspondance=NULL, resolutionLevel=c(4,2), num.nested.objects=0, display=TRUE, plateimage = FALSE, forward.warp=FALSE, filter=NULL, output.folder='../', batch.mode=FALSE, channel = 0, verbose=TRUE){
+  if(.Platform$OS.type=="windows" | grepl("linux-gnu", R.version$os) ) {
+    
+    batch.mode=TRUE
+  }
   
-  # We need to access this data that is part of the package
-  data("EPSatlas", package = "wholebrain")
-  # Input check #####
-  # check platform and change batch.mode
-  if (.Platform$OS.type == "windows" | grepl("linux-gnu", R.version$os)) {
-    batch.mode = TRUE
-  }
-  # If not given, make coordinate = 0 
-  if (is.null(coordinate)) {
-    if (is.null(correspondance)) {
-      coordinate <- 0
-    }
-    else {
-      # Look for the coordinate on correspondance object
-      coordinate <- correspondance$coordinate
+  if(is.null(coordinate)){
+    if(is.null(correspondance)){
+      coordinate<-0
+    }else{
+      coordinate<-correspondance$coordinate
     }
   }
-  # File handling ####
+  
   file <- as.character(input)
-  print(file)
-  output_list <- regi_prep_files(file, output.folder, verbose=verbose)
-  # extract the values from the list
-  outputfile <- output_list$outputfile   
-  outfolder <- output_list$outfolder
+  ## check for existence
+  if(!file.exists(file))
+    stop(file, ", file not found")
+  file <- path.expand(file)
   
-  # Sagittal vs Coronal #####
-  # atlasIndex object contains metadata for sections
-  # subset according to plane of view
-  # try View(atlasIndex)
-  plate.width <- 1
-  SAGITTAL <- TRUE
-  if (plane == "sagittal") {
-    EPSatlas <- SAGITTALatlas
-    # subset sagittal plate from atlasIndex
-    # atlasIndex <- dplyr::filter(atlasIndex, plane == "sagittal")
-    atlasIndex <- atlasIndex[atlasIndex$plane == "sagittal", ]
-    plate.width <- 1.159292
-    SAGITTAL <- !SAGITTAL
+  
+  outputfile<-basename(file)
+  # outputfile<-sub("^([^.]*).*", "\\1", outputfile)
+  outputfile<-strsplit(outputfile, "\\.")[[1]]
+  outputfile<-paste(outputfile[-length(outputfile)], collapse='.')
+  
+  defaultwd<-getwd() 
+  if (file.exists(output.folder)){ 
+    parentpath <- output.folder
+  } else if (output.folder == "./") {
+    parentpath <- dirname(input)[1]
+  } else if (output.folder == "../") {
+    parentpath <- dirname(dirname(input))[1]
   } 
-  else {
-    # subset coronal plate from atlasIndex
-    atlasIndex <- atlasIndex[atlasIndex$plane == "coronal", ]
+  outfolder<-paste('output', outputfile, sep='_')
+  setwd(parentpath)
+  create.output.directory(outfolder, verbose=verbose)
+  setwd(defaultwd)
+  
+  outputfile<-paste(parentpath, outfolder, paste('Registration', outputfile, sep='_'), sep='/')
+  
+  
+  plate.width<-1
+  SAGITTAL<-TRUE#right.hemisphere change this if sgaittal not working
+  #get cutting plane
+  if(plane=="sagittal"){
+    EPSatlas<-SAGITTALatlas
+    atlasIndex<-atlasIndex[atlasIndex$plane=="sagittal", ]
+    plate.width<-1.159292
+    SAGITTAL<-!SAGITTAL
+  }else{
+    atlasIndex<-atlasIndex[atlasIndex$plane=="coronal", ]
   }
-  # Try to look for plate image (only if provided in file)
-  if (plateimage != FALSE) {
+  
+  
+  
+  if(plateimage!=FALSE){
     plateimage <- as.character(plateimage)
-    if (!file.exists(plateimage)) 
+    ## check for existence
+    if(!file.exists(plateimage))
       stop(plateimage, ", file not found")
     plateimage <- path.expand(plateimage)
-  }
-
-  # Check Filter ------------------------------------------------------------
-  # If filter was not provided set intensities for display 
-  if (is.null(filter)) {
-    MaxDisp <- 0
-    MinDisp <- 0
-  }
-  # Otherwise get the info from the provided filter
-  else {
-    MaxDisp <- filter$Max
-    MinDisp <- filter$Min
-    brain.threshold <- filter$brain.threshold
-    resize <- filter$resize
-    # blurring[1] is used for image
-    # blurring[2] is used for atlas
-    blurring[1] <- filter$blur
-  }
-  if (is.null(MinDisp)) {
-    MinDisp <- 0
-  }
-  # Check correspondance and assign pre-calculated filter -----
-  # If no correspondance provided
-  if (is.null(correspondance)) {
-    # Try to look for pre-processed contour
-    if(!is.null(filter$biggest)){
-      contourInput <- filter$biggest
-      # This call to unique might be problematic
-      # The original code looks for contour.ID of the which.min(x)
-      contoursI <- unique(filter$biggest$contour.ID)
-      
-      # We need to resize, otherwise the transformationgrid$mx[index] command
-      # will give out of bounds errors
-      # let's try something like
-      
-      contourInput$x <- resize * contourInput$x
-      contourInput$y <- resize * contourInput$y
-      
-      
-    } else {
-      # Get contour from C .Call to "getcontour"
-      # Returns list with xy coordinates and contour ID
-      contourInput <- get.contour(file, 
-                                  thresh = brain.threshold,
-                                  resize = resize,
-                                  blur = blurring[1],
-                                  num.nested.objects = num.nested.objects, 
-                                  channel = channel, display = FALSE)
-      
-      # get the contour.ID number of the min x coordinate
-      # This is done for each id
-      
-      contoursI <- as.numeric(names(sort(tapply(contourInput$x, 
-                                                contourInput$contour.ID, min))))
-      
-      # Slower but consider readability
-      # contoursI <- contourInput %>% 
-      #	as.data.frame() %>%
-      #	group_by(contour.ID) %>%
-      #	summarise(x_min = min(x)) %>% 
-      #	arrange(contour.ID) %>%
-      #	pull(contour.ID)
-    }
     
-    
-    # Get atlas binary image with helper function
-    # see ?wholebrain::get.atlas.image
-    filename <- get.atlas.image(coordinate,
-                                right.hemisphere = right.hemisphere, 
-                                plane = plane)
-    # Get contour for the atlas image
-    contourAtlas <- get.contour(filename,
-                                resize = 1,
-                                # blurring[2] is used for atlas
-                                blur = blurring[2], 
-                                num.nested.objects = num.nested.objects,
-                                display = FALSE)
-    
-    contours <- as.numeric(names(sort(tapply(contourAtlas$x, 
-                                             contourAtlas$contour.ID, min))))
-    
-    # Generate empty lists 
-    cor.pointsInput <- list()
-    cor.pointsAtlas <- list()
-
-    for (i in 1:length(contours)) {
-      # Toggle resLevel value depending on whether contours is 0
-      resLevel <- ifelse(contours[i] == 0, resolutionLevel[1], resolutionLevel[2])
-      
-      corr_matrix_atlas <- cbind(contourAtlas$x[which(contourAtlas$contour.ID == contours[i])],
-                                 contourAtlas$y[which(contourAtlas$contour.ID == contours[i])])
-      
-      corr_matrix_input <- cbind(contourInput$x[which(contourInput$contour.ID == contoursI[i])],
-                                 contourInput$y[which(contourInput$contour.ID == contoursI[i])])
-
-      # Get the automatic correspondances
-      cor.pointsAtlas[[i]] <- automatic.correspondences(corr_matrix_atlas, resLevel, plot = FALSE)
-      # Perform correspondences for Input image
-      cor.pointsInput[[i]] <- automatic.correspondences(corr_matrix_input, resLevel, plot = FALSE)
-    }
-    # Get the correspondance coordinates into a list 
-    cor.points <- list(atlas = cor.pointsAtlas, input = cor.pointsInput)
-    
-
-    # Get Centroids -----------------------------------------------------------
-    centroidAtlas <- cor.points$atlas[[1]]$q[1, ]
-    centroidInput <- cor.points$input[[1]]$q[1,]
-      
-    # Where does this 456/2 come from ? how flexible is it ?       
-    # offsetAtlas defined but not used ?
-    # offsetAtlas <- centroidAtlas - 456/2
-  
-    targetP.x <- numeric()
-    referenceP.x <- numeric()
-    targetP.y <- numeric()
-    referenceP.y <- numeric()
-    shape <- numeric()
-    # Get the difference
-    centroidNorm <- centroidAtlas - centroidInput
-    
-    for (i in 1:length(contours)) {
-      # where is the 4 coming from !?
-      referenceP.x <- append(referenceP.x,
-                             4 * (cor.points$atlas[[i]]$p[, 1] - centroidNorm[1]))
-      referenceP.y <- append(referenceP.y,
-                             4 * (cor.points$atlas[[i]]$p[, 2] - centroidNorm[2]))
-      targetP.x <- append(targetP.x,
-                          4 * cor.points$input[[i]]$p[, 1])
-      targetP.y <- append(targetP.y,
-                          4 * cor.points$input[[i]]$p[, 2])
-      shape <- append(shape, rep(i, length(cor.points$input[[i]]$p[, 2])))
-    }
-  }
-  else {
-    correspondance$correspondance <- na.omit(correspondance$correspondance)
-    targetP.x <- correspondance$correspondance[, 1]
-    targetP.y <- correspondance$correspondance[, 2]
-    referenceP.x <- correspondance$correspondance[, 3]
-    referenceP.y <- correspondance$correspondance[, 4]
-    shape <- correspondance$correspondance[, 5]
-    centroidNorm <- correspondance$centroidNorm
-    centroidAtlas <- correspondance$centroidAtlas
   }
   
-  # ??? -----
-  resizeP <- resize * 4
-  
-
-  # Create transformationgrid -----------------------------------------------
-  if (interpolation == "cpd") {
-    if (is.null(intrp.param)) {
-      intrp.param <- list(beta = 3, lambda = 3, gamma = 0.7, 
-                          sigma = 0, max.iter = 150)
-    }
-    transformationgrid <- cpdNonrigid(file, targetP.x, targetP.y, 
-                                      referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, 
-                                      outputfile, intrp.param$beta, intrp.param$lambda, 
-                                      intrp.param$gamma, intrp.param$sigma, intrp.param$max.iter)
+  if(is.null(filter)){
+    MaxDisp<-0
+    MinDisp<-0
+  }else{
+    MaxDisp<-filter$Max
+    MinDisp<-filter$Min
+    brain.threshold<-filter$brain.threshold
+    resize<-filter$resize
+    blurring[1]<-filter$blur
   }
-  else {
-    # Call C "ThinPlateRegistration"
-    # Returns list: mx, my, width, height
-    # List of 4
-    # $ mx    : num [1:1928, 1:2400] 1 1 0 0 0 0 -1 -1 -1 -1 ...
-    # $ my    : num [1:1928, 1:2400] 0 1 1 2 3 4 5 6 7 8 ...
-    # $ width : int 1200
-    # $ height: int 964
+  if(is.null(MinDisp)){
+    MinDisp<-0
+  }
+  
+  
+  if(is.null(correspondance)){
+    #scale.factor<-pixel.resolution*0.390625
     
-    transformationgrid <- .Call("ThinPlateRegistration", 
-                                file, targetP.x, targetP.y, referenceP.x, referenceP.y, 
-                                resizeP, MaxDisp, MinDisp, outputfile, channel)
-  }
-  
-  # find the closest plate to the coordinate
-  min_dist <- min(abs(coordinate - atlasIndex$mm.from.bregma))
-  k <- which(abs(coordinate - atlasIndex$mm.from.bregma) == min_dist)
-  
-  
-  # Scaling using EPSatlas #####
-  # Where does this scaling factor come from, how flexible is it ? 
-  xmin <- (plane != "sagittal") * (min(EPSatlas$plates[[k]][[1]]@paths$path@x) - 97440/2)
-  
-  # get the number of paths on the specific plate
-  numPaths <- EPSatlas$plates[[k]]@summary@numPaths
-  # Where does this scaling factor come from, how flexible is it ? 
-  scale.factor <- 456/97440
-  # get the color to plot each line
-  style <- EPSatlas$plate.info[[k]]$style
-  outlines <- list()
-  for (i in 1:numPaths) {
-    if (is.null(right.hemisphere)) {
-      # Do the scaling math 
-      xr <- 4 * ((EPSatlas$plates[[k]][[i]]@paths$path@x - 
-                    xmin) * scale.factor - centroidNorm[1])
-      yr <- 4 * (((-EPSatlas$plates[[k]][[i]]@paths$path@y) * 
-                    scale.factor + 320) - centroidNorm[2])
-      xl <- 4 * ((-(EPSatlas$plates[[k]][[i]]@paths$path@x - 
-                      xmin - (plate.width * 97440)/2) + (plate.width * 
-                                                           97440)/2) * scale.factor - centroidNorm[1])
-      yl <- 4 * (((-EPSatlas$plates[[k]][[i]]@paths$path@y) * 
-                    scale.factor + 320) - centroidNorm[2])
-      index <- cbind(as.integer(round(yr)), as.integer(round(xr)))
-
-      # transformationgrid[index] can create error out of bounds
-      # use helper to fix the index if needed (see fix_index())
-      index <- fix_index(index, transformationgrid$mx)
-      # now do the subset
-      xrT <- (xr + (transformationgrid$mx[index] - xr))
-      yrT <- (yr + (transformationgrid$my[index] - yr))
-      # repeat for the left side
-      index <- cbind(as.integer(round(yl)), as.integer(round(xl)))
-      index <- fix_index(index, transformationgrid$mx)
-      xlT <- (xl + (transformationgrid$mx[index] - xl))
-      ylT <- (yl + (transformationgrid$my[index] - yl))
-    }
-    else {
-      if (right.hemisphere == SAGITTAL) {
-        xr <- 4 * ((EPSatlas$plates[[k]][[i]]@paths$path@x - 
-                      xmin) * scale.factor - centroidNorm[1])
-        yr <- 4 * (((-EPSatlas$plates[[k]][[i]]@paths$path@y) * 
-                      scale.factor + 320) - centroidNorm[2])
-        xl <- NA
-        yl <- NA
-        index <- cbind(as.integer(round(yr)), as.integer(round(xr)))
-        xrT <- (xr + (transformationgrid$mx[index] - 
-                        xr))
-        yrT <- (yr + (transformationgrid$my[index] - 
-                        yr))
-        xlT <- NA
-        ylT <- NA
+    #get correspondance points for input image
+    contourInput<-get.contour(file, thresh=brain.threshold, resize=resize, blur=blurring[1], num.nested.objects=num.nested.objects, channel = channel, display=FALSE)
+    contoursI<-as.numeric(names(sort(tapply(contourInput$x,contourInput$contour.ID, min))))
+    
+    #get correspondance points for atlas
+    filename<-get.atlas.image(coordinate, right.hemisphere=right.hemisphere, plane=plane)
+    contourAtlas<-get.contour(filename, resize=1, blur=blurring[2], num.nested.objects=num.nested.objects, display=FALSE)
+    
+    contours<-as.numeric(names(sort(tapply(contourAtlas$x,contourAtlas$contour.ID, min))))
+    cor.pointsInput<-list()
+    cor.pointsAtlas<-list()
+    for(i in 1:length(contours) ){
+      if(contours[i]==0){
+        resLevel<-resolutionLevel[1]
+      }else{
+        resLevel<-resolutionLevel[2]
       }
-      else {
-        xr <- NA
-        yr <- NA
-        xl <- 4 * ((-(EPSatlas$plates[[k]][[i]]@paths$path@x - 
-                        xmin - (plate.width * 97440)/2) + (plate.width * 
-                                                             97440)/2) * scale.factor - centroidNorm[1])
-        yl <- 4 * (((-EPSatlas$plates[[k]][[i]]@paths$path@y) * 
-                      scale.factor + 320) - centroidNorm[2])
-        xrT <- NA
-        yrT <- NA
-        index <- cbind(as.integer(round(yl)), as.integer(round(xl)))
-        xlT <- (xl + (transformationgrid$mx[index] - 
-                        xl))
-        ylT <- (yl + (transformationgrid$my[index] - 
-                        yl))
+      cor.pointsAtlas[[i]]<-automatic.correspondences(cbind(contourAtlas$x[which(contourAtlas$contour.ID==contours[i])],contourAtlas$y[which(contourAtlas$contour.ID==contours[i])]), resLevel, plot=FALSE)
+      cor.pointsInput[[i]]<-automatic.correspondences(cbind(contourInput$x[which(contourInput$contour.ID==contoursI[i])],contourInput$y[which(contourInput$contour.ID==contoursI[i])]), resLevel, plot=FALSE)
+    }
+    
+    cor.points<-list(atlas=cor.pointsAtlas, input=cor.pointsInput)
+    
+    centroidAtlas<-cor.points$atlas[[1]]$q[1,]
+    offsetAtlas<-centroidAtlas-456/2
+    
+    targetP.x<-numeric()
+    referenceP.x<-numeric()
+    targetP.y<-numeric()
+    referenceP.y<-numeric()
+    shape<-numeric()
+    
+    #scale.reference<-mean(c((max(contourInput$x)-min(contourInput$x))/(max(contourAtlas$x)-min(contourAtlas$x)),(max(contourInput$y)-min(contourInput$y))/(max(contourAtlas$y)-min(contourAtlas$y)) ) )
+    
+    #centroidNorm<-scale.reference*centroidAtlas-cor.points$input[[1]]$q[1,]
+    centroidNorm<-centroidAtlas-cor.points$input[[1]]$q[1,]
+    for(i in 1:length(contours) ){
+      #referenceP.x<-append(referenceP.x, (scale.reference*cor.points$atlas[[i]]$p[,1]-centroidNorm[1]))
+      #referenceP.y<-append(referenceP.y, (scale.reference*cor.points$atlas[[i]]$p[,2]-centroidNorm[2]))
+      referenceP.x<-append(referenceP.x, 4*(cor.points$atlas[[i]]$p[,1]-centroidNorm[1]))
+      referenceP.y<-append(referenceP.y, 4*(cor.points$atlas[[i]]$p[,2]-centroidNorm[2]))
+      
+      targetP.x<-append(targetP.x, 4*cor.points$input[[i]]$p[,1])
+      targetP.y<-append(targetP.y, 4*cor.points$input[[i]]$p[,2])
+      shape<-append(shape, rep(i, length(cor.points$input[[i]]$p[,2])))
+    }
+    
+  }else{
+    correspondance$correspondance<-na.omit(correspondance$correspondance)
+    targetP.x<-correspondance$correspondance[,1]
+    targetP.y<-correspondance$correspondance[,2]
+    referenceP.x<-correspondance$correspondance[,3]
+    referenceP.y<-correspondance$correspondance[,4]
+    shape<-correspondance$correspondance[,5]
+    centroidNorm<-correspondance$centroidNorm
+    centroidAtlas<-correspondance$centroidAtlas
+  }
+  
+  resizeP<-resize*4
+  #resizeP<-resize*4
+  #resizeP<-(25/resizeP)
+  #resizeP<-(pixel.resolution/resizeP)
+  #(1/8)
+  #/4)*9.75
+  
+  if(interpolation=='cpd'){
+    if(is.null(intrp.param)){
+      intrp.param<-list(beta = 3.0, lambda = 3.0, gamma = 0.7, sigma = 0.0, max.iter = 150)
+    }
+    transformationgrid<-cpdNonrigid(file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile, intrp.param$beta, intrp.param$lambda, intrp.param$gamma, intrp.param$sigma, intrp.param$max.iter )
+  }else{
+    transformationgrid<-.Call("ThinPlateRegistration", file, targetP.x, targetP.y, referenceP.x, referenceP.y, resizeP, MaxDisp, MinDisp, outputfile, channel)
+  } 
+  
+  
+  #transform outlines
+  k<-which(abs(coordinate-atlasIndex$mm.from.bregma)==min(abs(coordinate-atlasIndex$mm.from.bregma)))
+  xmin<-(plane!='sagittal')*(min(EPSatlas$plates[[k]][[1]]@paths$path@x)-97440/2)
+  
+  
+  numPaths<-EPSatlas$plates[[k]]@summary@numPaths
+  scale.factor<-456/97440
+  style<-EPSatlas$plate.info[[k]]$style
+  
+  outlines<-list()
+  for(i in 1:numPaths){
+    if(is.null(right.hemisphere)){
+      xr<-4*((EPSatlas$plates[[k]][[i]]@paths$path@x-xmin)*scale.factor-centroidNorm[1])
+      yr<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
+      xl<-4*((-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin - (plate.width*97440)/2)+(plate.width*97440)/2)*scale.factor-centroidNorm[1])
+      yl<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
+      
+      
+      index<-cbind(as.integer(round(yr)), as.integer(round(xr)))
+      xrT<-(xr+(transformationgrid$mx[index]-xr) )
+      yrT<-(yr+(transformationgrid$my[index]-yr) )
+      
+      index<-cbind(as.integer(round(yl)), as.integer(round(xl)))
+      xlT<-(xl+(transformationgrid$mx[index]-xl) )
+      ylT<-(yl+(transformationgrid$my[index]-yl) )
+    }else{
+      if(right.hemisphere==SAGITTAL){
+        xr<-4*((EPSatlas$plates[[k]][[i]]@paths$path@x-xmin)*scale.factor-centroidNorm[1])
+        yr<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
+        xl<-NA
+        yl<-NA
+        
+        
+        index<-cbind(as.integer(round(yr)), as.integer(round(xr)))
+        xrT<-(xr+(transformationgrid$mx[index]-xr) )
+        yrT<-(yr+(transformationgrid$my[index]-yr) )
+        
+        
+        xlT<-NA
+        ylT<-NA
+        
+      }else{
+        xr<-NA
+        yr<-NA
+        xl<-4*((-(EPSatlas$plates[[k]][[i]]@paths$path@x-xmin - (plate.width*97440)/2)+(plate.width*97440)/2)*scale.factor-centroidNorm[1])
+        yl<-4*(((-EPSatlas$plates[[k]][[i]]@paths$path@y)*scale.factor+320)-centroidNorm[2])
+        
+        xrT<-NA
+        yrT<-NA
+        
+        index<-cbind(as.integer(round(yl)), as.integer(round(xl)))
+        xlT<-(xl+(transformationgrid$mx[index]-xl) )
+        ylT<-(yl+(transformationgrid$my[index]-yl) )
       }
     }
-    outlines[[i]] <- list(xr = xr, yr = yr, xl = xl, yl = yl, 
-                          xrT = xrT, yrT = yrT, xlT = xlT, ylT = ylT)
+    
+    outlines[[i]]<-list(xr  = xr, yr = yr, xl = xl, yl = yl, xrT = xrT, yrT= yrT, xlT = xlT, ylT = ylT)
   }
-  # Display results #####
-  if (display) {
-    par(yaxs = "i", xaxs = "i", bg = "black", mar = c(0, 
-                                                      0, 0, 0))
-    img <- paste(outputfile, "_undistorted.png", sep = "")
+  
+  
+  
+  if(display){
+    par(yaxs='i', xaxs='i', bg='black', mar=c(0,0,0,0)) 
+    img<-paste(outputfile,'_undistorted.png', sep='')
     img <- readPNG(img)
-    if (length(dim(img)) > 2) {
+    
+    if(length(dim(img))>2){
       img = as.raster(img[, , ])
-    }
-    else {
+    }else{
       img = as.raster(img[, ])
     }
-    if (batch.mode) {
-      img <- apply(img, 2, rev)
-    }
-    par(xaxs = "r", yaxs = "r")
-    plot(c(0, dim(img)[2] * 2), c(0, dim(img)[1]), axes = F, 
-         asp = 1, col = 0, xlab = "", ylab = "", ylim = c(dim(img)[1], 
-                                                          0))
-    polygon(c(-5, dim(img)[2] + 5, dim(img)[2] + 5, -5), 
-            c(-5, -5, dim(img)[1] + 5, dim(img)[1] + 5), col = "orange")
-    polygon(c(-5 + dim(img)[2], 2 * dim(img)[2] + 5, 2 * 
-                dim(img)[2] + 5, -5 + dim(img)[2]), c(-5, -5, dim(img)[1] + 
-                                                        5, dim(img)[1] + 5), col = "purple")
-    rasterImage(img, 0, 0, dim(img)[2], dim(img)[1])
-    rasterImage(img, dim(img)[2], 0, 2 * dim(img)[2], dim(img)[1])
-    abline(v = dim(img)[2], lwd = 2, col = "white")
-    if (is.null(right.hemisphere)) {
-      lapply(1:numPaths, function(x) {
-        polygon(outlines[[x]]$xr, outlines[[x]]$yr, border = "orange")
-      })
-      lapply(1:numPaths, function(x) {
-        polygon(outlines[[x]]$xl, outlines[[x]]$yl, border = "orange")
-      })
-      lapply(1:numPaths, function(x) {
-        polygon(dim(img)[2] + outlines[[x]]$xrT, outlines[[x]]$yrT, 
-                border = "purple")
-      })
-      lapply(1:numPaths, function(x) {
-        polygon(dim(img)[2] + outlines[[x]]$xlT, outlines[[x]]$ylT, 
-                border = "purple")
-      })
-    }
-    else {
-      if (right.hemisphere == SAGITTAL) {
-        lapply(1:numPaths, function(x) {
-          polygon(outlines[[x]]$xr, outlines[[x]]$yr, 
-                  border = "orange")
-        })
-        lapply(1:numPaths, function(x) {
-          polygon(dim(img)[2] + outlines[[x]]$xrT, outlines[[x]]$yrT, 
-                  border = "purple")
-        })
-      }
-      else {
-        lapply(1:numPaths, function(x) {
-          polygon(outlines[[x]]$xl, outlines[[x]]$yl, 
-                  border = "orange")
-        })
-        lapply(1:numPaths, function(x) {
-          polygon(dim(img)[2] + outlines[[x]]$xlT, outlines[[x]]$ylT, 
-                  border = "purple")
-        })
+    
+    #img <- apply(img, 2, rev)
+    if(batch.mode){img <- apply(img, 2, rev)}
+    
+    par(xaxs='r', yaxs='r')
+    plot(c(0, dim(img)[2]*2),c(0, dim(img)[1]), axes=F, asp=1, col=0, xlab='', ylab='', ylim=c(dim(img)[1],0))
+    polygon(c(-5, dim(img)[2]+5, dim(img)[2]+5, -5), c(-5, -5, dim(img)[1]+5, dim(img)[1]+5) , col='orange')
+    polygon(c(-5+ dim(img)[2], 2*dim(img)[2]+5, 2*dim(img)[2]+5, -5+ dim(img)[2]), c(-5, -5, dim(img)[1]+5, dim(img)[1]+5) , col='purple')
+    rasterImage(img,0,0, dim(img)[2], dim(img)[1])
+    rasterImage(img,dim(img)[2],0, 2*dim(img)[2], dim(img)[1])
+    abline(v=dim(img)[2], lwd=2, col='white')
+    
+    if(is.null(right.hemisphere)){     
+      lapply(1:numPaths, function(x){polygon(outlines[[x]]$xr,outlines[[x]]$yr, border='orange' )})
+      lapply(1:numPaths, function(x){polygon(outlines[[x]]$xl,outlines[[x]]$yl, border='orange' )})
+      
+      lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xrT,outlines[[x]]$yrT, border='purple' )})
+      lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xlT,outlines[[x]]$ylT, border='purple' )})
+    }else{
+      if(right.hemisphere==SAGITTAL){
+        lapply(1:numPaths, function(x){polygon(outlines[[x]]$xr,outlines[[x]]$yr, border='orange' )})
+        lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xrT,outlines[[x]]$yrT, border='purple' )})
+      }else{
+        lapply(1:numPaths, function(x){polygon(outlines[[x]]$xl,outlines[[x]]$yl, border='orange' )})
+        lapply(1:numPaths, function(x){polygon(dim(img)[2]+outlines[[x]]$xlT,outlines[[x]]$ylT, border='purple' )})
       }
     }
-    lapply(1:length(targetP.x), function(x) {
-      points(c(targetP.x[x] + dim(img)[2], referenceP.x[x]), 
-             c(targetP.y[x], referenceP.y[x]), pch = c(19), 
-             col = "black", cex = 1.8)
-      text(c(targetP.x[x] + dim(img)[2], referenceP.x[x]), 
-           c(targetP.y[x], referenceP.y[x]), label = x, 
-           col = "white", cex = 0.7)
-    })
+    
+    #lapply(unique(shape), function(x){polygon(referenceP.x[which(shape==x)], referenceP.y[which(shape==x)], col=rgb(1,1,0.1,0.3), border=rgb(1,1,0.1))})
+    #lapply(unique(shape), function(x){polygon(targetP.x[which(shape==x)], targetP.y[which(shape==x)], col=rgb(0.1,1,1,0.3), border=rgb(0.1,1,1))})
+    # lines(c(targetP.x[x],referenceP.x[x]) , c(targetP.y[x],referenceP.y[x]), col=x ); 
+    lapply(1:length(targetP.x), function(x){points(c(targetP.x[x]+dim(img)[2],referenceP.x[x]) , c(targetP.y[x],referenceP.y[x]), pch=c(19), col='black', cex=1.8); text(c(targetP.x[x]+dim(img)[2],referenceP.x[x]) , c(targetP.y[x],referenceP.y[x]), label=x, col='white', cex=0.7) } )
+    #legend('topright', c('Target section', 'Reference atlas', 'Overlap'), pch=c(21,23,22), col='black', bg='white', horiz=TRUE,pt.bg=c(rgb(0.1,1,1,0.3), rgb(1,1,0.1,0.3), rgb(0.72,1,0.8)))
   }
-  style <- EPSatlas$plate.info[[k]]$style
-  returnlist <- list(atlas = list(outlines = outlines, numRegions = numPaths, 
-                                  col = style), transformationgrid = transformationgrid, 
-                     correspondance = data.frame(targetP.x, targetP.y, referenceP.x, 
-                                                 referenceP.y, shape), centroidAtlas = centroidAtlas, 
-                     centroidNorm = centroidNorm, coordinate = coordinate, 
-                     resize = resize, outputfile = outputfile, plane = plane)
-  if (forward.warp) {
-    returnlist <- get.forward.warp(returnlist)
+  
+  style<-EPSatlas$plate.info[[k]]$style
+  
+  returnlist<-list(atlas=list(outlines=outlines, numRegions=numPaths, col=style), transformationgrid=transformationgrid, correspondance=data.frame(targetP.x, targetP.y, referenceP.x, referenceP.y, shape), centroidAtlas=centroidAtlas, centroidNorm = centroidNorm, coordinate=coordinate, resize= resize, outputfile=outputfile, plane=plane )
+  if(forward.warp){
+    returnlist<-get.forward.warp(returnlist)
   }
   return(returnlist)
+  #return(data.frame(r.x=referenceP.x, r.y=referenceP.y, t.x=targetP.x, t.y=targetP.y))
 }
 
 add.corrpoints<-function(registration, n.points=NULL){
@@ -1784,75 +1650,3 @@ testregistration<-function(input, brain.threshold = 200, verbose=TRUE){
   threshold<-brain.threshold
   .Call("ThinPlateRegistration", file, as.integer(threshold), as.integer(verbose))
 }
-
-# Helper function to prevent indexing issues
-fix_index <- function(index, trans_grid) {
-  # This function was writen to prevent index out of bounds on transformationgrid
-  #Browse[2]> apply(index,2,max)
-  #    rows columns
-  #[1] 1307 2029
-  #Browse[2]> dim(transformationgrid$mx)
-  #[1] 1666 2400
-  # if the max row/col combination is greater than
-  # what transformationgrid object has, 
-  # you get out of bounds error!  
-  
-  # helper function to fix the dimensions
-  fix_dimension <- function(values, max_value){
-    return(ifelse(values > max_value, max_value, values))
-  }
-  
-  # check whether we need to do anything
-  fix_dims <- any(dim(trans_grid) < apply(index, 2, max))
-  
-  if (fix_dims) {
-    index <- sapply(1:ncol(index),
-                    function(tt) fix_dimension(values = index[,tt],
-                                               max_value = dim(trans_grid)[tt]))
-    message("Avoiding crash due to out of bounds error on transformationgrid indexing.\nResults might be suboptimal, you might want to change resize parameter")
-    
-  } else {
-    # do nothing
-  }
-  return(index)
-}
-
-# Helper function to deal with files
-regi_prep_files <- function(file, output.folder, verbose){
-  # File checking #####
-  
-  if (!file.exists(file)) 
-    stop(file, ", file not found")
-  # Generate filenames #####
-  file <- path.expand(file)
-  # Get the name of file
-  outputfile <- basename(file)
-  # remove extension
-  outputfile <- tools::file_path_sans_ext(outputfile)
-  
-  # Set the output folder path
-  defaultwd <- getwd()
-  if (file.exists(output.folder)) {
-    parentpath <- output.folder
-  }
-  else if (output.folder == "./") {
-    parentpath <- dirname(input)[1]
-  }
-  else if (output.folder == "../") {
-    parentpath <- dirname(dirname(input))[1]
-  }
-  # Generate final output folder name
-  outfolder <- paste("output", outputfile, sep = "_")
-  # directory change needed to feed create.output.directory function
-  setwd(parentpath)
-  # create new directory for output files
-  # verbose wrapper of dir.create (wholebrain::create.outupt.directory)
-  create.output.directory(outfolder, verbose = verbose)
-  # Change directory back
-  setwd(defaultwd)
-  outputfile <- paste(parentpath, outfolder,
-                      paste("Registration", 
-                            outputfile, sep = "_"), sep = "/")
-  
-  return(list(outfolder=outfolder, outputfile=outputfile))
-} 
